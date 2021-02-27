@@ -536,6 +536,42 @@ public class Auto extends OpMode {
         //     (d) Wait some amount of time for the feeder servo to return
         //
 
+//        State toLaunchPosition = new TrajectoryFollowerState("Shooting",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected Trajectory createTrajectory() {
+//                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+//
+//                switch (deliverToTarget) {
+//                    case A:
+//                        trajectoryBuilder.back(16);
+//                        break;
+//                    case B:
+//                        trajectoryBuilder.strafeRight(34).back(16);
+//                        break;
+//                    case C:
+//                        trajectoryBuilder.back(64);
+//                        break;
+//                }
+//
+//                scoringMechanism.toPreloadRingsState();
+//
+//                return trajectoryBuilder.build();
+//            }
+//        };
+
+//        State autoLaunchingState = new State("autoLaunchingState", telemetry) {
+//            @Override
+//            public State doStuffAndGetNextState() {
+//                if(scoringMechanism.getCurrentState().getClass() == ScoringMechanism.LauncherReady.class) {
+//
+//                }
+//                return null;
+//            }
+//        };
+
+
+
         stateMachine.addSequential(detectorState);
         stateMachine.addSequential(toTargetZone);
         stateMachine.addSequential(wobbleGoalToPlaceState);
@@ -544,6 +580,7 @@ public class Auto extends OpMode {
         stateMachine.addSequential(wobbleGoalCoolDownState);
         stateMachine.addSequential(newDelayState("Wait to stow", 3));
         stateMachine.addSequential(toParkedPosition);
+//        stateMachine.addSequential(toLaunchPosition);
         stateMachine.addSequential(newDoneState("Done!"));
     }
 
