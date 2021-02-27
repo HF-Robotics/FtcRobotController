@@ -566,8 +566,6 @@ public class Auto extends OpMode {
             public State doStuffAndGetNextState() {
                 Class<? extends State> currentLauncherStateClass = scoringMechanism.getCurrentState().getClass();
 
-                feedRing = false;
-
                 if(currentLauncherStateClass.equals(ScoringMechanism.LauncherReady.class)) {
                     telemetry.addLine("Ready");
                     return nextState;
@@ -607,6 +605,25 @@ public class Auto extends OpMode {
             }
         };
 
+        State autoLaunchReset = new State("Reset", telemetry) {
+            @Override
+            public State doStuffAndGetNextState() {
+                feedRing = false;
+                telemetry.addLine("Resetting");
+                return nextState;
+            }
+
+            @Override
+            public void resetToStart() {
+
+            }
+
+            @Override
+            public void liveConfigure(NinjaGamePad gamePad) {
+
+            }
+        };
+
 
 
         stateMachine.addSequential(detectorState);
@@ -621,15 +638,15 @@ public class Auto extends OpMode {
         stateMachine.addSequential(autoLauncherReadyCheck);
         stateMachine.addSequential(autoLaunch);
         stateMachine.addSequential(newDelayState("Wait to feed", 1));
-        stateMachine.addSequential(autoLauncherReadyCheck);
+        stateMachine.addSequential(autoLaunchReset);
         stateMachine.addSequential(newDelayState("Wait to feed", 1));
         stateMachine.addSequential(autoLaunch);
         stateMachine.addSequential(newDelayState("Wait to feed", 1));
-        stateMachine.addSequential(autoLauncherReadyCheck);
+        stateMachine.addSequential(autoLaunchReset);
         stateMachine.addSequential(newDelayState("Wait to feed", 1));
         stateMachine.addSequential(autoLaunch);
         stateMachine.addSequential(newDelayState("Wait to feed", 1));
-        stateMachine.addSequential(autoLauncherReadyCheck);
+        stateMachine.addSequential(autoLaunchReset);
 //        stateMachine.addSequential(newDoneState("Done!"));
     }
 
