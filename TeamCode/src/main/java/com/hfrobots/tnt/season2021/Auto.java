@@ -647,7 +647,7 @@ public class Auto extends OpMode {
         stateMachine.addSequential(autoLaunch);
         stateMachine.addSequential(newDelayState("Wait to feed", 1));
         stateMachine.addSequential(autoLaunchReset);
-//        stateMachine.addSequential(newDoneState("Done!"));
+        stateMachine.addSequential(newDoneState("Done!"));
     }
 
     /**
