@@ -37,4 +37,5 @@ dependencies {
     implementation 'com.ftc9929.TntFtcCore:corelib:bb10455'
     implementation 'com.ftc9929.TntFtcCore:fakeHardware:bb10455'
     testImplementation 'com.ftc9929.TntFtcCore:fakeHardware:bb10455'
+    implementation 'org.openftc:easyopencv:1.4.4'
 }

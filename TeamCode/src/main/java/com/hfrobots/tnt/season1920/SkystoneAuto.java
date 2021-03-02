@@ -39,8 +39,8 @@ import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveREV;
 import com.hfrobots.tnt.corelib.drive.mecanum.TrajectoryFollowerState;
 import com.hfrobots.tnt.corelib.drive.mecanum.TurnState;
 import com.hfrobots.tnt.corelib.util.RealSimplerHardwareMap;
+import com.hfrobots.tnt.corelib.vision.EasyOpenCvPipelineAndCamera;
 import com.hfrobots.tnt.season1920.opencv.DetectionZone;
-import com.hfrobots.tnt.season1920.opencv.EasyOpenCvPipelineAndCamera;
 import com.hfrobots.tnt.season1920.opencv.TntSkystoneDetector;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -1193,16 +1193,16 @@ public class SkystoneAuto extends OpMode {
     }
 
     private void setupOpenCvCameraAndPipeline() {
-        detector = new TntSkystoneDetector(); // Create detector
-        detector.setTelemetry(telemetry);
-
-        EasyOpenCvPipelineAndCamera.EasyOpenCvPipelineAndCameraBuilder pipelineBuilder = EasyOpenCvPipelineAndCamera.builder();
-
-        pipelineBuilder.hardwareMap(hardwareMap).telemetry(telemetry).detector(detector);
-
-        pipelineAndCamera = pipelineBuilder.build();
-
-        pipelineAndCamera.createAndRunPipeline();
+//        detector = new TntSkystoneDetector(); // Create detector
+//        detector.setTelemetry(telemetry);
+//
+//        EasyOpenCvPipelineAndCamera.EasyOpenCvPipelineAndCameraBuilder pipelineBuilder = EasyOpenCvPipelineAndCamera.builder();
+//
+//        pipelineBuilder.hardwareMap(hardwareMap).telemetry(telemetry).detector(detector);
+//
+//        pipelineAndCamera = pipelineBuilder.build();
+//
+//        pipelineAndCamera.createAndRunPipeline();
     }
 
     private String skystoneZone = null;
