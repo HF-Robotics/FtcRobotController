@@ -194,6 +194,7 @@ public class OperatorControls {
     private void setupDerivedControls() {
         // Launch-related controls - mirror if using real gamepads
         if (driverGamepad != null) {
+
             stopLauncher = new AnyButton(operatorGamepad.getBButton(),
                     driverGamepad.getBButton()).debounced();
 
@@ -220,6 +221,7 @@ public class OperatorControls {
 
             launcherToHighPosition = new AnyButton(operatorGamepad.getDpadRight(),
                     driverGamepad.getDpadRight()).debounced();
+
         } else {
             launchTrigger = rightBumper;
             disableRingHoldDown = yYellowButton;

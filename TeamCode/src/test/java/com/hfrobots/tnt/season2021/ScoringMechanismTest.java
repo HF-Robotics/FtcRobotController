@@ -185,8 +185,8 @@ public class ScoringMechanismTest {
         causeButtonToRiseForNextPeriodTask(toSpeedOnOff);
         scoringMechanism.periodicTask();
 
-        assertTrue(frontLauncherMotor.getVelocity() > 1500);
-        assertTrue(rearLauncherMotor.getVelocity() > 1500);
+        assertTrue(frontLauncherMotor.getVelocity() > 1400);
+        assertTrue(rearLauncherMotor.getVelocity() > 1400);
 
         toPreloadRingsWithAsserts();
 
