@@ -29,6 +29,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.corelib.drive.Turn;
+import com.hfrobots.tnt.corelib.drive.roadrunner.RoadRunnerMecanumDrive;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -43,7 +44,7 @@ public class TurnState extends StopwatchTimeoutSafetyState {
 
     private boolean initialized;
 
-    protected final RoadRunnerMecanumDriveBase driveBase;
+    protected final RoadRunnerMecanumDrive driveBase;
 
     private final Supplier<Turn> delayedDecisionTurn;
 
@@ -51,7 +52,7 @@ public class TurnState extends StopwatchTimeoutSafetyState {
     public TurnState(@NonNull String name,
                      @NonNull Telemetry telemetry,
                      @NonNull final Turn turn,
-                     @NonNull RoadRunnerMecanumDriveBase driveBase,
+                     @NonNull RoadRunnerMecanumDrive driveBase,
                      @NonNull Ticker ticker,
                      long safetyTimeoutMillis) {
         this(name, telemetry, new Supplier<Turn>(){
@@ -65,7 +66,7 @@ public class TurnState extends StopwatchTimeoutSafetyState {
     public TurnState(@NonNull String name,
                      @NonNull Telemetry telemetry,
                      Supplier<Turn> delayedDecisionTurn,
-                     @NonNull RoadRunnerMecanumDriveBase driveBase,
+                     @NonNull RoadRunnerMecanumDrive driveBase,
                      @NonNull Ticker ticker,
                      long safetyTimeoutMillis) {
         super(name, telemetry, ticker, safetyTimeoutMillis);

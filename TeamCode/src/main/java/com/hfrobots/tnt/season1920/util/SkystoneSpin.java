@@ -26,8 +26,8 @@ import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.drive.Turn;
-import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveREV;
 import com.hfrobots.tnt.corelib.drive.mecanum.TurnState;
+import com.hfrobots.tnt.corelib.drive.roadrunner.RoadRunnerMecanumDrive;
 import com.hfrobots.tnt.corelib.util.RealSimplerHardwareMap;
 import com.hfrobots.tnt.season1920.SkystoneDriveConstants;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -46,7 +46,7 @@ import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
 public class SkystoneSpin extends OpMode {
     private Ticker ticker;
 
-    private RoadRunnerMecanumDriveREV driveBase;
+    private RoadRunnerMecanumDrive driveBase;
 
     private StateMachine stateMachine;
 
@@ -56,14 +56,7 @@ public class SkystoneSpin extends OpMode {
         ticker = createAndroidTicker();
 
         RealSimplerHardwareMap simplerHardwareMap = new RealSimplerHardwareMap(this.hardwareMap);
-        driveBase = new RoadRunnerMecanumDriveREV(
-                new SkystoneDriveConstants() {
-                    @Override
-                    public double getTrackWidth() {
-                        return 13.3;
-                    }
-                },
-                simplerHardwareMap, true);
+        driveBase = new RoadRunnerMecanumDrive(hardwareMap);
 
         stateMachine = new StateMachine(telemetry);
         setupTurnState();
