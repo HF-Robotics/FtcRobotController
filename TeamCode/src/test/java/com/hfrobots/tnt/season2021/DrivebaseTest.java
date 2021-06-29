@@ -48,13 +48,20 @@ public class DrivebaseTest {
         drivebase.driveCartesian(1, 0 ,0, false);
 
         // What does strafing look like?
-        Assert.assertTrue(leftFront.getPower() == - leftRear.getPower());
-        Assert.assertTrue(rightFront.getPower() == - rightRear.getPower());
+        Assert.assertEquals(leftFront.getPower(), -leftRear.getPower(), 0.01);
+        Assert.assertEquals(rightFront.getPower(), -rightRear.getPower(), 0.01);
 
-        // What does turning counter-clockwise look like?
-
-        // What does turning clockwise look like?
+        // What does turning look like?
+        drivebase.driveCartesian(0, 0 ,1, false);
+        Assert.assertEquals(leftFront.getPower(), leftRear.getPower(), 0.01);
+        Assert.assertEquals(rightFront.getPower(), rightRear.getPower(), 0.01);
+        Assert.assertTrue(rightFront.getPower() < 0);
+        Assert.assertTrue(leftFront.getPower() > 0);
 
         // What does driving forward look like?
+        drivebase.driveCartesian(0, 1 ,0, false);
+        Assert.assertEquals(leftFront.getPower(), leftRear.getPower(), 0.01);
+        Assert.assertEquals(rightFront.getPower(), rightRear.getPower(), 0.01);
+        Assert.assertTrue(leftFront.getPower() > 0);
     }
 }
