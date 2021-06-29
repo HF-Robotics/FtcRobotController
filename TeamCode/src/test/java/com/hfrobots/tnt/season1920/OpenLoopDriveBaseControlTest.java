@@ -24,16 +24,21 @@ import com.ftc9929.corelib.control.RangeInput;
 import com.ftc9929.testing.fakes.control.FakeOnOffButton;
 import com.ftc9929.testing.fakes.control.FakeRangeInput;
 import com.ftc9929.testing.fakes.drive.FakeDcMotorEx;
-import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveREV;
+import com.ftc9929.testing.fakes.util.FakeHardwareMapFactory;
+import com.hfrobots.tnt.corelib.drive.roadrunner.RoadRunnerMecanumDrive;
 import com.hfrobots.tnt.fakes.sensors.FakeBNO055IMU;
 import com.hfrobots.tnt.fakes.FakeHardwareMap;
+import com.hfrobots.tnt.season2021.UltimateGoalTestConstants;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 public class OpenLoopDriveBaseControlTest {
-    private FakeHardwareMap hardwareMap;
+    private HardwareMap hardwareMap;
 
     private FakeDcMotorEx leftFrontDriveMotor;
 
@@ -45,7 +50,7 @@ public class OpenLoopDriveBaseControlTest {
 
     private FakeBNO055IMU imu;
 
-    private RoadRunnerMecanumDriveREV drivebase;
+    private RoadRunnerMecanumDrive drivebase;
 
     protected FakeRangeInput leftStickY;
 
@@ -65,24 +70,52 @@ public class OpenLoopDriveBaseControlTest {
 
     @Before
     public void setUp() {
-        hardwareMap = new FakeHardwareMap();
+        hardwareMap = FakeHardwareMapFactory.getFakeHardwareMap("skystonev2.xml");
+        leftFrontDriveMotor = (FakeDcMotorEx) hardwareMap.get(DcMotorEx.class, "leftFrontDriveMotor");
+        leftRearDriveMotor = (FakeDcMotorEx) hardwareMap.get(DcMotorEx.class, "leftRearDriveMotor");
+        rightFrontDriveMotor = (FakeDcMotorEx) hardwareMap.get(DcMotorEx.class, "rightFrontDriveMotor");
+        rightRearDriveMotor = (FakeDcMotorEx) hardwareMap.get(DcMotorEx.class, "rightRearDriveMotor");
 
-        imu = new FakeBNO055IMU();
-        hardwareMap.addDevice("imu", imu);
+        hardwareMap.put("imu", new FakeBNO055IMU());
 
-        leftFrontDriveMotor = new FakeDcMotorEx();
-        hardwareMap.addDevice("leftFrontDriveMotor", leftFrontDriveMotor);
+        hardwareMap.voltageSensor.put("voltage", new VoltageSensor() {
+            @Override
+            public double getVoltage() {
+                return 12;
+            }
 
-        leftRearDriveMotor = new FakeDcMotorEx();
-        hardwareMap.addDevice("leftRearDriveMotor", leftRearDriveMotor);
+            @Override
+            public Manufacturer getManufacturer() {
+                return null;
+            }
 
-        rightFrontDriveMotor = new FakeDcMotorEx();
-        hardwareMap.addDevice("rightFrontDriveMotor", rightFrontDriveMotor);
+            @Override
+            public String getDeviceName() {
+                return null;
+            }
 
-        rightRearDriveMotor = new FakeDcMotorEx();
-        hardwareMap.addDevice("rightRearDriveMotor", rightRearDriveMotor);
+            @Override
+            public String getConnectionInfo() {
+                return null;
+            }
 
-        RoadRunnerMecanumDriveREV drivebase = new RoadRunnerMecanumDriveREV(new SkystoneDriveConstants(), hardwareMap, false);
+            @Override
+            public int getVersion() {
+                return 0;
+            }
+
+            @Override
+            public void resetDeviceConfigurationForOpMode() {
+
+            }
+
+            @Override
+            public void close() {
+
+            }
+        });
+
+        RoadRunnerMecanumDrive drivebase = new RoadRunnerMecanumDrive(hardwareMap);
 
         OpenLoopMecanumKinematics kinematics = new OpenLoopMecanumKinematics(drivebase);
 

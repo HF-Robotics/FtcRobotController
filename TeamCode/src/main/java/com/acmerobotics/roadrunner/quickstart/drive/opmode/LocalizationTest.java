@@ -1,12 +1,10 @@
 package com.acmerobotics.roadrunner.quickstart.drive.opmode;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.hfrobots.tnt.corelib.drive.roadrunner.RoadRunnerMecanumDrive;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-import com.acmerobotics.roadrunner.quickstart.drive.mecanum.SampleMecanumDriveBase;
-import com.acmerobotics.roadrunner.quickstart.drive.mecanum.SampleMecanumDriveREV;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
 /**
  * This is a simple teleop routine for testing localization. Drive the robot around like a normal
@@ -16,20 +14,23 @@ import com.acmerobotics.roadrunner.quickstart.drive.mecanum.SampleMecanumDriveRE
  * encoder localizer heading may be significantly off if the track width has not been tuned).
  */
 @TeleOp(group = "drive")
-@Disabled
 public class LocalizationTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-        SampleMecanumDriveBase drive = new SampleMecanumDriveREV(hardwareMap);
+        RoadRunnerMecanumDrive drive = new RoadRunnerMecanumDrive(hardwareMap);
+
+        drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         waitForStart();
 
         while (!isStopRequested()) {
-            drive.setDrivePower(new Pose2d(
-                    -gamepad1.left_stick_y,
-                    -gamepad1.left_stick_x,
-                    -gamepad1.right_stick_x
-            ));
+            drive.setWeightedDrivePower(
+                    new Pose2d(
+                            -gamepad1.left_stick_y,
+                            -gamepad1.left_stick_x,
+                            -gamepad1.right_stick_x
+                    )
+            );
 
             drive.update();
 

@@ -35,16 +35,11 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.corelib.drive.Turn;
-import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveREV;
 import com.hfrobots.tnt.corelib.drive.mecanum.TrajectoryFollowerState;
 import com.hfrobots.tnt.corelib.drive.mecanum.TurnState;
+import com.hfrobots.tnt.corelib.drive.roadrunner.RoadRunnerMecanumDrive;
 import com.hfrobots.tnt.corelib.util.RealSimplerHardwareMap;
-import com.hfrobots.tnt.season1920.CapstoneMechanism;
-import com.hfrobots.tnt.season1920.DeliveryMechanism;
-import com.hfrobots.tnt.season1920.FoundationGripMechanism;
-import com.hfrobots.tnt.season1920.GrungyUltimateGoalAuto;
 import com.hfrobots.tnt.season1920.SkystoneDriveConstants;
-import com.hfrobots.tnt.season1920.SkystoneGrabber;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -52,8 +47,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
 
 import java.util.concurrent.TimeUnit;
-
-import lombok.NonNull;
 
 import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
 
@@ -93,7 +86,7 @@ public class Auto extends OpMode {
         }
     };
 
-    private RoadRunnerMecanumDriveREV driveBase;
+    private RoadRunnerMecanumDrive driveBase;
 
     private StateMachine stateMachine;
     private StarterStackDetectorPipeline starterStackDetectorPipeline;
@@ -138,8 +131,7 @@ public class Auto extends OpMode {
 
         RealSimplerHardwareMap simplerHardwareMap = new RealSimplerHardwareMap(this.hardwareMap);
 
-        driveBase = new RoadRunnerMecanumDriveREV(new SkystoneDriveConstants(),
-                simplerHardwareMap, true);
+        driveBase = new RoadRunnerMecanumDrive(hardwareMap);
 
         stateMachine = new StateMachine(telemetry);
 

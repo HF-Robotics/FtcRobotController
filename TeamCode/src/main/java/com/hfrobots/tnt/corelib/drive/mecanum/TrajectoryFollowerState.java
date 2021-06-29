@@ -27,6 +27,7 @@ import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
+import com.hfrobots.tnt.corelib.drive.roadrunner.RoadRunnerMecanumDrive;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -41,11 +42,11 @@ public abstract class TrajectoryFollowerState extends StopwatchTimeoutSafetyStat
 
     private boolean initialized;
 
-    protected final RoadRunnerMecanumDriveBase driveBase;
+    protected final RoadRunnerMecanumDrive driveBase;
 
     public TrajectoryFollowerState(@NonNull String name,
                                    @NonNull Telemetry telemetry,
-                                   @NonNull RoadRunnerMecanumDriveBase driveBase,
+                                   @NonNull RoadRunnerMecanumDrive driveBase,
                                    @NonNull Ticker ticker,
                                    long safetyTimeoutMillis) {
         super(name, telemetry, ticker, safetyTimeoutMillis);

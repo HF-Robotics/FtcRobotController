@@ -32,19 +32,13 @@ import com.ftc9929.corelib.state.StateMachine;
 import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
-import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveREV;
 import com.hfrobots.tnt.corelib.drive.mecanum.TrajectoryFollowerState;
+import com.hfrobots.tnt.corelib.drive.roadrunner.RoadRunnerMecanumDrive;
 import com.hfrobots.tnt.corelib.util.RealSimplerHardwareMap;
 import com.hfrobots.tnt.season2021.StarterStackDetectorPipeline;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.openftc.easyopencv.OpenCvPipeline;
-
 import java.util.concurrent.TimeUnit;
-
-import lombok.NonNull;
 
 import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
 
@@ -66,7 +60,7 @@ public class GrungyUltimateGoalAuto extends OpMode {
         }
     };
 
-    private RoadRunnerMecanumDriveREV driveBase;
+    private RoadRunnerMecanumDrive driveBase;
 
     private StateMachine stateMachine;
     private StarterStackDetectorPipeline starterStackDetectorPipeline;
@@ -114,8 +108,7 @@ public class GrungyUltimateGoalAuto extends OpMode {
 
         RealSimplerHardwareMap simplerHardwareMap = new RealSimplerHardwareMap(this.hardwareMap);
 
-        driveBase = new RoadRunnerMecanumDriveREV(new SkystoneDriveConstants(),
-                simplerHardwareMap, true);
+        driveBase = new RoadRunnerMecanumDrive(hardwareMap);
 
         foundationGripper = new FoundationGripMechanism(simplerHardwareMap);
 
