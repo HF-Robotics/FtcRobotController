@@ -28,11 +28,6 @@ public class DelayState extends State {
     }
 
     @Override
-    public void liveConfigure(NinjaGamePad gamePad) {
-
-    }
-
-    @Override
     public State doStuffAndGetNextState() {
         if (startTime == 0) {
             startTime = System.currentTimeMillis();

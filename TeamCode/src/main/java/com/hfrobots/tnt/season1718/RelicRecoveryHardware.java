@@ -410,11 +410,6 @@ public abstract class RelicRecoveryHardware extends OpMode {
             public void resetToStart() {
                 issuedStop = false;
             }
-
-            @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
-
-            }
         };
     }
 
@@ -427,11 +422,6 @@ public abstract class RelicRecoveryHardware extends OpMode {
             @Override
             public void resetToStart() {
                 startTime = 0;
-            }
-
-            @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
-
             }
 
             @Override

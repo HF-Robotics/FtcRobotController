@@ -385,11 +385,6 @@ public class Auto extends OpMode {
 
                 return nextState;
             }
-
-            @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
-
-            }
         };
 
         State toTargetZone = new TrajectoryFollowerState("To skystone",
@@ -449,11 +444,6 @@ public class Auto extends OpMode {
 
                 return this;
             }
-
-            @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
-
-            }
         };
 
         State toParkedPosition = new TrajectoryFollowerState("Parking",
@@ -492,11 +482,6 @@ public class Auto extends OpMode {
             public void resetToStart() {
 
             }
-
-            @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
-
-            }
         };
 
         State wobbleGoalCoolDownState = new State("Close servo, back to stow", telemetry){
@@ -515,11 +500,6 @@ public class Auto extends OpMode {
 
             @Override
             public void resetToStart() {
-
-            }
-
-            @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
 
             }
         };
@@ -574,11 +554,6 @@ public class Auto extends OpMode {
 
             @Override
             public void resetToStart() {
-
-            }
-
-            @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
 
             }
         };
@@ -723,11 +698,6 @@ public class Auto extends OpMode {
             }
 
             @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
-
-            }
-
-            @Override
             public State doStuffAndGetNextState() {
                 if (startTime == 0) {
                     startTime = System.currentTimeMillis();
@@ -770,11 +740,6 @@ public class Auto extends OpMode {
             public void resetToStart() {
                 issuedStop = false;
             }
-
-            @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
-
-            }
         };
     }
 
@@ -789,11 +754,6 @@ public class Auto extends OpMode {
 
             @Override
             public void resetToStart() {
-
-            }
-
-            @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
 
             }
         };
@@ -812,11 +772,6 @@ public class Auto extends OpMode {
 
             @Override
             public void resetToStart() {
-
-            }
-
-            @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
 
             }
         };

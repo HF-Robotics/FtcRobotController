@@ -455,11 +455,6 @@ public abstract class VelocityVortexHardware extends OpMode {
             public void resetToStart() {
                 issuedStop = false;
             }
-
-            @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
-
-            }
         };
     }
 
@@ -472,11 +467,6 @@ public abstract class VelocityVortexHardware extends OpMode {
             @Override
             public void resetToStart() {
                 startTime = 0;
-            }
-
-            @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
-
             }
 
             @Override
@@ -521,11 +511,6 @@ public abstract class VelocityVortexHardware extends OpMode {
         public void resetToStart() {
 
         }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
-        }
     }
 
     class WaitForButtonRelease extends State {
@@ -550,11 +535,6 @@ public abstract class VelocityVortexHardware extends OpMode {
         public void resetToStart() {
 
         }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
-        }
     }
 
     class ShooterReverseState extends State {
@@ -571,11 +551,6 @@ public abstract class VelocityVortexHardware extends OpMode {
 
         @Override
         public void resetToStart() {
-
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
 
         }
     }
@@ -596,11 +571,6 @@ public abstract class VelocityVortexHardware extends OpMode {
         public void resetToStart() {
 
         }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
-        }
     }
 
     class ShooterOffState extends State {
@@ -617,11 +587,6 @@ public abstract class VelocityVortexHardware extends OpMode {
 
         @Override
         public void resetToStart() {
-
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
 
         }
     }
@@ -642,11 +607,6 @@ public abstract class VelocityVortexHardware extends OpMode {
         public void resetToStart() {
             particleCollectorOff();
         }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
-        }
     }
 
     class CollectorOnState extends State {
@@ -665,11 +625,6 @@ public abstract class VelocityVortexHardware extends OpMode {
         public void resetToStart() {
 
         }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
-        }
     }
 
     class CollectorOffState extends State {
@@ -685,11 +640,6 @@ public abstract class VelocityVortexHardware extends OpMode {
 
         @Override
         public void resetToStart() {
-
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
 
         }
     }
@@ -715,15 +665,5 @@ public abstract class VelocityVortexHardware extends OpMode {
         public void resetToStart() {
 
         }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
-        }
     }
-
-
-
-
-
 }

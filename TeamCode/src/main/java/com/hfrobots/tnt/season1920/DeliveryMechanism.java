@@ -366,11 +366,6 @@ public class DeliveryMechanism {
 
             readyCheckables.add(this);
         }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
-        }
     }
 
     class LoadingState extends DeliveryMechanismState  {
@@ -1208,11 +1203,6 @@ public class DeliveryMechanism {
 
             return waitForWristState;
         }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
-        }
     }
 
 
@@ -1236,11 +1226,6 @@ public class DeliveryMechanism {
             shoulderServo.setPosition(SHOULDER_STOW);
 
             return waitForShoulderState;
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
         }
     }
 
@@ -1267,11 +1252,6 @@ public class DeliveryMechanism {
             stowed();
 
             return waitForFingerState;
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
         }
     }
 }

@@ -97,9 +97,4 @@ public class TurnState extends StopwatchTimeoutSafetyState {
 
         return nextState;
     }
-
-    @Override
-    public void liveConfigure(NinjaGamePad gamePad) {
-
-    }
 }

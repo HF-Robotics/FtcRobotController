@@ -345,11 +345,6 @@ public class GrungyUltimateGoalAuto extends OpMode {
 
                 return nextState;
             }
-
-            @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
-
-            }
         };
 
         State toTargetZone = new TrajectoryFollowerState("To skystone",
@@ -424,11 +419,6 @@ public class GrungyUltimateGoalAuto extends OpMode {
             public void resetToStart() {
 
             }
-
-            @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
-
-            }
         };
 
         State wobbleGoalCoolDownState = new State("Stop the delivey Mech",telemetry){
@@ -440,11 +430,6 @@ public class GrungyUltimateGoalAuto extends OpMode {
 
             @Override
             public void resetToStart() {
-
-            }
-
-            @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
 
             }
         };
@@ -540,11 +525,6 @@ public class GrungyUltimateGoalAuto extends OpMode {
             }
 
             @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
-
-            }
-
-            @Override
             public State doStuffAndGetNextState() {
                 if (startTime == 0) {
                     startTime = System.currentTimeMillis();
@@ -586,11 +566,6 @@ public class GrungyUltimateGoalAuto extends OpMode {
             @Override
             public void resetToStart() {
                 issuedStop = false;
-            }
-
-            @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
-
             }
         };
     }

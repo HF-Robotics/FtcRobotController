@@ -247,11 +247,6 @@ public class GlyphMechanism {
             // what would it look like if we needed to go back to the state before this one?
         }
 
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
-        }
-
         public State doStuffAndGetNextState() {
             lowerClose();
             upperClose();
@@ -269,11 +264,6 @@ public class GlyphMechanism {
         @Override
         public void resetToStart() {
             // what would it look like if we needed to go back to the state before this one?
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
         }
 
         public State doStuffAndGetNextState() {
@@ -296,11 +286,6 @@ public class GlyphMechanism {
         public void resetToStart() {
             // what would it look like if we needed to go back to the state before this one?
             started = false;
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
         }
 
         public State doStuffAndGetNextState() {

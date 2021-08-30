@@ -501,11 +501,6 @@ public abstract class RoverRuckusHardware extends OpMode {
             public void resetToStart() {
                 issuedStop = false;
             }
-
-            @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
-
-            }
         };
     }
 
@@ -518,11 +513,6 @@ public abstract class RoverRuckusHardware extends OpMode {
             @Override
             public void resetToStart() {
                 startTime = 0;
-            }
-
-            @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
-
             }
 
             @Override

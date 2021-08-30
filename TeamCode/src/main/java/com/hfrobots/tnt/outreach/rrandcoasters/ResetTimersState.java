@@ -67,11 +67,6 @@ public class ResetTimersState extends State {
 
     }
 
-    @Override
-    public void liveConfigure(NinjaGamePad gamePad) {
-
-    }
-
     public ResetTimersState(Telemetry telemetry,
                             OdsBallSensorState startState,
                             OdsBallSensorState endState) {

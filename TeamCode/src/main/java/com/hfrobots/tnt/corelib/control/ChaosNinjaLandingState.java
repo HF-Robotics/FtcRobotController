@@ -84,11 +84,6 @@ public class ChaosNinjaLandingState extends State {
 
     }
 
-    @Override
-    public void liveConfigure(NinjaGamePad gamePad) {
-
-    }
-
     public ChaosNinjaLandingState(NinjaGamePad gamePad, Telemetry telemetry) {
         super("ninja has evolved into chaos ninja!", telemetry);
         this.gamePad = gamePad;

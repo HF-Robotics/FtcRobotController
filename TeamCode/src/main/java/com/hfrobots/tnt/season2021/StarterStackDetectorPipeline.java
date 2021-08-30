@@ -47,12 +47,12 @@ public class StarterStackDetectorPipeline extends OpenCvPipeline {
     private final GripPipelineHulls gripPipeline = new GripPipelineHulls();
 
     public enum RingsDetected {
-        ZERO, ONE, FOUR, UNKNOWN, SOME;
+        ZERO, ONE, FOUR, UNKNOWN, SOME
     }
 
     private final Mat displayMat = new Mat();
 
-    private final AtomicReference<RingsDetected> ringsDetected = new AtomicReference(RingsDetected.UNKNOWN);
+    private final AtomicReference<RingsDetected> ringsDetected = new AtomicReference<>(RingsDetected.UNKNOWN);
 
     @Setter
     private volatile boolean startLookingForRings;

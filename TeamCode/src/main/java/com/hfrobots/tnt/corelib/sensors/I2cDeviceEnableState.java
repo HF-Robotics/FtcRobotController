@@ -46,9 +46,4 @@ public class I2cDeviceEnableState extends BaseI2cDeviceState {
     public void resetToStart() {
         i2cEnableDisable.setEnabled(false);
     }
-
-    @Override
-    public void liveConfigure(NinjaGamePad gamePad) {
-
-    }
 }

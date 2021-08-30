@@ -134,9 +134,4 @@ public class MecanumDriveDistanceState extends TimeoutSafetyState {
         pid.reset();
         initialize();
     }
-
-    @Override
-    public void liveConfigure(NinjaGamePad gamePad) {
-
-    }
 }

@@ -112,11 +112,6 @@ public class NewMineralTrajectoryState extends TimeoutSafetyState {
         this.mailbox = mailbox;
     }
 
-    @Override
-    public void liveConfigure(NinjaGamePad gamePad) {
-        // not really implemented
-    }
-
     private void initialize() {
         MineralTrajectorySegments mineralTrajectorySegments = null;
 

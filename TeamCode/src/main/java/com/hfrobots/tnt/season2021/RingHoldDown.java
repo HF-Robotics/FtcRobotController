@@ -177,10 +177,5 @@ public class RingHoldDown {
         public void resetToStart() {
 
         }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
-        }
     }
 }

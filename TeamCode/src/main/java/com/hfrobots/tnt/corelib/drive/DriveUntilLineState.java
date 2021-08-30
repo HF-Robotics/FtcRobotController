@@ -252,11 +252,6 @@ public class DriveUntilLineState extends TimeoutSafetyState {
         startedOscillatingTimeMs = 0;
     }
 
-    @Override
-    public void liveConfigure(NinjaGamePad gamePad) {
-
-    }
-
     private void stopDriving() {
         // (1) Stop the motors
         drive.drivePower(0, 0);

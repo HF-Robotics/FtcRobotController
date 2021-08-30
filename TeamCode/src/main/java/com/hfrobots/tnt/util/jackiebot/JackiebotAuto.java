@@ -467,11 +467,6 @@ public class JackiebotAuto extends OpMode {
             }
 
             @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
-
-            }
-
-            @Override
             public State doStuffAndGetNextState() {
                 if (startTime == 0) {
                     startTime = System.currentTimeMillis();
@@ -513,11 +508,6 @@ public class JackiebotAuto extends OpMode {
             @Override
             public void resetToStart() {
                 issuedStop = false;
-            }
-
-            @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
-
             }
         };
     }

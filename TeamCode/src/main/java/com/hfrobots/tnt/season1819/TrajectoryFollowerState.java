@@ -126,9 +126,4 @@ public class TrajectoryFollowerState extends TimeoutSafetyState {
         return nextState;
 
     }
-
-    @Override
-    public void liveConfigure(NinjaGamePad gamePad) {
-
-    }
 }

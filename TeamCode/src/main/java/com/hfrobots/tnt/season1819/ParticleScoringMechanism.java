@@ -484,11 +484,6 @@ public class ParticleScoringMechanism {
 
             return this; // FIXME: THis isn't correct - what should be returned if nothing has changed?
         }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
-        }
     }
 
     abstract class ElevatorClosedLoopState extends ElevatorBaseState {
@@ -571,12 +566,6 @@ public class ParticleScoringMechanism {
 
             return this;
         }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
-        }
-
     }
 
 
@@ -636,11 +625,6 @@ public class ParticleScoringMechanism {
 
             return this;
         }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
-        }
     }
 
     class ElevatorAtUpperLimitState extends ElevatorBaseState {
@@ -679,11 +663,6 @@ public class ParticleScoringMechanism {
 
             return this;
         }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
-        }
     }
 
 
@@ -714,11 +693,6 @@ public class ParticleScoringMechanism {
             Log.d(LOG_TAG, getName() + " nothing to do, remaining in same state");
 
             return this;
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
         }
     }
 
@@ -756,11 +730,6 @@ public class ParticleScoringMechanism {
             elevatorDown();
 
             return this;
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
         }
     }
 
@@ -807,11 +776,6 @@ public class ParticleScoringMechanism {
             elevatorUp();
 
             return this;
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
         }
     }
 }

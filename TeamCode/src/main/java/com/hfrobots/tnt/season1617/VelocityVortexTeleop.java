@@ -289,11 +289,6 @@ public class VelocityVortexTeleop extends VelocityVortexHardware
         public void resetToStart() {
 
         }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
-        }
     }
 
     class LiftSlightlyUpState extends TimeoutSafetyState {
@@ -303,11 +298,6 @@ public class VelocityVortexTeleop extends VelocityVortexHardware
 
         public LiftSlightlyUpState(Telemetry telemetry) {
             super("Lifting cap ball", telemetry, 10000);
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
         }
 
         @Override
@@ -376,11 +366,6 @@ public class VelocityVortexTeleop extends VelocityVortexHardware
 
         public BallGrabServoState(Telemetry telemetry) {
             super("Ball grab servo squeeze", telemetry);
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
         }
 
         @Override

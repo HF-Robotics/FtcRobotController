@@ -401,11 +401,6 @@ public class ScoringMechanism {
         }
 
         @Override
-        public void liveConfigure(NinjaGamePad ninjaGamePad) {
-
-        }
-
-        @Override
         public void checkReady() {
             Preconditions.checkNotNull(idleState);
         }
@@ -529,11 +524,6 @@ public class ScoringMechanism {
 
             return this;
         }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
-        }
     }
 
     private void invertHopperFromFloating() {
@@ -611,11 +601,6 @@ public class ScoringMechanism {
 
         @Override
         public void resetToStart() {
-
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
 
         }
     }

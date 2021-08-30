@@ -134,11 +134,6 @@ public class JewelMechanism {
 
         }
 
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
-        }
-
         public State doStuffAndGetNextState() {
             deploySensor();
             return nextState;
@@ -152,11 +147,6 @@ public class JewelMechanism {
 
         @Override
         public void resetToStart() {
-
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
 
         }
 
@@ -180,11 +170,6 @@ public class JewelMechanism {
 
         @Override
         public void resetToStart() {
-
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
 
         }
 
@@ -227,11 +212,6 @@ public class JewelMechanism {
 
         @Override
         public void resetToStart() {
-
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
 
         }
 

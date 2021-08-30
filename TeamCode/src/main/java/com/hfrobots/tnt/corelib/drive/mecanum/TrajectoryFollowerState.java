@@ -78,10 +78,5 @@ public abstract class TrajectoryFollowerState extends StopwatchTimeoutSafetyStat
         return nextState;
     }
 
-    @Override
-    public void liveConfigure(NinjaGamePad gamePad) {
-
-    }
-
     protected abstract Trajectory createTrajectory();
 }

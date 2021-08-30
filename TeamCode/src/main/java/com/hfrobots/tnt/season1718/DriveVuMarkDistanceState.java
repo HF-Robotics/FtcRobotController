@@ -52,11 +52,6 @@ public class DriveVuMarkDistanceState extends TimeoutSafetyState {
     }
 
     @Override
-    public void liveConfigure(NinjaGamePad gamePad) {
-
-    }
-
-    @Override
     public State doStuffAndGetNextState() {
         if (!initialized) {
             // left = 25

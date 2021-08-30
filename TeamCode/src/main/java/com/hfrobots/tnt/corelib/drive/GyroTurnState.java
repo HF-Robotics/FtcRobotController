@@ -87,11 +87,6 @@ public class GyroTurnState extends TimeoutSafetyState {
         super.resetToStart();
     }
 
-    @Override
-    public void liveConfigure(NinjaGamePad gamePad) {
-
-    }
-
     // re-use of Pushbot gyro steer
 
     /**

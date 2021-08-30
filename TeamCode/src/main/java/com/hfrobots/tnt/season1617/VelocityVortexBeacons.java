@@ -271,12 +271,6 @@ public class VelocityVortexBeacons extends VelocityVortexHardware {
         if (initialDelaySeconds != 0) {
             stateMachine.addStartDelay(initialDelaySeconds, Ticker.systemTicker());
         }
-
-        if (debugging) {
-            stateMachine.startDebugging();
-        } else {
-            stateMachine.stopDebugging();
-        }
     }
 
     /**
@@ -875,12 +869,6 @@ public class VelocityVortexBeacons extends VelocityVortexHardware {
     private StateMachine commonStateMachineSetup() {
         StateMachine stateMachine = new StateMachine(telemetry);
 
-        // Setup debugger controls
-        stateMachine.setDoOverButton(driverBRedButton);
-        stateMachine.setGoBackButton(driverYYellowButton);
-        stateMachine.setGoButton(driverAGreenButton);
-        stateMachine.setConfigureGamepad(operatorsGamepad);
-
         return stateMachine;
     }
 
@@ -912,11 +900,6 @@ public class VelocityVortexBeacons extends VelocityVortexHardware {
 
         protected PusherRetractState(String name, Telemetry telemetry) {
             super(name, telemetry);
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
         }
 
         @Override
@@ -995,11 +978,6 @@ public class VelocityVortexBeacons extends VelocityVortexHardware {
         public void resetToStart() {
             beaconPusherNoColorSensor.setPosition(BEACON_PUSHER_IN_POSITION);
             beaconPusherUnderColorSensor.setPosition(BEACON_PUSHER_IN_POSITION);
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
         }
     }
 }

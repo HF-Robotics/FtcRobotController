@@ -74,11 +74,6 @@ public class OdsBallSensorState extends TimeoutSafetyState {
         super.resetToStart();
     }
 
-    @Override
-    public void liveConfigure(NinjaGamePad gamePad) {
-
-    }
-
     public OdsBallSensorState(String stateName, Telemetry telemetry, OpticalDistanceSensor ods, long timeout) {
         super(stateName, telemetry, timeout);
         this.ods = ods;

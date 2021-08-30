@@ -1137,11 +1137,6 @@ public class SkystoneAuto extends OpMode {
             }
 
             @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
-
-            }
-
-            @Override
             public State doStuffAndGetNextState() {
                 if (startTime == 0) {
                     startTime = System.currentTimeMillis();
@@ -1183,11 +1178,6 @@ public class SkystoneAuto extends OpMode {
             @Override
             public void resetToStart() {
                 issuedStop = false;
-            }
-
-            @Override
-            public void liveConfigure(NinjaGamePad gamePad) {
-
             }
         };
     }
@@ -1265,11 +1255,6 @@ public class SkystoneAuto extends OpMode {
             }
 
             return this;
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
         }
 
         private void cleanupPipelineAndStuff() {

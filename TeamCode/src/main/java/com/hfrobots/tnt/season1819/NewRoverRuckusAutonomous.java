@@ -960,11 +960,6 @@ public class NewRoverRuckusAutonomous extends RoverRuckusHardware {
                 }
             }
         }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-            // do nothing
-        }
     }
 
 
@@ -988,11 +983,6 @@ public class NewRoverRuckusAutonomous extends RoverRuckusHardware {
             }
 
             return nextState;
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
         }
     }
 
@@ -1029,11 +1019,6 @@ public class NewRoverRuckusAutonomous extends RoverRuckusHardware {
             ascenderDescender.doPeriodicTask();
 
             return this;
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
         }
     }
 

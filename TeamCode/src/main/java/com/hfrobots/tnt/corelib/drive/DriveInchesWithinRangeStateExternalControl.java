@@ -97,11 +97,6 @@ public class DriveInchesWithinRangeStateExternalControl extends ProportionalDriv
     }
 
     @Override
-    public void liveConfigure(NinjaGamePad gamePad) {
-
-    }
-
-    @Override
     public void resetToStart() {
         super.resetToStart();
         closingRangeDistance = false;

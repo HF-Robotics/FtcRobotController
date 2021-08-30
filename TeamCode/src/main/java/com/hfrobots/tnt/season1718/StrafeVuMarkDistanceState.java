@@ -52,11 +52,6 @@ public class StrafeVuMarkDistanceState extends TimeoutSafetyState {
     }
 
     @Override
-    public void liveConfigure(NinjaGamePad gamePad) {
-
-    }
-
-    @Override
     public State doStuffAndGetNextState() {
         if (!initialized) {
             // RIGHT:  18

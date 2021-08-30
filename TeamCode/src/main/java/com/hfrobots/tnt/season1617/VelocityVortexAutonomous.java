@@ -528,10 +528,5 @@ public class VelocityVortexAutonomous extends VelocityVortexHardware {
         public void resetToStart() {
             runParticleCollectorOutwards(); // big assumption FIXME
         }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
-        }
     }
 }

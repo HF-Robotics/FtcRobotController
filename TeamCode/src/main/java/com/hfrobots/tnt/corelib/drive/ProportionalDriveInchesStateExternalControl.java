@@ -102,11 +102,6 @@ public class ProportionalDriveInchesStateExternalControl extends DriveInchesStat
     }
 
     @Override
-    public void liveConfigure(NinjaGamePad gamePad) {
-
-    }
-
-    @Override
     public void resetToStart() {
         super.resetToStart();
         loggedProportionalMode = false;

@@ -54,7 +54,6 @@ public class RelicRecoveryDriveDistanceTest extends RelicRecoveryHardware {
         try {
             if (stateMachine == null) {
                 stateMachine = commonStateMachineSetup();
-                stateMachine.startDebugging();
                 stateMachine.addSequential(new MecanumDriveDistanceState("give me a name",
                                 telemetry, mecanumDrive, 36.0, TimeUnit.SECONDS.toMillis(15)));
                 stateMachine.addSequential(newDoneState("done"));
@@ -81,12 +80,6 @@ public class RelicRecoveryDriveDistanceTest extends RelicRecoveryHardware {
     @NonNull
     private StateMachine commonStateMachineSetup() {
         StateMachine stateMachine = new StateMachine(telemetry);
-
-        // Setup debugger controls
-        stateMachine.setDoOverButton(driverBRedButton);
-        stateMachine.setGoBackButton(driverYYellowButton);
-        stateMachine.setGoButton(driverAGreenButton);
-        stateMachine.setConfigureGamepad(operatorsGamepad);
 
         return stateMachine;
     }

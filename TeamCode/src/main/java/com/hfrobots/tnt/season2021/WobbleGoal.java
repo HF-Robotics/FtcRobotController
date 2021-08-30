@@ -281,11 +281,6 @@ public class WobbleGoal {
         public void checkReady() {
             Preconditions.checkNotNull(nextState);
         }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
-
-        }
     }
 
     class AutoPlaceState extends AutoMotionState{
@@ -437,11 +432,6 @@ public class WobbleGoal {
 
         @Override
         public void resetToStart() {
-
-        }
-
-        @Override
-        public void liveConfigure(NinjaGamePad gamePad) {
 
         }
     }

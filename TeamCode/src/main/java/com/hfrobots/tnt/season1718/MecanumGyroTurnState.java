@@ -290,11 +290,6 @@ public class MecanumGyroTurnState extends TimeoutSafetyState
         initialize();
     }
 
-    @Override
-    public void liveConfigure(NinjaGamePad gamePad) {
-
-    }
-
     private void configureMotorParameters() {
         for (DcMotor motor : mecanumDrive.motors) {
             if (useEncoders) {

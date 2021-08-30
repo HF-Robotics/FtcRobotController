@@ -59,9 +59,4 @@ public class VuMarkDetectionState extends TimeoutSafetyState {
             return nextState;
         }
     }
-
-    @Override
-    public void liveConfigure(NinjaGamePad gamePad) {
-
-    }
 }
