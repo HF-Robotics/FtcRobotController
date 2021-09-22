@@ -1,6 +1,8 @@
 package com.acmerobotics.roadrunner.quickstart.drive.opmode;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.roadrunner.quickstart.drive.tank.SampleTankDriveBase;
+import com.acmerobotics.roadrunner.quickstart.drive.tank.SampleTankDriveREV;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -20,7 +22,8 @@ public class StraightTest extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        SampleMecanumDriveBase drive = new SampleMecanumDriveREV(hardwareMap);
+        //SampleMecanumDriveBase drive = new SampleMecanumDriveREV(hardwareMap);
+        SampleTankDriveBase drive = new SampleTankDriveREV(hardwareMap);
 
         Trajectory trajectory = drive.trajectoryBuilder()
                 .forward(DISTANCE)

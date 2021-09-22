@@ -2,6 +2,8 @@ package com.acmerobotics.roadrunner.quickstart.drive.opmode;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.quickstart.drive.tank.SampleTankDriveBase;
+import com.acmerobotics.roadrunner.quickstart.drive.tank.SampleTankDriveREV;
 import com.acmerobotics.roadrunner.util.Angle;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -31,7 +33,8 @@ public class TrackWidthTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        SampleMecanumDriveBase drive = new SampleMecanumDriveREV(hardwareMap);
+        //SampleMecanumDriveBase drive = new SampleMecanumDriveREV(hardwareMap);
+        SampleTankDriveBase drive = new SampleTankDriveREV(hardwareMap);
         // TODO: if you haven't already, set the localizer to something that doesn't depend on
         // drive encoders for computing the heading
 

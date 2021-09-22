@@ -1,6 +1,8 @@
 package com.acmerobotics.roadrunner.quickstart.drive.opmode;
 
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.quickstart.drive.tank.SampleTankDriveBase;
+import com.acmerobotics.roadrunner.quickstart.drive.tank.SampleTankDriveREV;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -20,7 +22,8 @@ import com.acmerobotics.roadrunner.quickstart.drive.mecanum.SampleMecanumDriveRE
 public class LocalizationTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-        SampleMecanumDriveBase drive = new SampleMecanumDriveREV(hardwareMap);
+        //SampleMecanumDriveBase drive = new SampleMecanumDriveREV(hardwareMap);
+        SampleTankDriveBase drive = new SampleTankDriveREV(hardwareMap);
 
         waitForStart();
 
