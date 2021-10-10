@@ -2,6 +2,8 @@ package com.acmerobotics.roadrunner.quickstart.drive.opmode;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.quickstart.drive.tank.SampleTankDriveBase;
+import com.acmerobotics.roadrunner.quickstart.drive.tank.SampleTankDriveREV;
 import com.acmerobotics.roadrunner.tuning.AccelRegression;
 import com.acmerobotics.roadrunner.tuning.RampRegression;
 import com.acmerobotics.roadrunner.util.NanoClock;
@@ -36,7 +38,8 @@ public class DriveFeedforwardTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        SampleMecanumDriveBase drive = new SampleMecanumDriveREV(hardwareMap);
+        //SampleMecanumDriveBase drive = new SampleMecanumDriveREV(hardwareMap);
+        SampleTankDriveBase drive = new SampleTankDriveREV(hardwareMap);
 
         NanoClock clock = NanoClock.system();
 
