@@ -35,7 +35,7 @@ import java.util.List;
 
 import static com.ftc9929.corelib.Constants.LOG_TAG;
 
-@TeleOp(name = "00 UltGoal TeleOp")
+@TeleOp(name = "UltGoal TeleOp")
 public class DriverControlled extends OpMode {
 
     private Drivebase drivebase;
