@@ -28,5 +28,5 @@ public interface PeriodicTask {
     /**
      * Perform work on a repetitive task.
      */
-    void periodTask();
+    void periodicTask();
 }
