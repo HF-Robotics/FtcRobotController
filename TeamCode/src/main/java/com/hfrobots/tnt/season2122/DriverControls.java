@@ -27,10 +27,11 @@ import com.ftc9929.corelib.control.ParametricScaledRangeInput;
 import com.ftc9929.corelib.control.RangeInput;
 import com.ftc9929.corelib.control.RangeInputButton;
 import com.ftc9929.corelib.drive.OpenLoopMecanumKinematics;
+import com.hfrobots.tnt.corelib.task.PeriodicTask;
 
 import lombok.Builder;
 
-public class DriverControls {
+public class DriverControls implements PeriodicTask {
     protected RangeInput leftStickX;
 
     protected RangeInput leftStickY;
@@ -186,6 +187,7 @@ public class DriverControls {
 
     private boolean gripUpFirstTime = false;
 
+    @Override
     public void periodicTask() {
         double x = driveStrafe.getPosition();
         double y = - driveForwardReverse.getPosition();

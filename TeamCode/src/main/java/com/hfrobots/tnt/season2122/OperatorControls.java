@@ -24,12 +24,13 @@ import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.control.OnOffButton;
 import com.ftc9929.corelib.control.RangeInput;
 import com.ftc9929.corelib.control.RangeInputButton;
+import com.hfrobots.tnt.corelib.task.PeriodicTask;
 import com.hfrobots.tnt.season2021.ScoringMechanism;
 import com.hfrobots.tnt.season2021.WobbleGoal;
 
 import lombok.Builder;
 
-public class OperatorControls {
+public class OperatorControls implements PeriodicTask {
     protected RangeInput leftStickX;
 
     protected RangeInput leftStickY;
@@ -67,6 +68,9 @@ public class OperatorControls {
     private NinjaGamePad driverGamepad;
 
     private OnOffButton unsafe;
+
+    // Add all of the mechanisms controlled by the operator here, and add them to
+    // the constructor.
 
     @Builder
     private OperatorControls(RangeInput leftStickX,
@@ -142,11 +146,19 @@ public class OperatorControls {
         rightTrigger = operatorGamepad.getRightTrigger();
     }
 
+    // To make things easier to re-map we have inputs that are named based on what they do
+    // and assign them from the gamepad buttons with names that describe physically what they are
+    // (bRedButton, etc).
+    //
+    // It's easier, later on in periodicTask(), to think about the inputs based on functional
+    // names.
     private void setupDerivedControls() {
         unsafe = new RangeInputButton( leftTrigger, 0.65f);
     }
 
+    @Override
     public void periodicTask() {
+        // Here is where we ask the various mechanisms to respond to operator input
 
     }
 }
