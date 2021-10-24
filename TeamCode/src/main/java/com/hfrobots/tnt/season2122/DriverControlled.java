@@ -47,6 +47,10 @@ public class DriverControlled extends OpMode {
 
     private RobotMetricsSampler newMetricsSampler;
 
+    private FreightManipulator freightManipulator;
+
+    private CarouselMechanism carouselMechanism;
+
     private boolean useLegacyMetricsSampler = true;
 
     private List<LynxModule> allHubs;
@@ -54,6 +58,8 @@ public class DriverControlled extends OpMode {
     @Override
     public void init() {
         drivebase = new Drivebase(hardwareMap);
+        freightManipulator = new FreightManipulator(hardwareMap);
+        carouselMechanism = new CarouselMechanism(hardwareMap);
 
         NinjaGamePad driversGamepad = new NinjaGamePad(gamepad1);
 
@@ -63,7 +69,9 @@ public class DriverControlled extends OpMode {
 
         NinjaGamePad operatorGamepad = new NinjaGamePad(gamepad2);
 
-        operatorControls = OperatorControls.builder().operatorGamepad(operatorGamepad).build();
+        operatorControls = OperatorControls.builder().operatorGamepad(operatorGamepad)
+                .freightManipulator(freightManipulator)
+                .carouselMechanism(carouselMechanism).build();
 
         setupMetricsSampler(driversGamepad, operatorGamepad);
 

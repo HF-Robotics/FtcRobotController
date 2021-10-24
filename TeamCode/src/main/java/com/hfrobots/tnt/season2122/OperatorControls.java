@@ -72,6 +72,16 @@ public class OperatorControls implements PeriodicTask {
     // Add all of the mechanisms controlled by the operator here, and add them to
     // the constructor.
 
+    private FreightManipulator freightManipulator;
+
+    private RangeInput armMotorControl;
+
+    private CarouselMechanism carouselMechanism;
+
+    private OnOffButton carouselClockwise;
+
+    private OnOffButton carouselCounterClockwise;
+
     @Builder
     private OperatorControls(RangeInput leftStickX,
                              RangeInput leftStickY,
@@ -95,8 +105,12 @@ public class OperatorControls implements PeriodicTask {
                              RangeInput rightTrigger,
                              NinjaGamePad operatorGamepad,
                              NinjaGamePad driverGamepad,
-                             ScoringMechanism scoringMechanism,
-                             WobbleGoal wobbleGoal) {
+                             FreightManipulator freightManipulator,
+                             CarouselMechanism carouselMechanism
+                             ) {
+        this.freightManipulator = freightManipulator;
+        this.carouselMechanism = carouselMechanism;
+
         if (operatorGamepad != null) {
             this.operatorGamepad = operatorGamepad;
             this.driverGamepad = driverGamepad;
@@ -154,11 +168,33 @@ public class OperatorControls implements PeriodicTask {
     // names.
     private void setupDerivedControls() {
         unsafe = new RangeInputButton( leftTrigger, 0.65f);
+        armMotorControl = leftStickY;
+        carouselClockwise = rightBumper;
+        carouselCounterClockwise = leftBumper;
     }
 
     @Override
     public void periodicTask() {
         // Here is where we ask the various mechanisms to respond to operator input
 
+        float armMotorControlPosition = armMotorControl.getPosition();
+
+        if (armMotorControlPosition < 0) {
+            // arm moves up
+            freightManipulator.moveArmUp(Math.abs(armMotorControlPosition));
+        } else if (armMotorControlPosition > 0) {
+            // arm moves down
+            freightManipulator.moveArmDown(Math.abs(armMotorControlPosition));
+        } else {
+            freightManipulator.stopArm();
+        }
+
+        if (carouselCounterClockwise.isPressed()) {
+            carouselMechanism.spinCounterClockwise();
+        } else if (carouselClockwise.isPressed()) {
+            carouselMechanism.spinClockwise();
+        } else {
+            carouselMechanism.stop();
+        }
     }
 }
