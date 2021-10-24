@@ -20,6 +20,7 @@
 package com.hfrobots.tnt.season2021;
 
 import com.ftc9929.corelib.drive.OpenLoopMecanumKinematics;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -42,6 +43,10 @@ public class Drivebase extends OpenLoopMecanumKinematics {
         rightFrontDriveMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         rightRearDriveMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        rightFrontDriveMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightRearDriveMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftFrontDriveMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftRearDriveMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     @Override
