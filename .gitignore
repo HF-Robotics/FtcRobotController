@@ -46,6 +46,7 @@ captures/
 .idea/assetWizardSettings.xml
 .idea/dictionaries
 .idea/libraries
+.idea/misc.xml
 # Android Studio 3 in .gitignore file.
 .idea/caches
 .idea/modules.xml
@@ -87,3 +88,5 @@ lint/tmp/
 # lint/reports/
 
 .DS_Store
+**/.DS_Store
+TeamCode/.DS_Store
