@@ -23,6 +23,8 @@ import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
 
 import android.util.Log;
 
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
+import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
 import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.control.OnOffButton;
@@ -31,18 +33,17 @@ import com.ftc9929.corelib.state.SequenceOfStates;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
 import com.ftc9929.corelib.state.StopwatchDelayState;
+import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveREV;
+import com.hfrobots.tnt.corelib.drive.mecanum.TrajectoryFollowerState;
 import com.hfrobots.tnt.corelib.util.RealSimplerHardwareMap;
 import com.hfrobots.tnt.season1920.SkystoneDriveConstants;
 import com.hfrobots.tnt.season2021.OperatorControls;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 @Autonomous(name="00 Frt Frnzy Auto")
@@ -66,9 +67,11 @@ public class Auto extends OpMode {
 
     private StateMachine stateMachine;
 
+    private CarouselMechanism carouselMechanism;
+
     // The routes our robot knows how to do
     private enum Routes {
-        DEFAULT("Default Route");
+        DELIVER_DUCK_PARK_STORAGE("Del. duck - park storage");
 
         final String description;
 
@@ -110,6 +113,8 @@ public class Auto extends OpMode {
         setupOpenCvCameraAndPipeline();
 
         operatorControls = OperatorControls.builder().operatorGamepad(new NinjaGamePad(gamepad2)).build();
+
+        carouselMechanism = new CarouselMechanism(hardwareMap);
     }
 
     private com.hfrobots.tnt.corelib.vision.EasyOpenCvPipelineAndCamera pipelineAndCamera;
@@ -236,8 +241,8 @@ public class Auto extends OpMode {
                 Routes selectedRoute = possibleRoutes[selectedRoutesIndex];
 
                 switch (selectedRoute) {
-                    case DEFAULT:
-                        setupDefault();
+                    case DELIVER_DUCK_PARK_STORAGE:
+                        setupDeliverDuckParkStorage();
                         break;
                     default:
                         stateMachine.addSequential(newDoneState("Default done"));
@@ -269,11 +274,105 @@ public class Auto extends OpMode {
         }
     }
 
-    protected void setupDefault() {
-        // FIXME: We're going to have to do something more interesting than this to score some points!
-
+    protected void setupDeliverDuckParkStorage() {
         SequenceOfStates sequence = new SequenceOfStates();
+
+        // deliver duck program
+
+        // Starting position: robot edge lined up on outer edge of tile closest to carousel
+
+        // drive forward 14.5"
+
+        State forwardFromWall = new TrajectoryFollowerState("ForwardFromWall",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                trajectoryBuilder.forward(14.5);
+
+                return trajectoryBuilder.build();
+            }
+        };
+
+        sequence.addSequential(forwardFromWall);
+
+        // strafe towards wall (alliance dependent!) 23.25
+
+        State strafeToWall = new TrajectoryFollowerState("StrafeToWall",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                if (currentAlliance == Constants.Alliance.RED) {
+                    trajectoryBuilder.strafeLeft(23.25);
+                } else {
+                    // it's blue
+                    trajectoryBuilder.strafeRight(23.25);
+                }
+
+                return trajectoryBuilder.build();
+            }
+        };
+
+        sequence.addSequential(strafeToWall);
+
+        // backward 9.5" to engage with carousel
+
+        State backToCarousel = new TrajectoryFollowerState("BackToCarousel",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                trajectoryBuilder.back(9.5);
+
+                return trajectoryBuilder.build();
+            }
+        };
+
+        sequence.addSequential(backToCarousel);
+
+        // deliver duck
+
+        State runCarousel = new StopwatchTimeoutSafetyState("RunCarousel",
+                telemetry, ticker, TimeUnit.SECONDS.toMillis(4 * 1000)) {
+            @Override
+            public State doStuffAndGetNextState() {
+                if (currentAlliance == Constants.Alliance.RED) {
+                    carouselMechanism.spinRedForAuto();
+                } else {
+                    carouselMechanism.spinBlueForAuto();
+                }
+
+                return nextState;
+            }
+        };
+
+        sequence.addSequential(runCarousel);
+
+        // Wait for duck to be delivered
+        sequence.addSequential(newMsDelayState("Wait for duck", 3500));
+
+        // drive forward 17"
+
+        State forwardToStorage = new TrajectoryFollowerState("ForwardToStorage",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                trajectoryBuilder.forward(17);
+
+                return trajectoryBuilder.build();
+            }
+        };
+
+        sequence.addSequential(forwardToStorage);
+
         sequence.addSequential(newDoneState("Done!"));
+
         stateMachine.addSequence(sequence);
     }
 
