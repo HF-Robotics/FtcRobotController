@@ -270,7 +270,7 @@ public class Auto extends OpMode {
     }
 
     protected void setupDefault() {
-        // FIXME: We're going to have to do something more interesting than this to score some ooints!
+        // FIXME: We're going to have to do something more interesting than this to score some points!
 
         SequenceOfStates sequence = new SequenceOfStates();
         sequence.addSequential(newDoneState("Done!"));
