@@ -25,8 +25,6 @@ import com.ftc9929.corelib.control.OnOffButton;
 import com.ftc9929.corelib.control.RangeInput;
 import com.ftc9929.corelib.control.RangeInputButton;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
-import com.hfrobots.tnt.season2021.ScoringMechanism;
-import com.hfrobots.tnt.season2021.WobbleGoal;
 
 import lombok.Builder;
 
@@ -78,9 +76,9 @@ public class OperatorControls implements PeriodicTask {
 
     private CarouselMechanism carouselMechanism;
 
-    private OnOffButton carouselClockwise;
+    private OnOffButton carouselSpinBlue;
 
-    private OnOffButton carouselCounterClockwise;
+    private OnOffButton carouselSpinRed;
 
     @Builder
     private OperatorControls(RangeInput leftStickX,
@@ -169,8 +167,8 @@ public class OperatorControls implements PeriodicTask {
     private void setupDerivedControls() {
         unsafe = new RangeInputButton( leftTrigger, 0.65f);
         armMotorControl = leftStickY;
-        carouselClockwise = rightBumper;
-        carouselCounterClockwise = leftBumper;
+        carouselSpinBlue = rightBumper;
+        carouselSpinRed = leftBumper;
     }
 
     @Override
@@ -189,10 +187,10 @@ public class OperatorControls implements PeriodicTask {
             freightManipulator.stopArm();
         }
 
-        if (carouselCounterClockwise.isPressed()) {
-            carouselMechanism.spinCounterClockwise();
-        } else if (carouselClockwise.isPressed()) {
-            carouselMechanism.spinClockwise();
+        if (carouselSpinRed.isPressed()) {
+            carouselMechanism.spinRed();
+        } else if (carouselSpinBlue.isPressed()) {
+            carouselMechanism.spinBlue();
         } else {
             carouselMechanism.stop();
         }

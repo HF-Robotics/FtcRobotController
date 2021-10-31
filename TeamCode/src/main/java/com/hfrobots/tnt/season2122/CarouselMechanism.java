@@ -30,6 +30,9 @@ import lombok.NonNull;
  */
 public class CarouselMechanism {
     private static final int NON_FLIGHT_VELOCITY = 750;
+
+    private static final int AUTO_DUCK_FLIGHT_VELOCITY = 500;
+
     // (1) We need to add the motors, servos and sensors this mechanism will use first, they go
     // in this location in the file. The mechanism requirements document can be consulted to
     // figure out what these are.
@@ -48,14 +51,25 @@ public class CarouselMechanism {
     // (3) Here, we define what the mechanism does, by adding methods. These methods contain
     // instructions for what to do with the items listed in step (1).
 
-    public void spinClockwise() {
+    public void spinBlue() {
         carouselMotor.setPower(-1);
         carouselMotor.setVelocity(NON_FLIGHT_VELOCITY);
     }
 
-    public void spinCounterClockwise() {
+    public void spinRed() {
         carouselMotor.setPower(1);
         carouselMotor.setVelocity(-NON_FLIGHT_VELOCITY);
+
+    }
+
+    public void spinBlueForAuto() {
+        carouselMotor.setPower(-1);
+        carouselMotor.setVelocity(AUTO_DUCK_FLIGHT_VELOCITY);
+    }
+
+    public void spinRedForAuto() {
+        carouselMotor.setPower(1);
+        carouselMotor.setVelocity(-AUTO_DUCK_FLIGHT_VELOCITY);
 
     }
 
