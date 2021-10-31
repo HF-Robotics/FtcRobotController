@@ -57,7 +57,7 @@ import lombok.NonNull;
 
 import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
 
-@Autonomous(name="00 UltGoal Auto")
+@Autonomous(name="UltGoal Auto")
 public class Auto extends OpMode {
     private Ticker ticker;
 
