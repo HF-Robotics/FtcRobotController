@@ -19,6 +19,7 @@
 
 package com.hfrobots.tnt.season2122;
 
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import lombok.NonNull;
@@ -28,9 +29,12 @@ import lombok.NonNull;
  * work.
  */
 public class CarouselMechanism {
+    private static final int NON_FLIGHT_VELOCITY = 750;
     // (1) We need to add the motors, servos and sensors this mechanism will use first, they go
     // in this location in the file. The mechanism requirements document can be consulted to
     // figure out what these are.
+
+    private final DcMotorEx carouselMotor;
 
     public CarouselMechanism(@NonNull final HardwareMap hardwareMap) {
 
@@ -38,10 +42,28 @@ public class CarouselMechanism {
         //
         // If this mechanism will have its own automation through a state machine,
         // this would also be setup here.
+        carouselMotor = hardwareMap.get(DcMotorEx.class, "carouselMotor");
     }
 
     // (3) Here, we define what the mechanism does, by adding methods. These methods contain
     // instructions for what to do with the items listed in step (1).
+
+    public void spinClockwise() {
+        carouselMotor.setPower(-1);
+        carouselMotor.setVelocity(NON_FLIGHT_VELOCITY);
+    }
+
+    public void spinCounterClockwise() {
+        carouselMotor.setPower(1);
+        carouselMotor.setVelocity(-NON_FLIGHT_VELOCITY);
+
+    }
+
+    public void stop() {
+        carouselMotor.setPower(0);
+        carouselMotor.setVelocity(0);
+    }
+
 
     // (4) If this component needs to take action during every loop of tele-op or auto,
     // implement the PeriodicTask interface and its required methods, and write the

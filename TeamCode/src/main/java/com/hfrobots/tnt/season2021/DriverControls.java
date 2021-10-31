@@ -194,10 +194,11 @@ public class DriverControls {
         boolean useEncoders = false;
 
         // do this first, it will be cancelled out by bump-strafe
-        if (driveFastButton.isPressed()) {
-            y /= 1.5;
-            x /= 1.25;
-            rot /= 1.5;
+        if (!(driveFastButton.isPressed())) {
+
+            y /= 5;
+            x /= 5;
+            rot /= 5;
             useEncoders = false;
         }
 

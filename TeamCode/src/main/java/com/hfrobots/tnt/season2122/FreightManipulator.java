@@ -19,6 +19,7 @@
 
 package com.hfrobots.tnt.season2122;
 
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import lombok.NonNull;
@@ -31,16 +32,34 @@ public class FreightManipulator {
     // in this location in the file. The mechanism requirements document can be consulted to
     // figure out what these are.
 
+    final DcMotorEx armMotor;
+
     public FreightManipulator(@NonNull final HardwareMap hardwareMap) {
 
         // (2) Here is where we setup the items in (1), by finding them in the HardwareMap
         //
         // If this mechanism will have its own automation through a state machine,
         // this would also be setup here.
+
+        armMotor = hardwareMap.get(DcMotorEx.class, "armMotor");
     }
 
     // (3) Here, we define what the mechanism does, by adding methods. These methods contain
     // instructions for what to do with the items listed in step (1).
+
+    public void moveArmUp(double speed) {
+        armMotor.setPower(-speed);
+    }
+
+    public void moveArmDown(double speed) {
+        // positive power -> down
+        armMotor.setPower(speed);
+    }
+
+    public void stopArm() {
+        // Feed Forward
+        armMotor.setPower(-.25);
+    }
 
     // (4) If this component needs to take action during every loop of tele-op or auto,
     // implement the PeriodicTask interface and its required methods, and write the

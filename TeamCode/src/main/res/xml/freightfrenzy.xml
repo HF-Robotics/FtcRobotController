@@ -34,5 +34,9 @@ SOFTWARE.
             <Motor name="rightFrontDriveMotor" port="2" /> <!-- Yellow -->
             <Motor name="rightRearDriveMotor"  port="3" /> <!-- Green  -->
         </LynxModule>
+        <LynxModule name="Expansion Hub 3" port="3">
+            <Motor name="armMotor"        port="0" /> <!-- Red    -->
+            <Motor name="carouselMotor"   port="1" /> <!-- Orange -->
+        </LynxModule>
     </LynxUsbDevice>
 </Robot>
