@@ -78,5 +78,13 @@ public abstract class TrajectoryFollowerState extends StopwatchTimeoutSafetyStat
         return nextState;
     }
 
+    /**
+     * We don't create the trajectory until the state machine runs. This allows autonomous
+     * to have one set of code, that does different things depending on what alliance has been
+     * selected - which in most FTC games, is simply a mirror image of left/right of the
+     * other alliance routes.
+     *
+     * @return A Road Runner trajectory to move the robot for this State in the state machine
+     */
     protected abstract Trajectory createTrajectory();
 }
