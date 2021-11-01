@@ -105,7 +105,7 @@ public class Auto extends OpMode {
 
         RealSimplerHardwareMap simplerHardwareMap = new RealSimplerHardwareMap(this.hardwareMap);
 
-        driveBase = new RoadRunnerMecanumDriveREV(new SkystoneDriveConstants(),
+        driveBase = new RoadRunnerMecanumDriveREV(new FreightFrenzyDriveConstants(),
                 simplerHardwareMap, true);
 
         stateMachine = new StateMachine(telemetry);
