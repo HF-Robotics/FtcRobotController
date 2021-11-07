@@ -71,7 +71,8 @@ public class Auto extends OpMode {
 
     // The routes our robot knows how to do
     private enum Routes {
-        DELIVER_DUCK_PARK_STORAGE("Del. duck - park storage");
+        DELIVER_DUCK_PARK_STORAGE("Del. duck - park storage"),
+        PARK_WAREHOUSE("Park warehouse");
 
         final String description;
 
@@ -244,6 +245,9 @@ public class Auto extends OpMode {
                     case DELIVER_DUCK_PARK_STORAGE:
                         setupDeliverDuckParkStorage();
                         break;
+                    case PARK_WAREHOUSE:
+                        setupParkWarehouse();
+                        break;
                     default:
                         stateMachine.addSequential(newDoneState("Default done"));
                         break;
@@ -370,6 +374,54 @@ public class Auto extends OpMode {
         };
 
         sequence.addSequential(forwardToStorage);
+
+        sequence.addSequential(newDoneState("Done!"));
+
+        stateMachine.addSequence(sequence);
+    }
+
+    protected void setupParkWarehouse() {
+        final SequenceOfStates sequence = new SequenceOfStates();
+
+        // Starting position Back of robot towards carousel, lined up with seam from third and fourth tile from carousel.
+        
+        // Strafe 18.5in away from wall.
+        //
+
+        State strafeFromWall = new TrajectoryFollowerState("StrafeFromWall",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                if (currentAlliance == Constants.Alliance.RED) {
+                    trajectoryBuilder.strafeLeft(18.5);
+                } else {
+                    // it's blue
+                    trajectoryBuilder.strafeRight(18.5);
+                }
+
+                return trajectoryBuilder.build();
+            }
+        };
+
+        sequence.addSequential(strafeFromWall);
+
+        // Forward 40 in
+
+        State forwardToWarehouse = new TrajectoryFollowerState("ForwardToWarehouse",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                trajectoryBuilder.forward(40);
+
+                return trajectoryBuilder.build();
+            }
+        };
+
+        sequence.addSequential(forwardToWarehouse);
 
         sequence.addSequential(newDoneState("Done!"));
 
