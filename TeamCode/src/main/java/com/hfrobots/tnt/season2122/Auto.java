@@ -39,8 +39,6 @@ import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveREV;
 import com.hfrobots.tnt.corelib.drive.mecanum.TrajectoryFollowerState;
 import com.hfrobots.tnt.corelib.util.RealSimplerHardwareMap;
-import com.hfrobots.tnt.season1920.SkystoneDriveConstants;
-import com.hfrobots.tnt.season2021.OperatorControls;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
@@ -69,6 +67,8 @@ public class Auto extends OpMode {
 
     private CarouselMechanism carouselMechanism;
 
+    private FreightManipulator freightManipulator;
+
     // The routes our robot knows how to do
     private enum Routes {
         DELIVER_DUCK_PARK_STORAGE("Del. duck - park storage"),
@@ -96,7 +96,7 @@ public class Auto extends OpMode {
 
     private int initialDelaySeconds = 0;
 
-    private com.hfrobots.tnt.season2021.OperatorControls operatorControls;
+    private OperatorControls operatorControls;
 
     @Override
     public void init() {
@@ -113,9 +113,15 @@ public class Auto extends OpMode {
 
         setupOpenCvCameraAndPipeline();
 
-        operatorControls = OperatorControls.builder().operatorGamepad(new NinjaGamePad(gamepad2)).build();
 
         carouselMechanism = new CarouselMechanism(hardwareMap);
+
+        freightManipulator = new FreightManipulator(hardwareMap);
+
+        operatorControls = OperatorControls.builder().carouselMechanism(carouselMechanism)
+                .freightManipulator(freightManipulator)
+                .operatorGamepad(new NinjaGamePad(gamepad2)).build();
+
     }
 
     private com.hfrobots.tnt.corelib.vision.EasyOpenCvPipelineAndCamera pipelineAndCamera;
@@ -384,7 +390,7 @@ public class Auto extends OpMode {
         final SequenceOfStates sequence = new SequenceOfStates();
 
         // Starting position Back of robot towards carousel, lined up with seam from third and fourth tile from carousel.
-        
+
         // Strafe 18.5in away from wall.
         //
 
@@ -415,7 +421,7 @@ public class Auto extends OpMode {
             protected Trajectory createTrajectory() {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
-                trajectoryBuilder.forward(40);
+                trajectoryBuilder.forward(80);
 
                 return trajectoryBuilder.build();
             }
