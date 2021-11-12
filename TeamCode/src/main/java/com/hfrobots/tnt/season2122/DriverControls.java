@@ -83,13 +83,13 @@ public class DriverControls implements PeriodicTask {
 
     private OpenLoopMecanumKinematics kinematics;
 
-    private final float throttleGain = 0.7F;
+    private final float throttleGain = 0.4F;
 
     private final float throttleExponent = 5; // MUST BE AN ODD NUMBER!
 
     private final float throttleDeadband = 0;
 
-    private final float lowPassFilterFactor = .95F;
+    private final float lowPassFilterFactor = 1.0F;
 
     @Builder
     private DriverControls(RangeInput leftStickX,
