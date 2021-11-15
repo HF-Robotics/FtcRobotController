@@ -381,6 +381,23 @@ public class Auto extends OpMode {
 
         sequence.addSequential(forwardToStorage);
 
+        // Stop running the carousel mechanism
+        State stopCarousel = new State("Stop carousel", telemetry) {
+            @Override
+            public State doStuffAndGetNextState() {
+               carouselMechanism.stop();
+
+                return nextState;
+            }
+
+            @Override
+            public void resetToStart() {
+
+            }
+        };
+
+        sequence.addSequential(stopCarousel);
+
         State dropFreightState = new State("Drop freight", telemetry) {
 
             @Override
