@@ -381,6 +381,23 @@ public class Auto extends OpMode {
 
         sequence.addSequential(forwardToStorage);
 
+        State dropFreightState = new State("Drop freight", telemetry) {
+
+            @Override
+            public State doStuffAndGetNextState() {
+                // FIXME: Drop pre-loaded freight for a few more points
+
+                return nextState;
+            }
+
+            @Override
+            public void resetToStart() {
+
+            }
+        };
+
+        sequence.addSequential(dropFreightState);
+
         sequence.addSequential(newDoneState("Done!"));
 
         stateMachine.addSequence(sequence);

@@ -34,6 +34,10 @@ public class FreightManipulator {
 
     final DcMotorEx armMotor;
 
+    // FIXME: The gripper currently has two servos, and each side of the gripper has its own
+    //        open/closed positions. Add all of the required fields and constants here, and
+    //        then add methods to open/close the grippers.
+
     public FreightManipulator(@NonNull final HardwareMap hardwareMap) {
 
         // (2) Here is where we setup the items in (1), by finding them in the HardwareMap
@@ -42,16 +46,20 @@ public class FreightManipulator {
         // this would also be setup here.
 
         armMotor = hardwareMap.get(DcMotorEx.class, "armMotor");
+
+        // FIXME: Add the setup of the servos from the HardwareMap here
     }
 
     // (3) Here, we define what the mechanism does, by adding methods. These methods contain
     // instructions for what to do with the items listed in step (1).
 
     public void moveArmUp(double speed) {
+        // FIXME: The power levels for the arm motor need to be around 10% of actual
         armMotor.setPower(-speed);
     }
 
     public void moveArmDown(double speed) {
+        // FIXME: The power levels for the arm motor need to be around 10% of actual
         // positive power -> down
         armMotor.setPower(speed);
     }

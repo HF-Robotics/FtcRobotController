@@ -80,6 +80,8 @@ public class OperatorControls implements PeriodicTask {
 
     private OnOffButton carouselSpinRed;
 
+    // FIXME: We need a control to grip, un-grip
+
     @Builder
     private OperatorControls(RangeInput leftStickX,
                              RangeInput leftStickY,
@@ -186,6 +188,9 @@ public class OperatorControls implements PeriodicTask {
         } else {
             freightManipulator.stopArm();
         }
+
+        // FIXME: When we have a control to grip/un-grip, we actually need to respond to
+        // it here
 
         if (carouselSpinRed.isPressed()) {
             carouselMechanism.spinRed();
