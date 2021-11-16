@@ -27,10 +27,11 @@ import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.metrics.RobotMetricsSampler;
 import com.ftc9929.metrics.StatsdMetricsReporter;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
-import com.hfrobots.tnt.season2021.Drivebase;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import org.apache.commons.math3.analysis.function.Max;
 
 import java.util.List;
 
@@ -69,9 +70,12 @@ public class DriverControlled extends OpMode {
 
         NinjaGamePad operatorGamepad = new NinjaGamePad(gamepad2);
 
+        MaxMotorPowerMagnitude maxMotorPowerMagnitude = MaxMotorPowerMagnitude.forDrivebase(hardwareMap);
+
         operatorControls = OperatorControls.builder().operatorGamepad(operatorGamepad)
                 .freightManipulator(freightManipulator)
-                .carouselMechanism(carouselMechanism).build();
+                .carouselMechanism(carouselMechanism)
+                .maxMotorPowerMagnitude(maxMotorPowerMagnitude).build();
 
         setupMetricsSampler(driversGamepad, operatorGamepad);
 

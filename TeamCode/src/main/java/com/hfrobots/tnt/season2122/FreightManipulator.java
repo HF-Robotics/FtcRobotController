@@ -19,8 +19,10 @@
 
 package com.hfrobots.tnt.season2122;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import lombok.NonNull;
 
@@ -34,9 +36,29 @@ public class FreightManipulator {
 
     final DcMotorEx armMotor;
 
-    // FIXME: The gripper currently has two servos, and each side of the gripper has its own
-    //        open/closed positions. Add all of the required fields and constants here, and
-    //        then add methods to open/close the grippers.
+    public static final double LEFT_FULL_POSITION = 0.0D;
+
+    public static final double RIGHT_FULL_POSITION = 1.0D;
+
+    public static final double CENTER_POSITION = 0.5D;
+
+    public static final double LEFT_GRIPPER_OPEN_POSITION = CENTER_POSITION;
+
+    public static final double LEFT_GRIPPER_CLOSED_POSITION = LEFT_FULL_POSITION;
+
+    public static final double RIGHT_GRIPPER_OPEN_POSITION = CENTER_POSITION;
+
+    public static final double RIGHT_GRIPPER_CLOSED_POSITION = RIGHT_FULL_POSITION;
+
+    public static final double SPEED_DIVISIOR = 10D;
+
+    public static final int ARM_SAFE_POSITION_DIFFERENCE = 20;
+
+    public final int armMotorStartingPosition;
+
+    final Servo leftGripperServo;
+
+    final Servo rightGripperServo;
 
     public FreightManipulator(@NonNull final HardwareMap hardwareMap) {
 
@@ -46,27 +68,48 @@ public class FreightManipulator {
         // this would also be setup here.
 
         armMotor = hardwareMap.get(DcMotorEx.class, "armMotor");
+        armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        armMotorStartingPosition = armMotor.getCurrentPosition();
 
-        // FIXME: Add the setup of the servos from the HardwareMap here
+        armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        leftGripperServo = hardwareMap.get(Servo.class, "leftGripperServo");
+        rightGripperServo = hardwareMap.get(Servo.class, "rightGripperServo");
     }
 
     // (3) Here, we define what the mechanism does, by adding methods. These methods contain
     // instructions for what to do with the items listed in step (1).
 
     public void moveArmUp(double speed) {
-        // FIXME: The power levels for the arm motor need to be around 10% of actual
-        armMotor.setPower(-speed);
+        armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        armMotor.setPower(-speed / SPEED_DIVISIOR);
     }
 
     public void moveArmDown(double speed) {
-        // FIXME: The power levels for the arm motor need to be around 10% of actual
-        // positive power -> down
-        armMotor.setPower(speed);
+        armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        armMotor.setPower(speed / SPEED_DIVISIOR);
     }
 
     public void stopArm() {
         // Feed Forward
+        armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         armMotor.setPower(-.25);
+    }
+
+    public void moveToSafePosition() {
+        armMotor.setTargetPosition(armMotorStartingPosition + ARM_SAFE_POSITION_DIFFERENCE);
+        armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        armMotor.setPower(0.5);
+    }
+
+    public void openGripper() {
+        leftGripperServo.setPosition(LEFT_GRIPPER_OPEN_POSITION);
+        rightGripperServo.setPosition(RIGHT_GRIPPER_OPEN_POSITION);
+    }
+
+    public void closeGripper() {
+        leftGripperServo.setPosition(LEFT_GRIPPER_CLOSED_POSITION);
+        rightGripperServo.setPosition(RIGHT_GRIPPER_CLOSED_POSITION);
     }
 
     // (4) If this component needs to take action during every loop of tele-op or auto,

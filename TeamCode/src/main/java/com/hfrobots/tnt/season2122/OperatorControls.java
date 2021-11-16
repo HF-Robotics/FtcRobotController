@@ -24,6 +24,7 @@ import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.control.OnOffButton;
 import com.ftc9929.corelib.control.RangeInput;
 import com.ftc9929.corelib.control.RangeInputButton;
+import com.ftc9929.corelib.control.ToggledButton;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
 
 import lombok.Builder;
@@ -74,13 +75,15 @@ public class OperatorControls implements PeriodicTask {
 
     private RangeInput armMotorControl;
 
+    private ToggledButton gripperToggle;
+
     private CarouselMechanism carouselMechanism;
 
     private OnOffButton carouselSpinBlue;
 
     private OnOffButton carouselSpinRed;
 
-    // FIXME: We need a control to grip, un-grip
+    private MaxMotorPowerMagnitude maxMotorPowerMagnitude;
 
     @Builder
     private OperatorControls(RangeInput leftStickX,
@@ -106,10 +109,12 @@ public class OperatorControls implements PeriodicTask {
                              NinjaGamePad operatorGamepad,
                              NinjaGamePad driverGamepad,
                              FreightManipulator freightManipulator,
-                             CarouselMechanism carouselMechanism
+                             CarouselMechanism carouselMechanism,
+                             MaxMotorPowerMagnitude maxMotorPowerMagnitude
                              ) {
         this.freightManipulator = freightManipulator;
         this.carouselMechanism = carouselMechanism;
+        this.maxMotorPowerMagnitude = maxMotorPowerMagnitude;
 
         if (operatorGamepad != null) {
             this.operatorGamepad = operatorGamepad;
@@ -171,6 +176,7 @@ public class OperatorControls implements PeriodicTask {
         armMotorControl = leftStickY;
         carouselSpinBlue = rightBumper;
         carouselSpinRed = leftBumper;
+        gripperToggle = new ToggledButton(operatorGamepad.getAButton());
     }
 
     @Override
@@ -185,12 +191,21 @@ public class OperatorControls implements PeriodicTask {
         } else if (armMotorControlPosition > 0) {
             // arm moves down
             freightManipulator.moveArmDown(Math.abs(armMotorControlPosition));
+        } else if (maxMotorPowerMagnitude != null) {
+            if (maxMotorPowerMagnitude.getMaxPowerMagnitude() > .3) {
+                freightManipulator.moveToSafePosition();
+            } else {
+                freightManipulator.stopArm();
+            }
         } else {
             freightManipulator.stopArm();
         }
 
-        // FIXME: When we have a control to grip/un-grip, we actually need to respond to
-        // it here
+        if (gripperToggle.isToggledTrue()) {
+            freightManipulator.openGripper();
+        } else {
+            freightManipulator.closeGripper();
+        }
 
         if (carouselSpinRed.isPressed()) {
             carouselMechanism.spinRed();
