@@ -113,7 +113,6 @@ public class Auto extends OpMode {
 
         setupOpenCvCameraAndPipeline();
 
-
         carouselMechanism = new CarouselMechanism(hardwareMap);
 
         freightManipulator = new FreightManipulator(hardwareMap);
@@ -425,6 +424,24 @@ public class Auto extends OpMode {
 
         // Starting position Back of robot towards carousel, lined up with seam from third and fourth tile from carousel.
 
+        // Put the arm in a safe position
+        State armSafeState = new State("Arm safe", telemetry) {
+
+            @Override
+            public State doStuffAndGetNextState() {
+                freightManipulator.moveToSafePosition();
+
+                return nextState;
+            }
+
+            @Override
+            public void resetToStart() {
+
+            }
+        };
+
+        sequence.addSequential(armSafeState);
+
         // Strafe 18.5in away from wall.
         //
 
@@ -455,7 +472,7 @@ public class Auto extends OpMode {
             protected Trajectory createTrajectory() {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
-                trajectoryBuilder.forward(80);
+                trajectoryBuilder.forward(80 - 10);
 
                 return trajectoryBuilder.build();
             }

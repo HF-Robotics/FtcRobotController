@@ -42,7 +42,7 @@ SOFTWARE.
             <Motor name="carouselMotor"   port="1" /> <!-- Orange -->
 
             <Servo name="rightGripperServo"          port="1" /> <!-- Orange -->
-            <Servo name="leftGripperServo"           port="3" /> <!-- Blue -->
+            <Servo name="leftGripperServo"           port="4" /> <!-- Blue -->
 
         </LynxModule>
     </LynxUsbDevice>

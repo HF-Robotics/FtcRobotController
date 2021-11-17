@@ -19,12 +19,14 @@
 
 package com.hfrobots.tnt.season2122;
 
+import com.ftc9929.corelib.control.OnOffButton;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import lombok.NonNull;
+import lombok.Setter;
 
 /**
  * The class that makes the mechanism that picks up and delivers freight, work.
@@ -42,26 +44,32 @@ public class FreightManipulator {
 
     public static final double CENTER_POSITION = 0.5D;
 
-    public static final double LEFT_GRIPPER_OPEN_POSITION = CENTER_POSITION;
+    public static final double LEFT_GRIPPER_OPEN_POSITION = 0.62;
 
-    public static final double LEFT_GRIPPER_CLOSED_POSITION = LEFT_FULL_POSITION;
+    public static final double LEFT_GRIPPER_CLOSED_POSITION = 0.16;
 
-    public static final double RIGHT_GRIPPER_OPEN_POSITION = CENTER_POSITION;
+    public static final double RIGHT_GRIPPER_OPEN_POSITION = 0.43;
 
-    public static final double RIGHT_GRIPPER_CLOSED_POSITION = RIGHT_FULL_POSITION;
+    public static final double RIGHT_GRIPPER_CLOSED_POSITION = 0.881;
 
-    public static final double SPEED_DIVISIOR = 10D;
+    public static final double UP_SPEED_DIVISIOR = 1;
 
-    public static final int ARM_SAFE_POSITION_DIFFERENCE = 20;
+    public static final double DOWN_SPEED_DIVISIOR = 5;
+
+    public static final int ARM_SAFE_POSITION_DIFFERENCE = 200;
+
+    public static final int ARM_LIMIT_POSITION_DIFFERENCE = 600;
 
     public final int armMotorStartingPosition;
 
-    final Servo leftGripperServo;
+    private final Servo leftGripperServo;
 
-    final Servo rightGripperServo;
+    private final Servo rightGripperServo;
+
+    @Setter
+    private OnOffButton unsafeButton;
 
     public FreightManipulator(@NonNull final HardwareMap hardwareMap) {
-
         // (2) Here is where we setup the items in (1), by finding them in the HardwareMap
         //
         // If this mechanism will have its own automation through a state machine,
@@ -81,22 +89,45 @@ public class FreightManipulator {
     // instructions for what to do with the items listed in step (1).
 
     public void moveArmUp(double speed) {
+        final int currentPosition = armMotor.getCurrentPosition();
+
+        boolean unsafePressed = unsafeButton != null && unsafeButton.isPressed();
+
+        if (!unsafePressed) {
+            if (currentPosition > armMotorStartingPosition + ARM_LIMIT_POSITION_DIFFERENCE) {
+
+                stopArm();
+
+                return;
+            }
+        }
+
         armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        armMotor.setPower(-speed / SPEED_DIVISIOR);
+        armMotor.setPower(speed / UP_SPEED_DIVISIOR);
     }
 
     public void moveArmDown(double speed) {
         armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        armMotor.setPower(speed / SPEED_DIVISIOR);
+        armMotor.setPower(-speed / DOWN_SPEED_DIVISIOR);
     }
 
     public void stopArm() {
         // Feed Forward
         armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        armMotor.setPower(-.25);
+        armMotor.setPower(.25);
     }
 
     public void moveToSafePosition() {
+        if (unsafeButton != null && unsafeButton.isPressed()) {
+            return;
+        }
+
+        final int currentPosition = armMotor.getCurrentPosition();
+
+        if (currentPosition > armMotorStartingPosition + ARM_SAFE_POSITION_DIFFERENCE) {
+            return; // already safe!
+        }
+
         armMotor.setTargetPosition(armMotorStartingPosition + ARM_SAFE_POSITION_DIFFERENCE);
         armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         armMotor.setPower(0.5);

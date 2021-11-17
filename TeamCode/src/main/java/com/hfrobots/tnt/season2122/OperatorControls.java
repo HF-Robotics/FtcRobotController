@@ -173,6 +173,11 @@ public class OperatorControls implements PeriodicTask {
     // names.
     private void setupDerivedControls() {
         unsafe = new RangeInputButton( leftTrigger, 0.65f);
+
+        if (freightManipulator != null) {
+            freightManipulator.setUnsafeButton(unsafe);
+        }
+
         armMotorControl = leftStickY;
         carouselSpinBlue = rightBumper;
         carouselSpinRed = leftBumper;
