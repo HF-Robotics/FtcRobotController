@@ -35,7 +35,7 @@ import org.apache.commons.math3.analysis.function.Max;
 
 import java.util.List;
 
-@TeleOp(name = "00 FF TeleOp")
+@TeleOp(name = "00 Frt Frnzy TeleOp")
 public class DriverControlled extends OpMode {
 
     private Drivebase drivebase;
