@@ -52,9 +52,9 @@ public class FreightManipulator {
 
     public static final double RIGHT_GRIPPER_CLOSED_POSITION = 0.881;
 
-    public static final double UP_SPEED_DIVISIOR = 1;
+    public static final double UP_SPEED_DIVISIOR = 1.5;
 
-    public static final double DOWN_SPEED_DIVISIOR = 5;
+    public static final double DOWN_SPEED_DIVISIOR = 6;
 
     public static final int ARM_SAFE_POSITION_DIFFERENCE = 200;
 
