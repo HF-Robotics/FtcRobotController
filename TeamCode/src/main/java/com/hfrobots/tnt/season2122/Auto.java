@@ -401,7 +401,7 @@ public class Auto extends OpMode {
 
             @Override
             public State doStuffAndGetNextState() {
-                // FIXME: Drop pre-loaded freight for a few more points
+                freightManipulator.openGripper();
 
                 return nextState;
             }
@@ -422,7 +422,7 @@ public class Auto extends OpMode {
     protected void setupParkWarehouse() {
         final SequenceOfStates sequence = new SequenceOfStates();
 
-        // Starting position Back of robot towards carousel, lined up with seam from third and fourth tile from carousel.
+        // Starting position Back of robot towards warehouse, lined up with seam from third and fourth tile from carousel.
 
         // Put the arm in a safe position
         State armSafeState = new State("Arm safe", telemetry) {
@@ -452,10 +452,10 @@ public class Auto extends OpMode {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
                 if (currentAlliance == Constants.Alliance.RED) {
-                    trajectoryBuilder.strafeLeft(18.5);
+                    trajectoryBuilder.strafeRight(18.5);
                 } else {
                     // it's blue
-                    trajectoryBuilder.strafeRight(18.5);
+                    trajectoryBuilder.strafeLeft(18.5);
                 }
 
                 return trajectoryBuilder.build();
@@ -464,21 +464,20 @@ public class Auto extends OpMode {
 
         sequence.addSequential(strafeFromWall);
 
-        // Forward 40 in
-
-        State forwardToWarehouse = new TrajectoryFollowerState("ForwardToWarehouse",
+        // Backwards to the warehouse
+        State backwardToWarehouse = new TrajectoryFollowerState("BackwardToWarehouse",
                 telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
             @Override
             protected Trajectory createTrajectory() {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
-                trajectoryBuilder.forward(80 - 10);
+                trajectoryBuilder.back(80 - 10);
 
                 return trajectoryBuilder.build();
             }
         };
 
-        sequence.addSequential(forwardToWarehouse);
+        sequence.addSequential(backwardToWarehouse);
 
         sequence.addSequential(newDoneState("Done!"));
 
