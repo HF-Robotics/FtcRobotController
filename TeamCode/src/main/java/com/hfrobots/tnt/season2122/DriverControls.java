@@ -151,7 +151,9 @@ public class DriverControls implements PeriodicTask {
                 new LowPassFilteredRangeInput(leftStickY, lowPassFilterFactor),
                 throttleDeadband, throttleGain, throttleExponent);
 
-        driveRotate = new LowPassFilteredRangeInput(rightStickX, lowPassFilterFactor);
+        driveRotate = new ParametricScaledRangeInput(
+                new LowPassFilteredRangeInput(rightStickX, lowPassFilterFactor),
+                throttleDeadband, 0.4F, 9);
     }
 
     private void setupFromGamepad() {
