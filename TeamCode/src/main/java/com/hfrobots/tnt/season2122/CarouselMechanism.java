@@ -19,8 +19,11 @@
 
 package com.hfrobots.tnt.season2122;
 
+import com.google.common.base.Stopwatch;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import java.util.concurrent.TimeUnit;
 
 import lombok.NonNull;
 
@@ -34,6 +37,18 @@ public class CarouselMechanism {
     private static final int AUTO_DUCK_FLIGHT_VELOCITY = 500;
     private static final int BLUE_MAGNITUDE = -1;
     private static final int RED_MAGNITUDE = 1;
+
+    private static final double CURVE_DURATION_MS = 1500;
+
+    private static final int START_VELOCITY = 550;
+
+    private static final int MAX_VELOCITY = 900;
+
+    private static final double ACCELERATION_VEL_MS = (MAX_VELOCITY - START_VELOCITY) / CURVE_DURATION_MS;
+
+    private int currentVelocity = START_VELOCITY;
+
+    private Stopwatch stopwatch = Stopwatch.createUnstarted();
 
     // (1) We need to add the motors, servos and sensors this mechanism will use first, they go
     // in this location in the file. The mechanism requirements document can be consulted to
@@ -59,8 +74,24 @@ public class CarouselMechanism {
     }
 
     public void spinRed() {
+        if (!stopwatch.isRunning()) {
+            stopwatch.start();
+        } else {
+            long elapsedMs = Math.max(1, stopwatch.elapsed(TimeUnit.MILLISECONDS));
+
+            int addToVelocity = (int)(ACCELERATION_VEL_MS * elapsedMs);
+            currentVelocity = currentVelocity + addToVelocity;
+
+            if (currentVelocity > MAX_VELOCITY) {
+                currentVelocity = MAX_VELOCITY;
+            }
+
+            stopwatch.reset();
+            stopwatch.start();
+
+        }
         carouselMotor.setPower(RED_MAGNITUDE);
-        carouselMotor.setVelocity(RED_MAGNITUDE * NON_FLIGHT_VELOCITY);
+        carouselMotor.setVelocity(RED_MAGNITUDE * currentVelocity);
 
     }
 
@@ -76,6 +107,12 @@ public class CarouselMechanism {
     }
 
     public void stop() {
+        currentVelocity = START_VELOCITY;
+
+        if (stopwatch.isRunning()) {
+            stopwatch.stop();
+        }
+
         carouselMotor.setPower(0);
         carouselMotor.setVelocity(0);
     }
