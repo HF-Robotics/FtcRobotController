@@ -191,7 +191,7 @@ public class DriverControls implements PeriodicTask {
 
     @Override
     public void periodicTask() {
-        double x = driveStrafe.getPosition();
+        double x = driveStrafe.getPosition() * 1.1;
         double y = - driveForwardReverse.getPosition();
         double rot = driveRotate.getPosition(); // positive robot z rotation (human-normal) is negative joystick x axis
         boolean useEncoders = false;
