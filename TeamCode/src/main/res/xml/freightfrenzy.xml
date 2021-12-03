@@ -42,6 +42,7 @@ SOFTWARE.
             <Motor name="carouselMotor"   port="1" /> <!-- Orange -->
 
             <Servo name="rightGripperServo"          port="1" /> <!-- Orange -->
+            <RevBlinkinLedDriver name="blinkin"      port="2" /> <!-- Yellow -->
             <Servo name="leftGripperServo"           port="4" /> <!-- Blue -->
 
         </LynxModule>
