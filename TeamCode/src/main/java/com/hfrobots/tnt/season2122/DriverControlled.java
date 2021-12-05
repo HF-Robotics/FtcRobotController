@@ -26,6 +26,7 @@ import android.util.Log;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.metrics.RobotMetricsSampler;
 import com.ftc9929.metrics.StatsdMetricsReporter;
+import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -56,11 +57,14 @@ public class DriverControlled extends OpMode {
 
     private List<LynxModule> allHubs;
 
+    private DriveTeamSignal driveTeamSignal;
+
     @Override
     public void init() {
         drivebase = new Drivebase(hardwareMap);
         freightManipulator = new FreightManipulator(hardwareMap);
         carouselMechanism = new CarouselMechanism(hardwareMap);
+        driveTeamSignal = new DriveTeamSignal(hardwareMap, Ticker.systemTicker());
 
         NinjaGamePad driversGamepad = new NinjaGamePad(gamepad1);
 
@@ -123,11 +127,20 @@ public class DriverControlled extends OpMode {
     }
 
     @Override
+    public void start() {
+        super.start();
+
+        driveTeamSignal.startMatch();
+    }
+
+    @Override
     public void loop() {
         clearHubsBulkCaches(); // important, do not remove this line, or reads from robot break!
 
         driverControls.periodicTask();
         operatorControls.periodicTask();
+
+        driveTeamSignal.periodicTask();
 
         if (useLegacyMetricsSampler) {
             if (legacyMetricsSampler != null) {
