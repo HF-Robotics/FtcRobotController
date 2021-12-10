@@ -115,7 +115,7 @@ public class Auto extends OpMode {
 
         carouselMechanism = new CarouselMechanism(hardwareMap);
 
-        freightManipulator = new FreightManipulator(hardwareMap);
+        freightManipulator = new FreightManipulator(hardwareMap, telemetry);
 
         operatorControls = OperatorControls.builder().carouselMechanism(carouselMechanism)
                 .freightManipulator(freightManipulator)

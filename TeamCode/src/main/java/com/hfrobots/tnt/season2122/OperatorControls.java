@@ -19,6 +19,7 @@
 
 package com.hfrobots.tnt.season2122;
 
+import com.ftc9929.corelib.control.AnyButton;
 import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.control.OnOffButton;
@@ -84,6 +85,12 @@ public class OperatorControls implements PeriodicTask {
     private OnOffButton carouselSpinRed;
 
     private MaxMotorPowerMagnitude maxMotorPowerMagnitude;
+
+    private DebouncedButton armToLowGoalButton;
+
+    private DebouncedButton armToMidGoalButton;
+
+    private DebouncedButton armToHighGoalButton;
 
     @Builder
     private OperatorControls(RangeInput leftStickX,
@@ -174,42 +181,42 @@ public class OperatorControls implements PeriodicTask {
     private void setupDerivedControls() {
         unsafe = new RangeInputButton( leftTrigger, 0.65f);
 
-        if (freightManipulator != null) {
-            freightManipulator.setUnsafeButton(unsafe);
-        }
-
         armMotorControl = leftStickY;
         carouselSpinBlue = rightBumper;
         carouselSpinRed = leftBumper;
         gripperToggle = new ToggledButton(operatorGamepad.getAButton());
+
+        armToLowGoalButton = operatorGamepad.getDpadDown().debounced();
+        armToHighGoalButton = operatorGamepad.getDpadUp().debounced();
+
+        AnyButton leftRightDpad = new AnyButton(operatorGamepad.getDpadLeft(), operatorGamepad.getDpadRight());
+
+        armToMidGoalButton = leftRightDpad.debounced();
+
+        if (freightManipulator != null) {
+            wireControlsToFreightManipulator();
+        }
+    }
+
+    public void wireControlsToFreightManipulator() {
+        freightManipulator.setArmThrottle(armMotorControl);
+        freightManipulator.setGripperToggleButton(gripperToggle);
+        freightManipulator.setToHubLevelOneButton(armToLowGoalButton);
+        freightManipulator.setToHubLevelTwoButton(armToMidGoalButton);
+        freightManipulator.setToHubLevelThreeButton(armToHighGoalButton);
+        freightManipulator.setUnsafeButton(unsafe);
     }
 
     @Override
     public void periodicTask() {
         // Here is where we ask the various mechanisms to respond to operator input
 
-        float armMotorControlPosition = armMotorControl.getPosition();
+        freightManipulator.periodicTask();
 
-        if (armMotorControlPosition < 0) {
-            // arm moves up
-            freightManipulator.moveArmUp(Math.abs(armMotorControlPosition));
-        } else if (armMotorControlPosition > 0) {
-            // arm moves down
-            freightManipulator.moveArmDown(Math.abs(armMotorControlPosition));
-        } else if (maxMotorPowerMagnitude != null) {
-            if (maxMotorPowerMagnitude.getMaxPowerMagnitude() > .3) {
+        if (maxMotorPowerMagnitude != null) {
+            if (maxMotorPowerMagnitude.getMaxPowerMagnitude() > .5) {
                 freightManipulator.moveToSafePosition();
-            } else {
-                freightManipulator.stopArm();
             }
-        } else {
-            freightManipulator.stopArm();
-        }
-
-        if (gripperToggle.isToggledTrue()) {
-            freightManipulator.openGripper();
-        } else {
-            freightManipulator.closeGripper();
         }
 
         if (carouselSpinRed.isPressed()) {

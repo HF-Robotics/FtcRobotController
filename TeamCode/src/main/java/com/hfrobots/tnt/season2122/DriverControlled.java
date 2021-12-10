@@ -62,7 +62,7 @@ public class DriverControlled extends OpMode {
     @Override
     public void init() {
         drivebase = new Drivebase(hardwareMap);
-        freightManipulator = new FreightManipulator(hardwareMap);
+        freightManipulator = new FreightManipulator(hardwareMap, telemetry);
         carouselMechanism = new CarouselMechanism(hardwareMap);
         driveTeamSignal = new DriveTeamSignal(hardwareMap, Ticker.systemTicker());
 

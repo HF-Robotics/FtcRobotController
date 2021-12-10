@@ -19,18 +19,127 @@
 
 package com.hfrobots.tnt.season2122;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import com.ftc9929.corelib.control.ToggledButton;
+import com.ftc9929.testing.fakes.FakeTelemetry;
+import com.ftc9929.testing.fakes.control.FakeOnOffButton;
+import com.ftc9929.testing.fakes.control.FakeRangeInput;
+import com.ftc9929.testing.fakes.drive.FakeDcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.junit.Before;
+import org.junit.Test;
 
 public class FreightManipulatorTest {
 
     private FreightManipulator freightManipulator;
 
+    private FakeTelemetry fakeTelemetry = new FakeTelemetry();
+
+    private FakeRangeInput liftThrottle = new FakeRangeInput();
+
+    private FakeOnOffButton unsafeButton = new FakeOnOffButton();
+
+    private FakeOnOffButton toHubLevelOne = new FakeOnOffButton();
+
+    private FakeOnOffButton toHubLevelTwo = new FakeOnOffButton();
+
+    private FakeOnOffButton toHubLevelThree = new FakeOnOffButton();
+
+    private FakeOnOffButton gripper = new FakeOnOffButton();
+
+    private FakeDcMotorEx armMotorWithPid;
+
     @Before
     public void setup() {
         final HardwareMap hardwareMap = FreightFrenzyTestConstants.HARDWARE_MAP;
-        freightManipulator = new FreightManipulator(hardwareMap);
+
+        armMotorWithPid = (FakeDcMotorEx)hardwareMap.get(DcMotorEx.class, "armMotor");
+
+        freightManipulator = new FreightManipulator(hardwareMap, fakeTelemetry);
+        freightManipulator.setUnsafeButton(unsafeButton);
+        freightManipulator.setArmThrottle(liftThrottle);
+        freightManipulator.setToHubLevelOneButton(toHubLevelOne.debounced());
+        freightManipulator.setToHubLevelTwoButton(toHubLevelTwo.debounced());
+        freightManipulator.setToHubLevelThreeButton(toHubLevelThree.debounced());
+        freightManipulator.setGripperToggleButton(new ToggledButton(gripper));
     }
 
+    @Test
+    public void happyPathStates() {
+        freightManipulator.periodicTask();
+        assertEquals("Lift Idle", freightManipulator.getCurrentStateName());
+
+        liftThrottleForward();
+        freightManipulator.periodicTask();
+        assertEquals("Lift - OL - Rising", freightManipulator.getCurrentStateName());
+
+        liftThrottleCenter();
+        freightManipulator.periodicTask();
+        assertEquals("Lift Idle", freightManipulator.getCurrentStateName());
+
+        liftThrottleForward();
+        freightManipulator.periodicTask();
+        assertEquals("Lift - OL - Rising", freightManipulator.getCurrentStateName());
+
+        liftThrottleBack();
+        freightManipulator.periodicTask();
+        assertEquals("Lift Idle", freightManipulator.getCurrentStateName());
+
+        freightManipulator.periodicTask();
+        assertEquals("Lift - OL - Lowering", freightManipulator.getCurrentStateName());
+
+        liftThrottleCenter();
+        freightManipulator.periodicTask();
+
+        assertAutoLevel(toHubLevelOne,"Lift - CL - One");
+        assertAutoLevel(toHubLevelTwo, "Lift - CL - Two");
+        assertAutoLevel(toHubLevelThree, "Lift - CL - Three");
+    }
+
+    private void assertAutoLevel(final FakeOnOffButton toLevelButton, final String expectedStateName) {
+        buttonPress(toLevelButton);
+        assertEquals(expectedStateName, freightManipulator.getCurrentStateName());
+        freightManipulator.periodicTask();
+        assertTrue(armMotorWithPid.isBusy());
+        armMotorWithPid.setBusy(false); // pretend it reached position
+        freightManipulator.periodicTask();
+        assertEquals("Lift Idle", freightManipulator.getCurrentStateName());
+
+        buttonPress(toLevelButton);
+        assertEquals(expectedStateName, freightManipulator.getCurrentStateName());
+        freightManipulator.periodicTask();
+        assertTrue(armMotorWithPid.isBusy());
+
+        liftThrottleForward();
+        freightManipulator.periodicTask();
+        assertEquals("Lift Idle", freightManipulator.getCurrentStateName());
+
+        freightManipulator.periodicTask();
+        liftThrottleCenter();
+        freightManipulator.periodicTask();
+        assertEquals("Lift Idle", freightManipulator.getCurrentStateName());
+    }
+
+    private void liftThrottleCenter() {
+        liftThrottle.setCurrentPosition(0.0f);
+    }
+
+    private void liftThrottleForward() {
+        liftThrottle.setCurrentPosition(-0.5f);
+    }
+
+    private void liftThrottleBack() {
+        liftThrottle.setCurrentPosition(0.5f);
+    }
+
+    private void buttonPress(final FakeOnOffButton button) {
+        button.setPressed(false);
+        freightManipulator.periodicTask();
+        button.setPressed(true);
+        freightManipulator.periodicTask();
+    }
 }
