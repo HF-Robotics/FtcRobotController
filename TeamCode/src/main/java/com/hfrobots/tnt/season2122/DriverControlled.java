@@ -61,10 +61,13 @@ public class DriverControlled extends OpMode {
 
     @Override
     public void init() {
+        final Ticker ticker = Ticker.systemTicker();
+
         drivebase = new Drivebase(hardwareMap);
-        freightManipulator = new FreightManipulator(hardwareMap, telemetry);
+        freightManipulator = new FreightManipulator(hardwareMap, telemetry, ticker);
         carouselMechanism = new CarouselMechanism(hardwareMap);
-        driveTeamSignal = new DriveTeamSignal(hardwareMap, Ticker.systemTicker());
+
+        driveTeamSignal = new DriveTeamSignal(hardwareMap, ticker);
 
         NinjaGamePad driversGamepad = new NinjaGamePad(gamepad1);
 

@@ -29,20 +29,27 @@ import com.ftc9929.corelib.control.RangeInput;
 import com.ftc9929.corelib.control.ToggledButton;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
+import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Ticker;
 import com.google.common.collect.Sets;
 import com.hfrobots.tnt.corelib.state.ReadyCheckable;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
 import com.qualcomm.robotcore.exception.TargetPositionNotSetException;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 
@@ -55,6 +62,8 @@ public class FreightManipulator implements PeriodicTask {
     // figure out what these are.
 
     final DcMotorEx armMotor;
+
+    private final DigitalChannel lowPositionLimit;
 
     public static final double LEFT_FULL_POSITION = 0.0D;
 
@@ -78,6 +87,8 @@ public class FreightManipulator implements PeriodicTask {
 
     public static final int ARM_LIMIT_POSITION_DIFFERENCE = 600;
 
+    @Getter(AccessLevel.PACKAGE)
+    @VisibleForTesting
     private int armMotorStartingPosition;
 
     private StateMachine stateMachine;
@@ -110,8 +121,13 @@ public class FreightManipulator implements PeriodicTask {
 
     private final Telemetry telemetry;
 
-    public FreightManipulator(@NonNull final HardwareMap hardwareMap, @NonNull final Telemetry telemetry) {
+    private final Ticker ticker;
+
+    public FreightManipulator(@NonNull final HardwareMap hardwareMap,
+                              @NonNull final Telemetry telemetry,
+                              @NonNull final Ticker ticker) {
         this.telemetry = telemetry;
+        this.ticker = ticker;
 
         // (2) Here is where we setup the items in (1), by finding them in the HardwareMap
         //
@@ -126,6 +142,8 @@ public class FreightManipulator implements PeriodicTask {
 
         leftGripperServo = hardwareMap.get(Servo.class, "leftGripperServo");
         rightGripperServo = hardwareMap.get(Servo.class, "rightGripperServo");
+
+        lowPositionLimit = hardwareMap.get(DigitalChannel.class, "lowPositionLimit");
 
         stateMachine = new StateMachine(telemetry);
         setupStateMachine();
@@ -250,10 +268,13 @@ public class FreightManipulator implements PeriodicTask {
     // states as new classes here, and set them up in (2).
 
     private void setupStateMachine() {
+        ToLowestPositionState toLowestPositionState = new ToLowestPositionState(ticker);
+
         IdleState idleState = new IdleState();
+        toLowestPositionState.setIdleState(idleState);
+
         OpenLoopLiftLoweringState openLoopLiftLoweringState = new OpenLoopLiftLoweringState();
         OpenLoopLiftRisingState openLoopLiftRisingState = new OpenLoopLiftRisingState();
-
         openLoopLiftRisingState.setIdleState(idleState);
         idleState.setOpenLoopLiftRisingState(openLoopLiftRisingState);
 
@@ -280,7 +301,7 @@ public class FreightManipulator implements PeriodicTask {
             toCheck.checkReady();
         }
 
-        stateMachine.setFirstState(idleState);
+        stateMachine.setFirstState(toLowestPositionState);
     }
 
     class IdleState extends State implements ReadyCheckable {
@@ -309,6 +330,13 @@ public class FreightManipulator implements PeriodicTask {
 
             stopArm();
 
+            final boolean atLowerLimit = limitSwitchOn(lowPositionLimit);
+
+            if (atLowerLimit) {
+                armMotorStartingPosition = armMotor.getCurrentPosition();
+                Log.d(LOG_TAG, "Reset arm motor starting position to: " + armMotorStartingPosition);
+            }
+
             if (gripperToggleButton.isToggledTrue()) {
                 openGripper();
             } else {
@@ -317,7 +345,7 @@ public class FreightManipulator implements PeriodicTask {
 
             if (armThrottle.getPosition() < 0) {
                 return openLoopLiftRisingState;
-            } else if (armThrottle.getPosition() > 0) {
+            } else if (armThrottle.getPosition() > 0 && (!unsafeButton.isPressed() && !atLowerLimit)) {
                 return openLoopLiftLoweringState;
             } else if (toHubLevelOneButton.getRise()) {
                 return toHubLevelOneState;
@@ -356,6 +384,12 @@ public class FreightManipulator implements PeriodicTask {
 
         @Override
         public State doStuffAndGetNextState() {
+            final boolean atLowerLimit = limitSwitchOn(lowPositionLimit);
+
+            if (atLowerLimit && !unsafeButton.isPressed()) {
+                return idleState;
+            }
+
             final float armThrottlePosition = armThrottle.getPosition();
 
             if (armThrottlePosition > 0) {
@@ -476,5 +510,56 @@ public class FreightManipulator implements PeriodicTask {
         public void checkReady() {
             Preconditions.checkNotNull(idleState);
         }
+    }
+
+    class ToLowestPositionState extends StopwatchTimeoutSafetyState implements ReadyCheckable {
+        @Setter
+        private IdleState idleState;
+
+        protected ToLowestPositionState(@NonNull final Ticker ticker) {
+            super("To Lowest Pos", FreightManipulator.this.telemetry, ticker, TimeUnit.SECONDS.toMillis(2));
+            readyCheckables.add(this);
+        }
+
+        @Override
+        public State doStuffAndGetNextState() {
+            final float armThrottlePosition = armThrottle.getPosition();
+
+            if (armThrottlePosition != 0) {
+                resetTimer();
+
+                return idleState;
+            }
+
+            if (limitSwitchOn(lowPositionLimit)) {
+                resetTimer();
+
+                return idleState;
+            }
+
+            if (isTimedOut()) {
+                resetTimer();
+
+                return idleState;
+            }
+
+            moveArmDown(.05);
+
+            return this;
+        }
+
+        @Override
+        public void resetToStart() {
+
+        }
+
+        @Override
+        public void checkReady() {
+            Preconditions.checkNotNull(idleState);
+        }
+    }
+
+    private static boolean limitSwitchOn(DigitalChannel channel) {
+        return !channel.getState();
     }
 }

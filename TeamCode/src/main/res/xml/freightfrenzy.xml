@@ -45,6 +45,7 @@ SOFTWARE.
             <RevBlinkinLedDriver name="blinkin"      port="2" /> <!-- Yellow -->
             <Servo name="leftGripperServo"           port="4" /> <!-- Blue -->
 
+            <DigitalDevice name="lowPositionLimit" port="1" /> <!-- Red    -->
         </LynxModule>
     </LynxUsbDevice>
 </Robot>
