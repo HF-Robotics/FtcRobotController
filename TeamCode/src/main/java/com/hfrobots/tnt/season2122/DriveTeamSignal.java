@@ -32,6 +32,20 @@ import java.util.concurrent.TimeUnit;
 public class DriveTeamSignal implements PeriodicTask {
     private final RevBlinkinLedDriver blinkinLed;
 
+    private final static RevBlinkinLedDriver.BlinkinPattern GO_TO_END_GAME_PATTERN = RevBlinkinLedDriver.BlinkinPattern.BEATS_PER_MINUTE_RAINBOW_PALETTE;
+
+    private final static RevBlinkinLedDriver.BlinkinPattern END_GAME_PATTERN = RevBlinkinLedDriver.BlinkinPattern.BEATS_PER_MINUTE_OCEAN_PALETTE;
+
+    private final static RevBlinkinLedDriver.BlinkinPattern GO_TO_WAREHOUSE_PATTERN = RevBlinkinLedDriver.BlinkinPattern.FIRE_MEDIUM;
+
+    private final static int MATCH_DURATION_SECONDS = 120;
+
+    private final static int END_GAME_SECONDS = MATCH_DURATION_SECONDS - 30;
+
+    private final static int GO_TO_END_GAME_SECONDS = END_GAME_SECONDS - 10;
+
+    private final static int GO_TO_WAREHOUSE_SECONDS = MATCH_DURATION_SECONDS - 5;
+
     private final Stopwatch stopwatch;
 
     public DriveTeamSignal(final HardwareMap hardwareMap, final Ticker ticker) {
@@ -40,7 +54,7 @@ public class DriveTeamSignal implements PeriodicTask {
     }
 
     public void startMatch() {
-        // FIXME: Start doing whatever we need to do when the match starts
+        stopwatch.start();
     }
 
     @Override
@@ -63,22 +77,41 @@ public class DriveTeamSignal implements PeriodicTask {
         // for now, it can only show one thing at a time! Which one is most important
         // is up to you, the drive team, to decide.
 
+        if (startWarehouseRun()) {
+            blinkinPattern = GO_TO_WAREHOUSE_PATTERN;
+        } else if (isEndGame()) {
+            blinkinPattern = END_GAME_PATTERN;
+        } else if (readyForEndGame()){
+            blinkinPattern = GO_TO_END_GAME_PATTERN;
+        }
+
         blinkinLed.setPattern(blinkinPattern);
     }
 
     public boolean matchStarted() {
-        return false; // FIXME
+        return stopwatch.isRunning();
     }
 
     public boolean readyForEndGame() {
-        return false; // FIXME
+        return hasEnoughTimePassed(GO_TO_END_GAME_SECONDS);
+
+    }
+
+    private boolean hasEnoughTimePassed(int seconds) {
+        long elapsedTimeSec = stopwatch.elapsed(TimeUnit.SECONDS);
+
+        if (elapsedTimeSec >= seconds) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public boolean isEndGame() {
-        return false; // FIXME
+        return hasEnoughTimePassed(END_GAME_SECONDS);
     }
 
     public boolean startWarehouseRun() {
-        return false; // FIXME
+        return hasEnoughTimePassed(GO_TO_WAREHOUSE_SECONDS);
     }
 }
