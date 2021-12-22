@@ -20,6 +20,7 @@
 package com.hfrobots.tnt.season2122;
 
 import com.google.common.collect.Lists;
+import com.hfrobots.tnt.season2122.pipelines.FindDuckContoursNaturalLighting;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.opencv.core.Mat;
@@ -50,7 +51,7 @@ public class BarcodeDetectorPipeline extends OpenCvPipeline {
 
     private final Telemetry telemetry;
 
-    private final FindDuckContours findDuckContours = new FindDuckContours();
+    private final FindDuckContoursNaturalLighting findDuckContours = new FindDuckContoursNaturalLighting();
 
     private final Mat displayMat = new Mat();
 
@@ -67,8 +68,13 @@ public class BarcodeDetectorPipeline extends OpenCvPipeline {
         // The first step is to run those pipelines. Each pipeline should return a set of contours
         // that will be scored.
 
+        // OpenCV expects frames in BGR for things like HSV to work
+        // EasyOpenCV sends in RGBA, must convert them before doing anything else
+        Mat rgbMat = new Mat();
+        Imgproc.cvtColor(input, rgbMat, Imgproc.COLOR_RGBA2BGR);
+
         // This is the pipeline, created in GRiP that isolates the duck in the image
-        findDuckContours.process(input);
+        findDuckContours.process(rgbMat);
 
         // We'll look through the list of contours of detected ducks, but hopefully there's only one!
         List<MatOfPoint> filteredDuckContours = findDuckContours.filterContoursOutput();

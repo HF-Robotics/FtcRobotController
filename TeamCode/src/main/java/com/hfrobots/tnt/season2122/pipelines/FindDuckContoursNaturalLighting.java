@@ -1,4 +1,4 @@
-package com.hfrobots.tnt.season2122;
+package com.hfrobots.tnt.season2122.pipelines;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -22,7 +22,7 @@ import java.util.List;
  *
  * @author GRIP
  */
-public class FindDuckContours {
+public class FindDuckContoursNaturalLighting {
     //Outputs
     private Mat hsvThresholdOutput = new Mat();
     private Mat blurOutput = new Mat();
@@ -34,6 +34,7 @@ public class FindDuckContours {
      * This is the primary method that runs the entire pipeline and updates the outputs.
      */
     public void process(Mat source0) {
+
         // Step HSV_Threshold0:
         Mat hsvThresholdInput = source0;
         double[] hsvThresholdHue = {12.949640287769784, 48.59083191850594};
