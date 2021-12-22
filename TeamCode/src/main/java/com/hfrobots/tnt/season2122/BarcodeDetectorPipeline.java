@@ -19,11 +19,18 @@
 
 package com.hfrobots.tnt.season2122;
 
-import com.hfrobots.tnt.season2021.GripPipelineHulls;
+import com.google.common.collect.Lists;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
+
+import java.util.List;
 
 import lombok.Builder;
 import lombok.Setter;
@@ -31,10 +38,19 @@ import lombok.Setter;
 @Builder
 public class BarcodeDetectorPipeline extends OpenCvPipeline {
 
-    private static final String BARCODE_DETECTOR_TEL_CAPTION = "SDet";
+    private static final String BARCODE_DETECTOR_TEL_CAPTION = "BcDet";
+
+    private static final Scalar RGB_ORANGE = new Scalar(234, 126, 39);
+
+    private final Rect LEFT_ZONE = new Rect(0, 0, 106, 240);
+
+    private final Rect CENTER_ZONE = new Rect(106, 0, 106, 240);
+
+    private final Rect RIGHT_ZONE = new Rect(212, 0, 106, 240);
+
     private final Telemetry telemetry;
 
-    private final GripPipelineHulls gripPipeline = new GripPipelineHulls();
+    private final FindDuckContours findDuckContours = new FindDuckContours();
 
     private final Mat displayMat = new Mat();
 
@@ -42,7 +58,7 @@ public class BarcodeDetectorPipeline extends OpenCvPipeline {
     private volatile boolean startLookingForBarcode;
 
     @Override
-    public Mat processFrame(Mat input) {
+    public Mat processFrame(final Mat input) {
         input.copyTo(displayMat);
 
         // We will have two pipelines, one for detecting the tape markers (red or blue, depending
@@ -51,87 +67,72 @@ public class BarcodeDetectorPipeline extends OpenCvPipeline {
         // The first step is to run those pipelines. Each pipeline should return a set of contours
         // that will be scored.
 
-        // The general flow for each pipeline is (from the Limelight docs for FRC):
-        //
-        // Most of this we will setup in GRiP, because it's easier to experiment there!
-        //
-        // * Threshold (usually via HSV)
-        //
-        //       * H is "hue", describes a pure color - making this range as small as possible
-        //         will make this more accurate
-        //
-        //       * S is "saturation", a low value means the color is almost white, a high value
-        //         means the color is completely pure (won't often happen in real life)
-        //
-        //       * V is "value", describes how much black is in the color, 0 means completely black.
-        //         This value will need to be adjusted to avoid dark pixels from being considered
-        //         by the pipeline.
-        //
-        // * Erode (if many objects are passing through HSV) / Dilate (used to patch holes)
-        //
-        // The pipeline should return contours, the rest of the code for sorting/scoring contours
-        // lives in this class.
+        // This is the pipeline, created in GRiP that isolates the duck in the image
+        findDuckContours.process(input);
 
+        // We'll look through the list of contours of detected ducks, but hopefully there's only one!
+        List<MatOfPoint> filteredDuckContours = findDuckContours.filterContoursOutput();
 
-        //
-        // To sort/score, there are a few options. We can use OpenCV to find the following from
-        // the contours:
-        //
+        Imgproc.drawContours(displayMat, filteredDuckContours, -1, new Scalar(255, 30, 30), 2);
 
-        //
-        // * Convex Hulls
-        //
-        // Imgproc.convexHull(MatOfPoint points, MatOfInt hull [,clockwise]);
+        // It's easier to deal with rectangles rather than the freeform shape of the duck
+        List<Rect> duckBoundingRectangles = Lists.newArrayList();
 
-        // * Bounding Rectangles
-        //
-        // Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(i).toArray()), contoursPoly[i], 3, true);
-        // boundRect[i] = Imgproc.boundingRect(new MatOfPoint(contoursPoly[i].toArray()));
+        for (final MatOfPoint contour : filteredDuckContours) {
+            final Rect boundingRect = Imgproc.boundingRect(contour);
+            Imgproc.rectangle(displayMat,  boundingRect.br(), boundingRect.tl(), new Scalar(0, 255, 0), 4);
 
-        // * Approximate centers:
-        //
-        // Imgproc.minEnclosingCircle(contoursPoly[i], centers[i], radius[i]);
-        //
-        // or with rotated rectangles (which have centers defined) and a size (to compute area)
-        //
-        // Imgproc.minAreaRect(...)
+            duckBoundingRectangles.add(boundingRect);
 
-
-        // Contour Filtering
-        //
-        // The goal is to ignore any contours which are smaller or larger than what our vision target
-        // looks like when viewed from expected positions.
-        //
-        // We can filter these based on area, either on bounding rectangle or computed area of
-        // the contour.
-        //
-        // We can use geometric properties (aspect ratio, vertical-ness, horizontal-ness, etc) to
-        // filter contours to be the actual targets, vs something else (shoes, lights, etc).
-        //
-        // (calculate aspect ratio from the bounding rectangle width and height)
-        //
-        // We can sometimes exclude contours if they are outside the expected position in the
-        // camera view. Most FTC vision detection during autonomous has fixed positions of
-        // the item(s) being detected, as well as a fixed position for the robot, which means
-        // there is only a certain area of the view that will ever contain detectable objects.
-        //
-
-        //
-        // Once we have the "best" contours it helps to display them; for debugging during
-        // development, as well as indicate correct setup before match play, or in the pits.
-
-        // Imgproc.drawContours(displayMat, contours, -1, new Scalar(255, 30, 30), 2);
+            final Point duckCenterPoint = centerPoint(boundingRect);
+            Imgproc.circle(displayMat, duckCenterPoint, 3, new Scalar(0, 255, 0));
+        }
 
         if (startLookingForBarcode) {
             // Actually do the logic for finding the barcode position if requested.
             //
             // We run the pipeline during init(), to make sure it's working,
             // but we don't look for the randomized game piece until after auto starts
+
+            if (duckBoundingRectangles.size() > 1) {
+                // Uhhhhhh...FIXME - what do we here?
+            } else if (duckBoundingRectangles.size() == 1) {
+                final Rect duckBoundingRect = duckBoundingRectangles.get(0);
+
+                final Point duckCenterPoint = centerPoint(duckBoundingRect);
+
+                if (LEFT_ZONE.contains(duckCenterPoint)) {
+
+                } else if (CENTER_ZONE.contains(duckCenterPoint)) {
+
+                } else if (RIGHT_ZONE.contains(duckCenterPoint)) {
+
+                }
+
+            } else {
+                // Uhhh....FIXME - no ducks
+            }
         }
+
+        // Draw the bar code positions where ducks are expected
+        Imgproc.rectangle(displayMat, LEFT_ZONE, RGB_ORANGE, 4);
+        Imgproc.rectangle(displayMat, CENTER_ZONE, RGB_ORANGE, 4);
+        Imgproc.rectangle(displayMat, RIGHT_ZONE, RGB_ORANGE, 4);
 
         // This makes sure we get output at the driver station - which will include the helpful
         // visual information we've added.
 
         return displayMat;
+    }
+
+    private Point centerPoint(final Rect boundingRect) {
+        final Point topLeft = boundingRect.tl();
+        final Point bottomRight = boundingRect.br();
+
+        final Point centerPoint = new Point(
+                topLeft.x + ((bottomRight.x - topLeft.x) / 2),
+                topLeft.y + ((bottomRight.y - topLeft.y) / 2));
+
+        return centerPoint;
     }
 }

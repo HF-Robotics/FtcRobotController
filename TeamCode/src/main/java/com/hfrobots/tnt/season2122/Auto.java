@@ -69,6 +69,8 @@ public class Auto extends OpMode {
 
     private FreightManipulator freightManipulator;
 
+    private BarcodeDetectorPipeline barcodeDetectorPipeline;
+
     // The routes our robot knows how to do
     private enum Routes {
         DELIVER_DUCK_PARK_STORAGE("Del. duck - park storage"),
@@ -120,7 +122,6 @@ public class Auto extends OpMode {
         operatorControls = OperatorControls.builder().carouselMechanism(carouselMechanism)
                 .freightManipulator(freightManipulator)
                 .operatorGamepad(new NinjaGamePad(gamepad2)).build();
-
     }
 
     private com.hfrobots.tnt.corelib.vision.EasyOpenCvPipelineAndCamera pipelineAndCamera;
@@ -128,11 +129,12 @@ public class Auto extends OpMode {
     private void setupOpenCvCameraAndPipeline() {
 
         // Create the pipeline
+        barcodeDetectorPipeline = new BarcodeDetectorPipeline(telemetry, false);
 
         com.hfrobots.tnt.corelib.vision.EasyOpenCvPipelineAndCamera.EasyOpenCvPipelineAndCameraBuilder pipelineBuilder =
                 com.hfrobots.tnt.corelib.vision.EasyOpenCvPipelineAndCamera.builder();
 
-        pipelineBuilder.hardwareMap(hardwareMap).telemetry(telemetry); // FIXME: .openCvPipeline(starterStackDetectorPipeline);
+        pipelineBuilder.hardwareMap(hardwareMap).telemetry(telemetry).openCvPipeline(barcodeDetectorPipeline);
 
         pipelineAndCamera = pipelineBuilder.build();
 
