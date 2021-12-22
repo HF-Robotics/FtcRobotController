@@ -333,8 +333,12 @@ public class FreightManipulator implements PeriodicTask {
             final boolean atLowerLimit = limitSwitchOn(lowPositionLimit);
 
             if (atLowerLimit) {
-                armMotorStartingPosition = armMotor.getCurrentPosition();
-                Log.d(LOG_TAG, "Reset arm motor starting position to: " + armMotorStartingPosition);
+                int currentPosition = armMotor.getCurrentPosition();
+
+                if (armMotorStartingPosition != currentPosition) {
+                    armMotorStartingPosition = currentPosition;
+                    Log.d(LOG_TAG, "Reset arm motor starting position to: " + armMotorStartingPosition);
+                }
             }
 
             if (gripperToggleButton.isToggledTrue()) {
