@@ -43,6 +43,10 @@ public class BarcodeDetectorPipeline extends OpenCvPipeline {
 
     private static final Scalar RGB_ORANGE = new Scalar(234, 126, 39);
 
+    private static final Scalar RGB_PURPLE = new Scalar(152, 0, 62);
+
+    private static final Scalar RGB_GREEN = new Scalar(0, 255, 0);
+
     private final Rect LEFT_ZONE = new Rect(0, 0, 106, 240);
 
     private final Rect CENTER_ZONE = new Rect(106, 0, 106, 240);
@@ -79,19 +83,19 @@ public class BarcodeDetectorPipeline extends OpenCvPipeline {
         // We'll look through the list of contours of detected ducks, but hopefully there's only one!
         List<MatOfPoint> filteredDuckContours = findDuckContours.filterContoursOutput();
 
-        Imgproc.drawContours(displayMat, filteredDuckContours, -1, new Scalar(255, 30, 30), 2);
+        Imgproc.drawContours(displayMat, filteredDuckContours, -1, RGB_PURPLE, 2);
 
         // It's easier to deal with rectangles rather than the freeform shape of the duck
         List<Rect> duckBoundingRectangles = Lists.newArrayList();
 
         for (final MatOfPoint contour : filteredDuckContours) {
             final Rect boundingRect = Imgproc.boundingRect(contour);
-            Imgproc.rectangle(displayMat,  boundingRect.br(), boundingRect.tl(), new Scalar(0, 255, 0), 4);
+            Imgproc.rectangle(displayMat,  boundingRect.br(), boundingRect.tl(), RGB_GREEN, 4);
 
             duckBoundingRectangles.add(boundingRect);
 
             final Point duckCenterPoint = centerPoint(boundingRect);
-            Imgproc.circle(displayMat, duckCenterPoint, 3, new Scalar(0, 255, 0));
+            Imgproc.circle(displayMat, duckCenterPoint, 6, RGB_GREEN);
         }
 
         if (startLookingForBarcode) {
