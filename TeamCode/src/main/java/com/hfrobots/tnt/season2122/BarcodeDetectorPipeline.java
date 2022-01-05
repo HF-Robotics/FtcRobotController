@@ -32,12 +32,18 @@ import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import lombok.Builder;
+import lombok.Getter;
 import lombok.Setter;
 
 @Builder
 public class BarcodeDetectorPipeline extends OpenCvPipeline {
+
+    public enum BarcodePosition {
+        LEFT, RIGHT, CENTER, UNKNOWN
+    }
 
     private static final String BARCODE_DETECTOR_TEL_CAPTION = "BcDet";
 
@@ -59,10 +65,17 @@ public class BarcodeDetectorPipeline extends OpenCvPipeline {
 
     private final Mat displayMat = new Mat();
 
+    private final AtomicReference<BarcodePosition> detectedBarcodePosition = new AtomicReference<>(BarcodePosition.UNKNOWN);
+
     @Setter
+    @Getter
     private volatile boolean startLookingForBarcode;
 
     private final Mat rgbMat = new Mat();
+
+    public BarcodePosition getDetectedPosition() {
+        return detectedBarcodePosition.get();
+    }
 
     @Override
     public Mat processFrame(final Mat input) {
@@ -111,7 +124,8 @@ public class BarcodeDetectorPipeline extends OpenCvPipeline {
             // but we don't look for the randomized game piece until after auto starts
 
             if (duckBoundingRectangles.size() > 1) {
-                // Uhhhhhh...FIXME - what do we here?
+                // Uhhhhhh...FIXME - do something *better* here
+                detectedBarcodePosition.set(BarcodePosition.UNKNOWN);
             } else if (duckBoundingRectangles.size() == 1) {
                 final Rect duckBoundingRect = duckBoundingRectangles.get(0);
 
@@ -119,18 +133,19 @@ public class BarcodeDetectorPipeline extends OpenCvPipeline {
 
                 if (LEFT_ZONE.contains(duckCenterPoint)) {
                     Imgproc.rectangle(displayMat, LEFT_ZONE, RGB_GREEN, 2);
+                    detectedBarcodePosition.set(BarcodePosition.LEFT);
                 } else if (CENTER_ZONE.contains(duckCenterPoint)) {
                     Imgproc.rectangle(displayMat, CENTER_ZONE, RGB_GREEN, 2);
+                    detectedBarcodePosition.set(BarcodePosition.CENTER);
                 } else if (RIGHT_ZONE.contains(duckCenterPoint)) {
                     Imgproc.rectangle(displayMat, RIGHT_ZONE, RGB_GREEN, 2);
+                    detectedBarcodePosition.set(BarcodePosition.RIGHT);
                 }
 
             } else {
-                // Uhhh....FIXME - no ducks
+                detectedBarcodePosition.set(BarcodePosition.UNKNOWN);
             }
         }
-
-
 
         // This makes sure we get output at the driver station - which will include the helpful
         // visual information we've added.

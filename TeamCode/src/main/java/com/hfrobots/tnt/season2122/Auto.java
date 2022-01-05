@@ -23,6 +23,8 @@ import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
 import com.ftc9929.corelib.control.DebouncedButton;
@@ -34,15 +36,23 @@ import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
 import com.ftc9929.corelib.state.StopwatchDelayState;
 import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Ticker;
+import com.google.common.collect.Sets;
 import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveREV;
 import com.hfrobots.tnt.corelib.drive.mecanum.TrajectoryFollowerState;
+import com.hfrobots.tnt.corelib.state.ReadyCheckable;
 import com.hfrobots.tnt.corelib.util.RealSimplerHardwareMap;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import lombok.Setter;
 
 @Autonomous(name="00 Frt Frnzy Auto")
 public class Auto extends OpMode {
@@ -70,6 +80,8 @@ public class Auto extends OpMode {
     private FreightManipulator freightManipulator;
 
     private BarcodeDetectorPipeline barcodeDetectorPipeline;
+
+    private final Set<ReadyCheckable> readyCheckables = Sets.newHashSet();
 
     // The routes our robot knows how to do
     private enum Routes {
@@ -386,7 +398,7 @@ public class Auto extends OpMode {
         State stopCarousel = new State("Stop carousel", telemetry) {
             @Override
             public State doStuffAndGetNextState() {
-               carouselMechanism.stop();
+                carouselMechanism.stop();
 
                 return nextState;
             }
@@ -419,6 +431,163 @@ public class Auto extends OpMode {
         sequence.addSequential(newDoneState("Done!"));
 
         stateMachine.addSequence(sequence);
+    }
+
+    protected void setupDeliverDuckParkStorageWithBarcode() {
+
+        // deliver duck program
+
+        // Starting position: robot edge lined up on outer edge of tile closest to carousel
+
+        // Attempt to detect the duck
+
+        BarcodeDetectorState detectionState = new BarcodeDetectorState();
+        detectionState.setArmToLevelOne(null);
+        detectionState.setArmToLevelTwo(null);
+        detectionState.setArmToLevelThree(null);
+
+        // drive forward 14.5"
+
+        State forwardFromWall = new TrajectoryFollowerState("ForwardFromWall",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                trajectoryBuilder.forward(14.5);
+
+                return trajectoryBuilder.build();
+            }
+        };
+
+        ArmToLevelOneState armToLevelOneState = new ArmToLevelOneState();
+        ArmToLevelTwoState armToLevelTwoState = new ArmToLevelTwoState();
+        ArmToLevelThreeState armToLevelThreeState = new ArmToLevelThreeState();
+
+        armToLevelOneState.setNextState(forwardFromWall);
+        armToLevelTwoState.setNextState(forwardFromWall);
+        armToLevelThreeState.setNextState(forwardFromWall);
+
+        detectionState.setArmToLevelOne(armToLevelOneState);
+        detectionState.setArmToLevelTwo(armToLevelTwoState);
+        detectionState.setArmToLevelThree(armToLevelThreeState);
+
+        detectionState.checkReady();
+
+        // strafe towards wall (alliance dependent!) 23.25
+
+        State strafeToWall = new TrajectoryFollowerState("StrafeToWall",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                if (currentAlliance == Constants.Alliance.RED) {
+                    trajectoryBuilder.strafeLeft(23.25);
+                } else {
+                    // it's blue
+
+                    // FIXME: When using computer vision - this distance is further!
+                    trajectoryBuilder.strafeRight(23.25);
+                }
+
+                return trajectoryBuilder.build();
+            }
+        };
+
+        forwardFromWall.setNextState(strafeToWall);
+
+        // backward 9.5" to engage with carousel
+
+        State backToCarousel = new TrajectoryFollowerState("BackToCarousel",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                trajectoryBuilder.back(9.5);
+
+                return trajectoryBuilder.build();
+            }
+        };
+
+        strafeToWall.setNextState(backToCarousel);
+
+        // deliver duck
+
+        State runCarousel = new StopwatchTimeoutSafetyState("RunCarousel",
+                telemetry, ticker, TimeUnit.SECONDS.toMillis(4 * 1000)) {
+            @Override
+            public State doStuffAndGetNextState() {
+                if (currentAlliance == Constants.Alliance.RED) {
+                    carouselMechanism.spinRedForAuto();
+                } else {
+                    carouselMechanism.spinBlueForAuto();
+                }
+
+                return nextState;
+            }
+        };
+
+        backToCarousel.setNextState(runCarousel);
+
+        // Wait for duck to be delivered
+        final State waitForDuck = newMsDelayState("Wait for duck", 3500);
+        runCarousel.setNextState(waitForDuck);
+
+        // drive forward 17"
+
+        State forwardToStorage = new TrajectoryFollowerState("ForwardToStorage",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                trajectoryBuilder.forward(17);
+
+                return trajectoryBuilder.build();
+            }
+        };
+
+        waitForDuck.setNextState(forwardToStorage);
+
+        // Stop running the carousel mechanism
+        State stopCarousel = new State("Stop carousel", telemetry) {
+            @Override
+            public State doStuffAndGetNextState() {
+               carouselMechanism.stop();
+
+                return nextState;
+            }
+
+            @Override
+            public void resetToStart() {
+
+            }
+        };
+
+        forwardToStorage.setNextState(stopCarousel);
+
+        State dropFreightState = new State("Drop freight", telemetry) {
+
+            @Override
+            public State doStuffAndGetNextState() {
+                freightManipulator.openGripper();
+
+                return nextState;
+            }
+
+            @Override
+            public void resetToStart() {
+
+            }
+        };
+
+        forwardToStorage.setNextState(dropFreightState);
+
+        dropFreightState.setNextState(newDoneState("Done!"));
+
+        stateMachine.setFirstState(detectionState);
     }
 
     protected void setupParkWarehouse() {
@@ -615,5 +784,139 @@ public class Auto extends OpMode {
                 issuedStop = false;
             }
         };
+    }
+
+    class BarcodeDetectorState extends StopwatchTimeoutSafetyState implements ReadyCheckable {
+        @Setter
+        private ArmToLevelOneState armToLevelOne;
+
+        @Setter
+        private ArmToLevelTwoState armToLevelTwo;
+
+        @Setter
+        private ArmToLevelThreeState armToLevelThree;
+
+        protected BarcodeDetectorState() {
+            super("Detect bc", Auto.this.telemetry, ticker, TimeUnit.SECONDS.toMillis(4));
+            readyCheckables.add(this);
+        }
+
+        @Override
+        public State doStuffAndGetNextState() {
+            if (isTimedOut()) {
+                resetTimer();
+                Log.d(LOG_TAG, "Timed out looking for barcode, using level one");
+
+                shutdownPipeline();
+
+                return armToLevelOne;
+            }
+
+            if (!barcodeDetectorPipeline.isStartLookingForBarcode()) {
+                barcodeDetectorPipeline.setStartLookingForBarcode(true);
+
+                return this;
+            }
+
+            BarcodeDetectorPipeline.BarcodePosition detectedPosition = barcodeDetectorPipeline.getDetectedPosition();
+
+            switch (detectedPosition) {
+                case LEFT:
+                    Log.d(LOG_TAG, "Detected level one");
+
+                    shutdownPipeline();
+
+                    return armToLevelOne;
+                case CENTER:
+                    Log.d(LOG_TAG, "Detected level two");
+
+                    shutdownPipeline();
+
+                    return armToLevelTwo;
+                case RIGHT:
+                    Log.d(LOG_TAG, "Detected level three");
+
+                    shutdownPipeline();
+
+                    return armToLevelThree;
+                case UNKNOWN:
+                default:
+                    return this;
+            }
+        }
+
+        @Override
+        public void checkReady() {
+            Preconditions.checkNotNull(armToLevelOne);
+            Preconditions.checkNotNull(armToLevelTwo);
+            Preconditions.checkNotNull(armToLevelThree);
+        }
+
+        private void shutdownPipeline() {
+            barcodeDetectorPipeline.setStartLookingForBarcode(false);
+
+            try {
+                pipelineAndCamera.pauseViewport();
+            } catch (Throwable t) {
+                Log.e(LOG_TAG, "Error while pausing viewport, continuing...", t);
+            }
+        }
+    }
+
+    class ArmToLevelOneState extends State {
+
+        protected ArmToLevelOneState() {
+            super("Arm l1", Auto.this.telemetry);
+        }
+
+        @Override
+        public State doStuffAndGetNextState() {
+            freightManipulator.moveArmToLowGoal();
+
+            return nextState;
+        }
+
+        @Override
+        public void resetToStart() {
+
+        }
+    }
+
+    class ArmToLevelTwoState extends State {
+
+        protected ArmToLevelTwoState() {
+            super("Arm l2", Auto.this.telemetry);
+        }
+
+        @Override
+        public State doStuffAndGetNextState() {
+            freightManipulator.moveArmToMiddleGoal();
+
+            return nextState;
+        }
+
+        @Override
+        public void resetToStart() {
+
+        }
+    }
+
+    class ArmToLevelThreeState extends State {
+
+        protected ArmToLevelThreeState() {
+            super("Arm l3", Auto.this.telemetry);
+        }
+
+        @Override
+        public State doStuffAndGetNextState() {
+            freightManipulator.moveArmToTopGoal();
+
+            return nextState;
+        }
+
+        @Override
+        public void resetToStart() {
+
+        }
     }
 }
