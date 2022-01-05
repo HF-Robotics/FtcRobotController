@@ -156,6 +156,14 @@ public class Auto extends OpMode {
     @Override
     public void start() {
         super.start();
+
+        if (pipelineAndCamera != null) {
+            try {
+                pipelineAndCamera.pauseViewport();
+            } catch (Throwable t) {
+                Log.e(LOG_TAG, "Error while pausing viewport, continuing...", t);
+            }
+        }
     }
 
     @Override
