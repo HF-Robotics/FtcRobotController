@@ -69,11 +69,18 @@ public class CarouselMechanism {
     // instructions for what to do with the items listed in step (1).
 
     public void spinBlue() {
+        computeVelocity();
         carouselMotor.setPower(BLUE_MAGNITUDE);
-        carouselMotor.setVelocity(BLUE_MAGNITUDE * NON_FLIGHT_VELOCITY);
+        carouselMotor.setVelocity(BLUE_MAGNITUDE * currentVelocity);
     }
 
     public void spinRed() {
+        computeVelocity();
+        carouselMotor.setPower(RED_MAGNITUDE);
+        carouselMotor.setVelocity(RED_MAGNITUDE * currentVelocity);
+    }
+
+    private void computeVelocity() {
         if (!stopwatch.isRunning()) {
             stopwatch.start();
         } else {
@@ -90,9 +97,6 @@ public class CarouselMechanism {
             stopwatch.start();
 
         }
-        carouselMotor.setPower(RED_MAGNITUDE);
-        carouselMotor.setVelocity(RED_MAGNITUDE * currentVelocity);
-
     }
 
     public void spinBlueForAuto() {
