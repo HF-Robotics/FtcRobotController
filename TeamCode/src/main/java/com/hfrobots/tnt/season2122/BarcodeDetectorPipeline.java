@@ -62,6 +62,8 @@ public class BarcodeDetectorPipeline extends OpenCvPipeline {
     @Setter
     private volatile boolean startLookingForBarcode;
 
+    private final Mat rgbMat = new Mat();
+
     @Override
     public Mat processFrame(final Mat input) {
         input.copyTo(displayMat);
@@ -74,7 +76,6 @@ public class BarcodeDetectorPipeline extends OpenCvPipeline {
 
         // OpenCV expects frames in BGR for things like HSV to work
         // EasyOpenCV sends in RGBA, must convert them before doing anything else
-        Mat rgbMat = new Mat();
         Imgproc.cvtColor(input, rgbMat, Imgproc.COLOR_RGBA2BGR);
 
         // This is the pipeline, created in GRiP that isolates the duck in the image
@@ -98,6 +99,11 @@ public class BarcodeDetectorPipeline extends OpenCvPipeline {
             Imgproc.circle(displayMat, duckCenterPoint, 6, RGB_GREEN);
         }
 
+        // Draw the bar code positions where ducks are expected
+        Imgproc.rectangle(displayMat, LEFT_ZONE, RGB_ORANGE, 2);
+        Imgproc.rectangle(displayMat, CENTER_ZONE, RGB_ORANGE, 2);
+        Imgproc.rectangle(displayMat, RIGHT_ZONE, RGB_ORANGE, 2);
+
         if (startLookingForBarcode) {
             // Actually do the logic for finding the barcode position if requested.
             //
@@ -112,11 +118,11 @@ public class BarcodeDetectorPipeline extends OpenCvPipeline {
                 final Point duckCenterPoint = centerPoint(duckBoundingRect);
 
                 if (LEFT_ZONE.contains(duckCenterPoint)) {
-
+                    Imgproc.rectangle(displayMat, LEFT_ZONE, RGB_GREEN, 2);
                 } else if (CENTER_ZONE.contains(duckCenterPoint)) {
-
+                    Imgproc.rectangle(displayMat, CENTER_ZONE, RGB_GREEN, 2);
                 } else if (RIGHT_ZONE.contains(duckCenterPoint)) {
-
+                    Imgproc.rectangle(displayMat, RIGHT_ZONE, RGB_GREEN, 2);
                 }
 
             } else {
@@ -124,10 +130,7 @@ public class BarcodeDetectorPipeline extends OpenCvPipeline {
             }
         }
 
-        // Draw the bar code positions where ducks are expected
-        Imgproc.rectangle(displayMat, LEFT_ZONE, RGB_ORANGE, 4);
-        Imgproc.rectangle(displayMat, CENTER_ZONE, RGB_ORANGE, 4);
-        Imgproc.rectangle(displayMat, RIGHT_ZONE, RGB_ORANGE, 4);
+
 
         // This makes sure we get output at the driver station - which will include the helpful
         // visual information we've added.
