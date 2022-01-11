@@ -18,8 +18,7 @@ import com.acmerobotics.roadrunner.quickstart.drive.mecanum.SampleMecanumDriveRE
 public class SplineTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
-        //SampleMecanumDriveBase drive = new SampleMecanumDriveREV(hardwareMap);
-        SampleTankDriveBase drive = new SampleTankDriveREV(hardwareMap);
+        SampleMecanumDriveBase drive = new SampleMecanumDriveREV(hardwareMap);
 
         waitForStart();
 
