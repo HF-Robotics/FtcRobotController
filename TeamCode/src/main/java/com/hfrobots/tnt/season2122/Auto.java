@@ -357,6 +357,12 @@ public class Auto extends OpMode {
             protected Trajectory createTrajectory() {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
+//                if (currentAlliance == Constants.Alliance.RED) {
+//
+//                } else {
+//
+//                }
+
                 trajectoryBuilder.back(9.5);
 
                 return trajectoryBuilder.build();
@@ -394,7 +400,7 @@ public class Auto extends OpMode {
             protected Trajectory createTrajectory() {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
-                trajectoryBuilder.forward(17);
+                trajectoryBuilder.forward(18);
 
                 return trajectoryBuilder.build();
             }
