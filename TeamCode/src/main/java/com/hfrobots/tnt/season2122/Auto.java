@@ -478,6 +478,17 @@ public class Auto extends OpMode {
         ArmToLevelTwoState armToLevelTwoState = new ArmToLevelTwoState();
         ArmToLevelThreeState armToLevelThreeState = new ArmToLevelThreeState();
 
+        // FIXME: Now need to add the following steps to each armToLevelState:
+        // Navigate to the hub
+        // Release the freight
+        // Wait for the freight to drop (a second/fraction of a second)
+        // Pull back, at least to where we would've been for the old route
+        //
+        // Q: What is the same, and different about each of these, can we
+        //    do this without copying-and-pasting 3 different times?
+        //
+        // (right now, we're going directly to forwardFromWall, which isn't correct)
+        
         armToLevelOneState.setNextState(forwardFromWall);
         armToLevelTwoState.setNextState(forwardFromWall);
         armToLevelThreeState.setNextState(forwardFromWall);
@@ -485,6 +496,15 @@ public class Auto extends OpMode {
         detectionState.setArmToLevelOne(armToLevelOneState);
         detectionState.setArmToLevelTwo(armToLevelTwoState);
         detectionState.setArmToLevelThree(armToLevelThreeState);
+
+        // FIXME: Now need to add the following steps to each armToLevelState:
+        // Navigate to the hub
+        // Release the freight
+        // Wait for the freight to drop (a second/fraction of a second)
+        // Pull back, at least to where we would've been for the old route
+        //
+        // Q: What is the same, and different about each of these, can we
+        //    do this without copying-and-pasting 3 different times?
 
         detectionState.checkReady();
 
