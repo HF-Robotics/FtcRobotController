@@ -31,6 +31,7 @@ import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.control.OnOffButton;
 import com.ftc9929.corelib.control.RangeInput;
+import com.ftc9929.corelib.state.RunnableState;
 import com.ftc9929.corelib.state.SequenceOfStates;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
@@ -46,8 +47,6 @@ import com.hfrobots.tnt.corelib.state.ReadyCheckable;
 import com.hfrobots.tnt.corelib.util.RealSimplerHardwareMap;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -85,6 +84,7 @@ public class Auto extends OpMode {
 
     // The routes our robot knows how to do
     private enum Routes {
+        DETECT_BARCODE_DUCK_STORAGE("Barcode - duck - storage"),
         DELIVER_DUCK_PARK_STORAGE("Del. duck - park storage"),
         PARK_WAREHOUSE("Park warehouse");
 
@@ -269,6 +269,9 @@ public class Auto extends OpMode {
                 Routes selectedRoute = possibleRoutes[selectedRoutesIndex];
 
                 switch (selectedRoute) {
+                    case DETECT_BARCODE_DUCK_STORAGE:
+                        setupDeliverDuckParkStorageWithBarcode();
+                        break;
                     case DELIVER_DUCK_PARK_STORAGE:
                         setupDeliverDuckParkStorage();
                         break;
@@ -356,12 +359,6 @@ public class Auto extends OpMode {
             @Override
             protected Trajectory createTrajectory() {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-//                if (currentAlliance == Constants.Alliance.RED) {
-//
-//                } else {
-//
-//                }
 
                 trajectoryBuilder.back(9.5);
 
@@ -456,57 +453,8 @@ public class Auto extends OpMode {
         // Attempt to detect the duck
 
         BarcodeDetectorState detectionState = new BarcodeDetectorState();
-        detectionState.setArmToLevelOne(null);
-        detectionState.setArmToLevelTwo(null);
-        detectionState.setArmToLevelThree(null);
 
-        // drive forward 14.5"
-
-        State forwardFromWall = new TrajectoryFollowerState("ForwardFromWall",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-                trajectoryBuilder.forward(14.5);
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-        ArmToLevelOneState armToLevelOneState = new ArmToLevelOneState();
-        ArmToLevelTwoState armToLevelTwoState = new ArmToLevelTwoState();
-        ArmToLevelThreeState armToLevelThreeState = new ArmToLevelThreeState();
-
-        // FIXME: Now need to add the following steps to each armToLevelState:
-        // Navigate to the hub
-        // Release the freight
-        // Wait for the freight to drop (a second/fraction of a second)
-        // Pull back, at least to where we would've been for the old route
-        //
-        // Q: What is the same, and different about each of these, can we
-        //    do this without copying-and-pasting 3 different times?
-        //
-        // (right now, we're going directly to forwardFromWall, which isn't correct)
-        
-        armToLevelOneState.setNextState(forwardFromWall);
-        armToLevelTwoState.setNextState(forwardFromWall);
-        armToLevelThreeState.setNextState(forwardFromWall);
-
-        detectionState.setArmToLevelOne(armToLevelOneState);
-        detectionState.setArmToLevelTwo(armToLevelTwoState);
-        detectionState.setArmToLevelThree(armToLevelThreeState);
-
-        // FIXME: Now need to add the following steps to each armToLevelState:
-        // Navigate to the hub
-        // Release the freight
-        // Wait for the freight to drop (a second/fraction of a second)
-        // Pull back, at least to where we would've been for the old route
-        //
-        // Q: What is the same, and different about each of these, can we
-        //    do this without copying-and-pasting 3 different times?
-
-        detectionState.checkReady();
+        State backwardFromHub = setupAfterBarcodeDetectionStates(detectionState);
 
         // strafe towards wall (alliance dependent!) 23.25
 
@@ -522,52 +470,16 @@ public class Auto extends OpMode {
                     // it's blue
 
                     // FIXME: When using computer vision - this distance is further!
-                    trajectoryBuilder.strafeRight(23.25);
+                    trajectoryBuilder.strafeRight(29.25);
                 }
 
                 return trajectoryBuilder.build();
             }
         };
 
-        forwardFromWall.setNextState(strafeToWall);
+        backwardFromHub.setNextState(strafeToWall);
 
-        // backward 9.5" to engage with carousel
-
-        State backToCarousel = new TrajectoryFollowerState("BackToCarousel",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-                trajectoryBuilder.back(9.5);
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-        strafeToWall.setNextState(backToCarousel);
-
-        // deliver duck
-
-        State runCarousel = new StopwatchTimeoutSafetyState("RunCarousel",
-                telemetry, ticker, TimeUnit.SECONDS.toMillis(4 * 1000)) {
-            @Override
-            public State doStuffAndGetNextState() {
-                if (currentAlliance == Constants.Alliance.RED) {
-                    carouselMechanism.spinRedForAuto();
-                } else {
-                    carouselMechanism.spinBlueForAuto();
-                }
-
-                return nextState;
-            }
-        };
-
-        backToCarousel.setNextState(runCarousel);
-
-        // Wait for duck to be delivered
-        final State waitForDuck = newMsDelayState("Wait for duck", 3500);
-        runCarousel.setNextState(waitForDuck);
+        final State waitForDuck = setupCarouselStates(strafeToWall);
 
         // drive forward 17"
 
@@ -577,7 +489,7 @@ public class Auto extends OpMode {
             protected Trajectory createTrajectory() {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
-                trajectoryBuilder.forward(17);
+                trajectoryBuilder.forward(18);
 
                 return trajectoryBuilder.build();
             }
@@ -622,6 +534,150 @@ public class Auto extends OpMode {
         dropFreightState.setNextState(newDoneState("Done!"));
 
         stateMachine.setFirstState(detectionState);
+    }
+
+    private State setupCarouselStates(State strafeToWall) {
+        // backward 9.5" to engage with carousel
+
+        State backToCarousel = new TrajectoryFollowerState("BackToCarousel",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                trajectoryBuilder.back(9.5);
+
+                return trajectoryBuilder.build();
+            }
+        };
+
+        strafeToWall.setNextState(backToCarousel);
+
+        // deliver duck
+
+        State runCarousel = new StopwatchTimeoutSafetyState("RunCarousel",
+                telemetry, ticker, TimeUnit.SECONDS.toMillis(4 * 1000)) {
+            @Override
+            public State doStuffAndGetNextState() {
+                if (currentAlliance == Constants.Alliance.RED) {
+                    carouselMechanism.spinRedForAuto();
+                } else {
+                    carouselMechanism.spinBlueForAuto();
+                }
+
+                return nextState;
+            }
+        };
+
+        backToCarousel.setNextState(runCarousel);
+
+        // Wait for duck to be delivered
+        final State waitForDuck = newMsDelayState("Wait for duck", 3500);
+        runCarousel.setNextState(waitForDuck);
+        return waitForDuck;
+    }
+
+    @NonNull
+    private State setupAfterBarcodeDetectionStates(final BarcodeDetectorState detectionState) {
+        // drive forward 14.5"
+
+        State forwardFromWall = new TrajectoryFollowerState("ForwardFromWall",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                trajectoryBuilder.forward(14.5);
+
+                return trajectoryBuilder.build();
+            }
+        };
+
+        // Navigate to the hub
+
+        // (1) We need to make up 31" (or so, probably less)
+        //     (a) We're already at 14.5"
+        // (2) Strafe 27" (red -> right, blue -> left)
+
+        State strafeToHub = new TrajectoryFollowerState("StrafeToHub",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                if (currentAlliance == Constants.Alliance.RED) {
+                    trajectoryBuilder.strafeRight(27);
+                } else {
+                    // it's blue
+                    trajectoryBuilder.strafeLeft(21);
+                }
+
+                return trajectoryBuilder.build();
+            }
+        };
+
+        forwardFromWall.setNextState(strafeToHub);
+
+        // (3) Forward 15.5"
+
+        State forwardToHub = new TrajectoryFollowerState("ForwardToHub",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                trajectoryBuilder.forward(15.5);
+
+                return trajectoryBuilder.build();
+            }
+        };
+
+        strafeToHub.setNextState(forwardToHub);
+
+        // (4) Release the freight
+        RunnableState dropFreight = new RunnableState("Drop Freight", telemetry,
+                () -> freightManipulator.openGripper());
+
+        // (5) Wait for the freight to drop (a second/fraction of a second)
+        forwardToHub.setNextState(dropFreight);
+
+        State delayState = newMsDelayState("Wait freight", 500);
+
+        // (6) Backwards 15.5" Pull back, at least to where we would've been for the old route
+
+        State backwardFromHub = new TrajectoryFollowerState("BackwardFromHub",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                trajectoryBuilder.back(15.5);
+
+                return trajectoryBuilder.build();
+            }
+        };
+
+        delayState.setNextState(backwardFromHub);
+
+        // Strafe to the wall to get ready to back up into the carousel
+
+        // end common to all arm positions
+
+        ArmToLevelOneState armToLevelOneState = new ArmToLevelOneState();
+        ArmToLevelTwoState armToLevelTwoState = new ArmToLevelTwoState();
+        ArmToLevelThreeState armToLevelThreeState = new ArmToLevelThreeState();
+
+        armToLevelOneState.setNextState(forwardFromWall);
+        armToLevelTwoState.setNextState(forwardFromWall);
+        armToLevelThreeState.setNextState(forwardFromWall);
+
+        detectionState.setArmToLevelOne(armToLevelOneState);
+        detectionState.setArmToLevelTwo(armToLevelTwoState);
+        detectionState.setArmToLevelThree(armToLevelThreeState);
+
+        detectionState.checkReady();
+
+        return backwardFromHub;
     }
 
     protected void setupParkWarehouse() {
