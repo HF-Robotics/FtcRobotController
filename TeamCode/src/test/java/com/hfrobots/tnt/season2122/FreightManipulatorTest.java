@@ -77,6 +77,7 @@ public class FreightManipulatorTest {
         freightManipulator.setGripperToggleButton(new ToggledButton(gripper));
 
         lowLimitSwitch = (FakeDigitalChannel)hardwareMap.get(DigitalChannel.class, "lowPositionLimit");
+        lowLimitSwitch.setState(true); // need to reset for every test
     }
 
     @Test
