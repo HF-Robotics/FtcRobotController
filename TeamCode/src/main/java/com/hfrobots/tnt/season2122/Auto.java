@@ -465,12 +465,12 @@ public class Auto extends OpMode {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
                 if (currentAlliance == Constants.Alliance.RED) {
-                    trajectoryBuilder.strafeLeft(23.25);
+                    trajectoryBuilder.strafeLeft(23.25 + 24 + 3.25 + 2);
                 } else {
                     // it's blue
 
                     // FIXME: When using computer vision - this distance is further!
-                    trajectoryBuilder.strafeRight(29.25);
+                    trajectoryBuilder.strafeRight(29.25 + 24 + 3.25 + 2);
                 }
 
                 return trajectoryBuilder.build();
@@ -489,7 +489,7 @@ public class Auto extends OpMode {
             protected Trajectory createTrajectory() {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
-                trajectoryBuilder.forward(18);
+                trajectoryBuilder.forward(18 + 2.5 -1.75);
 
                 return trajectoryBuilder.build();
             }
@@ -545,7 +545,7 @@ public class Auto extends OpMode {
             protected Trajectory createTrajectory() {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
-                trajectoryBuilder.back(9.5);
+                trajectoryBuilder.back(9.5 - 1);
 
                 return trajectoryBuilder.build();
             }
@@ -606,10 +606,10 @@ public class Auto extends OpMode {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
                 if (currentAlliance == Constants.Alliance.RED) {
-                    trajectoryBuilder.strafeRight(27);
+                    trajectoryBuilder.strafeRight(27 + 3.5);
                 } else {
                     // it's blue
-                    trajectoryBuilder.strafeLeft(21);
+                    trajectoryBuilder.strafeLeft(21 + 3.5);
                 }
 
                 return trajectoryBuilder.build();
@@ -620,13 +620,15 @@ public class Auto extends OpMode {
 
         // (3) Forward 15.5"
 
+        final double distanceToFromHub = 15.5 - 9;
+
         State forwardToHub = new TrajectoryFollowerState("ForwardToHub",
                 telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
             @Override
             protected Trajectory createTrajectory() {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
-                trajectoryBuilder.forward(15.5);
+                trajectoryBuilder.forward(distanceToFromHub);
 
                 return trajectoryBuilder.build();
             }
@@ -643,6 +645,8 @@ public class Auto extends OpMode {
 
         State delayState = newMsDelayState("Wait freight", 500);
 
+        dropFreight.setNextState(delayState);
+
         // (6) Backwards 15.5" Pull back, at least to where we would've been for the old route
 
         State backwardFromHub = new TrajectoryFollowerState("BackwardFromHub",
@@ -651,7 +655,7 @@ public class Auto extends OpMode {
             protected Trajectory createTrajectory() {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
-                trajectoryBuilder.back(15.5);
+                trajectoryBuilder.back(distanceToFromHub);
 
                 return trajectoryBuilder.build();
             }
