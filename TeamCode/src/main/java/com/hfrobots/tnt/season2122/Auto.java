@@ -80,6 +80,8 @@ public class Auto extends OpMode {
 
     private BarcodeDetectorPipeline barcodeDetectorPipeline;
 
+    private DriveTeamSignal driveTeamSignal;
+
     private final Set<ReadyCheckable> readyCheckables = Sets.newHashSet();
 
     // The routes our robot knows how to do
@@ -124,6 +126,8 @@ public class Auto extends OpMode {
                 simplerHardwareMap, true);
 
         stateMachine = new StateMachine(telemetry);
+
+        driveTeamSignal = new DriveTeamSignal(hardwareMap, ticker);
 
         setupOpenCvCameraAndPipeline();
 
@@ -201,6 +205,9 @@ public class Auto extends OpMode {
         } else {
             telemetry.addData("00", "UNLOCKED: Press Lt stick lock");
         }
+
+        driveTeamSignal.setAlliance(currentAlliance);
+        driveTeamSignal.periodicTask();
 
         telemetry.addData("01", "Alliance: %s", currentAlliance);
         telemetry.addData("02", "Task: %s", possibleRoutes[selectedRoutesIndex].getDescription());
@@ -291,6 +298,8 @@ public class Auto extends OpMode {
             }
 
             stateMachine.doOneStateLoop();
+
+            driveTeamSignal.periodicTask();
 
             telemetry.update(); // send all telemetry to the drivers' station
         } catch (Throwable t) {
@@ -572,7 +581,7 @@ public class Auto extends OpMode {
         backToCarousel.setNextState(runCarousel);
 
         // Wait for duck to be delivered
-        final State waitForDuck = newMsDelayState("Wait for duck", 3500);
+        final State waitForDuck = newMsDelayState("Wait for duck", 3500 + (2 * 1000));
         runCarousel.setNextState(waitForDuck);
         return waitForDuck;
     }
@@ -917,19 +926,19 @@ public class Auto extends OpMode {
             switch (detectedPosition) {
                 case LEFT:
                     Log.d(LOG_TAG, "Detected level one");
-
+                    driveTeamSignal.setDuckDetected(true);
                     shutdownPipeline();
 
                     return armToLevelOne;
                 case CENTER:
                     Log.d(LOG_TAG, "Detected level two");
-
+                    driveTeamSignal.setDuckDetected(true);
                     shutdownPipeline();
 
                     return armToLevelTwo;
                 case RIGHT:
                     Log.d(LOG_TAG, "Detected level three");
-
+                    driveTeamSignal.setDuckDetected(true);
                     shutdownPipeline();
 
                     return armToLevelThree;

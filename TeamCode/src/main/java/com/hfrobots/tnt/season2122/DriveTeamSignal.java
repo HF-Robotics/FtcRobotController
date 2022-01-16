@@ -21,8 +21,10 @@ package com.hfrobots.tnt.season2122;
 
 import static com.qualcomm.hardware.rev.RevBlinkinLedDriver.BlinkinPattern.BREATH_GRAY;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
+import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -38,6 +40,12 @@ public class DriveTeamSignal implements PeriodicTask {
 
     private final static RevBlinkinLedDriver.BlinkinPattern GO_TO_WAREHOUSE_PATTERN = RevBlinkinLedDriver.BlinkinPattern.FIRE_MEDIUM;
 
+    private final static RevBlinkinLedDriver.BlinkinPattern RED_ALLIANCE_PATTERN = RevBlinkinLedDriver.BlinkinPattern.RED;
+
+    private final static RevBlinkinLedDriver.BlinkinPattern BLUE_ALLIANCE_PATTERN = RevBlinkinLedDriver.BlinkinPattern.BLUE_VIOLET;
+
+    private final static RevBlinkinLedDriver.BlinkinPattern SUCCESS_DETECTED_DUCK = RevBlinkinLedDriver.BlinkinPattern.YELLOW;
+
     private final static int MATCH_DURATION_SECONDS = 120;
 
     private final static int END_GAME_SECONDS = MATCH_DURATION_SECONDS - 30;
@@ -47,6 +55,10 @@ public class DriveTeamSignal implements PeriodicTask {
     private final static int GO_TO_WAREHOUSE_SECONDS = MATCH_DURATION_SECONDS - 5;
 
     private final Stopwatch stopwatch;
+
+    private Constants.Alliance chosenAlliance = null;
+
+    private Optional<Boolean> detectedDuck = Optional.absent();
 
     public DriveTeamSignal(final HardwareMap hardwareMap, final Ticker ticker) {
         blinkinLed = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
@@ -83,6 +95,21 @@ public class DriveTeamSignal implements PeriodicTask {
             blinkinPattern = END_GAME_PATTERN;
         } else if (readyForEndGame()){
             blinkinPattern = GO_TO_END_GAME_PATTERN;
+        } else if (detectedDuck.isPresent()) {
+          if (detectedDuck.get()) {
+              blinkinPattern = SUCCESS_DETECTED_DUCK;
+          }
+        } else if (chosenAlliance != null) {
+           switch (chosenAlliance) {
+               case RED: {
+                   blinkinPattern = RED_ALLIANCE_PATTERN;
+                   break;
+               }
+               case BLUE: {
+                   blinkinPattern = BLUE_ALLIANCE_PATTERN;
+                   break;
+               }
+           }
         }
 
         blinkinLed.setPattern(blinkinPattern);
@@ -105,6 +132,14 @@ public class DriveTeamSignal implements PeriodicTask {
         } else {
             return false;
         }
+    }
+
+    public void setAlliance(final Constants.Alliance alliance) {
+        chosenAlliance = alliance;
+    }
+
+    public void setDuckDetected(boolean detected) {
+        detectedDuck = Optional.of(detected);
     }
 
     public boolean isEndGame() {
