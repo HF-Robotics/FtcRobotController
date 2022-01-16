@@ -65,6 +65,7 @@ public class DriverControlled extends OpMode {
 
         drivebase = new Drivebase(hardwareMap);
         freightManipulator = new FreightManipulator(hardwareMap, telemetry, ticker);
+        freightManipulator.setInitFromTeleOp(true);
         carouselMechanism = new CarouselMechanism(hardwareMap);
 
         driveTeamSignal = new DriveTeamSignal(hardwareMap, ticker);

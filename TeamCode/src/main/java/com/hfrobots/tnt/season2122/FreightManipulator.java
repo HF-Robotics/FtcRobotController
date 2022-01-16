@@ -117,6 +117,9 @@ public class FreightManipulator implements PeriodicTask {
     @Setter
     private ToggledButton gripperToggleButton;
 
+    @Setter
+    private boolean initFromTeleOp = false;
+
     private boolean notSafeToAutoMoveArm = false;
 
     private final Telemetry telemetry;
@@ -341,10 +344,18 @@ public class FreightManipulator implements PeriodicTask {
                 }
             }
 
-            if (gripperToggleButton.isToggledTrue()) {
-                openGripper();
+            if (initFromTeleOp) {
+                if (gripperToggleButton.isToggledTrue()) {
+                    closeGripper();
+                } else {
+                    openGripper();
+                }
             } else {
-                closeGripper();
+                if (gripperToggleButton.isToggledTrue()) {
+                    openGripper();
+                } else {
+                    closeGripper();
+                }
             }
 
             if (armThrottle.getPosition() < 0) {
