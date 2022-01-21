@@ -69,6 +69,8 @@ public class DriveTeamSignal implements PeriodicTask {
         stopwatch.start();
     }
 
+    private RevBlinkinLedDriver.BlinkinPattern currentBlinkinPattern = null;
+
     @Override
     public void periodicTask() {
         RevBlinkinLedDriver.BlinkinPattern blinkinPattern = BREATH_GRAY;
@@ -112,7 +114,12 @@ public class DriveTeamSignal implements PeriodicTask {
            }
         }
 
-        blinkinLed.setPattern(blinkinPattern);
+        // Only set if changed - the driver logs every time setPattern() is called :(
+        if (currentBlinkinPattern == null || blinkinPattern != currentBlinkinPattern) {
+            blinkinLed.setPattern(blinkinPattern);
+
+            currentBlinkinPattern = blinkinPattern;
+        }
     }
 
     public boolean matchStarted() {
