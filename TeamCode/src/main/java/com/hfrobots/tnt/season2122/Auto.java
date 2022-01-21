@@ -474,12 +474,12 @@ public class Auto extends OpMode {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
                 if (currentAlliance == Constants.Alliance.RED) {
-                    trajectoryBuilder.strafeLeft(23.25 + 24 + 3.25 + 2);
+                    trajectoryBuilder.strafeLeft(23.25 + 24 + 3.25 + 2 + 3);
                 } else {
                     // it's blue
 
                     // FIXME: When using computer vision - this distance is further!
-                    trajectoryBuilder.strafeRight(29.25 + 24 + 3.25 + 2);
+                    trajectoryBuilder.strafeRight(29.25 + 24 + 3.25 + 2 + 3);
                 }
 
                 return trajectoryBuilder.build();
@@ -615,10 +615,10 @@ public class Auto extends OpMode {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
                 if (currentAlliance == Constants.Alliance.RED) {
-                    trajectoryBuilder.strafeRight(27 + 3.5);
+                    trajectoryBuilder.strafeRight(27 + 3.5 + 3);
                 } else {
                     // it's blue
-                    trajectoryBuilder.strafeLeft(21 + 3.5);
+                    trajectoryBuilder.strafeLeft(21 + 3.5 + 3);
                 }
 
                 return trajectoryBuilder.build();
@@ -629,7 +629,7 @@ public class Auto extends OpMode {
 
         // (3) Forward 15.5"
 
-        final double distanceToFromHub = 15.5 - 9;
+        final double distanceToFromHub = 15.5 - 9 + 2;
 
         State forwardToHub = new TrajectoryFollowerState("ForwardToHub",
                 telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
