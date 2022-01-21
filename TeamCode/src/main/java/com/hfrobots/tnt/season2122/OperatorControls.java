@@ -205,6 +205,8 @@ public class OperatorControls implements PeriodicTask {
         freightManipulator.setToHubLevelTwoButton(armToMidGoalButton);
         freightManipulator.setToHubLevelThreeButton(armToHighGoalButton);
         freightManipulator.setUnsafeButton(unsafe);
+        freightManipulator.setOuttakeButton(operatorGamepad.getYButton());
+        freightManipulator.setIntakeButton(operatorGamepad.getAButton());
     }
 
     @Override

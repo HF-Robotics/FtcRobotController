@@ -37,6 +37,7 @@ import com.google.common.collect.Sets;
 import com.hfrobots.tnt.corelib.state.ReadyCheckable;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
 import com.qualcomm.robotcore.exception.TargetPositionNotSetException;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
@@ -95,9 +96,17 @@ public class FreightManipulator implements PeriodicTask {
 
     private final Set<ReadyCheckable> readyCheckables = Sets.newHashSet();
 
-    private final Servo leftGripperServo;
+    // private final Servo leftGripperServo;
 
-    private final Servo rightGripperServo;
+    // private final Servo rightGripperServo;
+
+    @Setter
+    private OnOffButton intakeButton;
+
+    @Setter
+    private OnOffButton outtakeButton;
+
+    private final CRServo intakeServo;
 
     @Setter
     private OnOffButton unsafeButton;
@@ -143,8 +152,10 @@ public class FreightManipulator implements PeriodicTask {
 
         armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        leftGripperServo = hardwareMap.get(Servo.class, "leftGripperServo");
-        rightGripperServo = hardwareMap.get(Servo.class, "rightGripperServo");
+        //leftGripperServo = hardwareMap.get(Servo.class, "leftGripperServo");
+        //rightGripperServo = hardwareMap.get(Servo.class, "rightGripperServo");
+
+        intakeServo = hardwareMap.get(CRServo.class, "intakeServo");
 
         lowPositionLimit = hardwareMap.get(DigitalChannel.class, "lowPositionLimit");
 
@@ -244,13 +255,13 @@ public class FreightManipulator implements PeriodicTask {
     }
 
     public void openGripper() {
-        leftGripperServo.setPosition(LEFT_GRIPPER_OPEN_POSITION);
-        rightGripperServo.setPosition(RIGHT_GRIPPER_OPEN_POSITION);
+        //leftGripperServo.setPosition(LEFT_GRIPPER_OPEN_POSITION);
+        //rightGripperServo.setPosition(RIGHT_GRIPPER_OPEN_POSITION);
     }
 
     public void closeGripper() {
-        leftGripperServo.setPosition(LEFT_GRIPPER_CLOSED_POSITION);
-        rightGripperServo.setPosition(RIGHT_GRIPPER_CLOSED_POSITION);
+        //leftGripperServo.setPosition(LEFT_GRIPPER_CLOSED_POSITION);
+        //rightGripperServo.setPosition(RIGHT_GRIPPER_CLOSED_POSITION);
     }
 
     // (4) If this component needs to take action during every loop of tele-op or auto,
@@ -344,17 +355,27 @@ public class FreightManipulator implements PeriodicTask {
                 }
             }
 
-            if (initFromTeleOp) {
-                if (gripperToggleButton.isToggledTrue()) {
-                    closeGripper();
-                } else {
-                    openGripper();
-                }
+            if (intakeButton != null && intakeButton.isPressed()) {
+                intakeServo.setPower(1);
+            } else if (outtakeButton != null && outtakeButton.isPressed()) {
+                intakeServo.setPower(-1);
             } else {
-                if (gripperToggleButton.isToggledTrue()) {
-                    openGripper();
+                intakeServo.setPower(0);
+            }
+
+            if (false) {
+                if (initFromTeleOp) {
+                    if (gripperToggleButton.isToggledTrue()) {
+                        closeGripper();
+                    } else {
+                        openGripper();
+                    }
                 } else {
-                    closeGripper();
+                    if (gripperToggleButton.isToggledTrue()) {
+                        openGripper();
+                    } else {
+                        closeGripper();
+                    }
                 }
             }
 
