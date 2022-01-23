@@ -84,6 +84,10 @@ public class OperatorControls implements PeriodicTask {
 
     private OnOffButton carouselSpinRed;
 
+    private OnOffButton intakeButton;
+
+    private OnOffButton outtakeButton;
+
     private MaxMotorPowerMagnitude maxMotorPowerMagnitude;
 
     private DebouncedButton armToLowGoalButton;
@@ -184,6 +188,10 @@ public class OperatorControls implements PeriodicTask {
         armMotorControl = leftStickY;
         carouselSpinBlue = rightBumper;
         carouselSpinRed = leftBumper;
+
+        intakeButton = operatorGamepad.getYButton();
+        outtakeButton = operatorGamepad.getAButton();
+
         gripperToggle = new ToggledButton(operatorGamepad.getAButton());
 
         armToLowGoalButton = operatorGamepad.getDpadDown().debounced();
@@ -205,8 +213,8 @@ public class OperatorControls implements PeriodicTask {
         freightManipulator.setToHubLevelTwoButton(armToMidGoalButton);
         freightManipulator.setToHubLevelThreeButton(armToHighGoalButton);
         freightManipulator.setUnsafeButton(unsafe);
-        freightManipulator.setOuttakeButton(operatorGamepad.getYButton());
-        freightManipulator.setIntakeButton(operatorGamepad.getAButton());
+        freightManipulator.setOuttakeButton(outtakeButton);
+        freightManipulator.setIntakeButton(intakeButton);
     }
 
     @Override

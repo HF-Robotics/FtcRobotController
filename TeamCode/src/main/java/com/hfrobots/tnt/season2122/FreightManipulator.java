@@ -42,7 +42,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -219,7 +218,7 @@ public class FreightManipulator implements PeriodicTask {
 
     public void moveArmToTopGoal() {
         try {
-            armMotor.setTargetPosition(armMotorStartingPosition + 473);
+            armMotor.setTargetPosition(armMotorStartingPosition + 420);
             armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             armMotor.setPower(0.5);
         } catch (TargetPositionNotSetException error) {
@@ -306,7 +305,7 @@ public class FreightManipulator implements PeriodicTask {
         idleState.setToHubLevelTwoState(toHubLevelTwoState);
 
         ClosedLoopArmMoveState toHubLevelThreeState =
-                new ClosedLoopArmMoveState("Lift - CL - Three", 473);
+                new ClosedLoopArmMoveState("Lift - CL - Three", 423);
         toHubLevelThreeState.setIdleState(idleState);
         idleState.setToHubLevelThreeState(toHubLevelThreeState);
 
@@ -356,11 +355,11 @@ public class FreightManipulator implements PeriodicTask {
             }
 
             if (intakeButton != null && intakeButton.isPressed()) {
-                intakeServo.setPower(1);
+                spinIntake();
             } else if (outtakeButton != null && outtakeButton.isPressed()) {
-                intakeServo.setPower(-1);
+                spinOuttake();
             } else {
-                intakeServo.setPower(0);
+                stopIntake();
             }
 
             if (false) {
@@ -407,6 +406,18 @@ public class FreightManipulator implements PeriodicTask {
             Preconditions.checkNotNull(openLoopLiftLoweringState);
             Preconditions.checkNotNull(openLoopLiftRisingState);
         }
+    }
+
+    public void stopIntake() {
+        intakeServo.setPower(0);
+    }
+
+    public void spinOuttake() {
+        intakeServo.setPower(1);
+    }
+
+    public void spinIntake() {
+        intakeServo.setPower(-1);
     }
 
     class OpenLoopLiftLoweringState extends State implements ReadyCheckable {
@@ -482,7 +493,7 @@ public class FreightManipulator implements PeriodicTask {
 
     }
 
-    class ClosedLoopArmMoveState extends State implements ReadyCheckable {
+    class ClosedLoopArmMoveState extends StopwatchTimeoutSafetyState implements ReadyCheckable {
         private final int targetPosition;
 
         private boolean headingToPosition = false;
@@ -492,7 +503,7 @@ public class FreightManipulator implements PeriodicTask {
 
         protected ClosedLoopArmMoveState(@NonNull final String name,
                                          final int targetPosition) {
-            super(name, FreightManipulator.this.telemetry);
+            super(name, FreightManipulator.this.telemetry, ticker, 4000);
             this.targetPosition = targetPosition;
             readyCheckables.add(this);
         }
@@ -500,6 +511,20 @@ public class FreightManipulator implements PeriodicTask {
         @Override
         public State doStuffAndGetNextState() {
             if (notSafeToAutoMoveArm) {
+                resetTimer();
+
+                return idleState;
+            }
+
+            if (isTimedOut()) {
+                resetTimer();
+
+                return idleState;
+            }
+
+            if (unsafeButton.isPressed()) {
+                resetTimer();
+
                 return idleState;
             }
 
@@ -507,6 +532,8 @@ public class FreightManipulator implements PeriodicTask {
 
             if (armThrottlePosition != 0) {
                 headingToPosition = false;
+
+                resetTimer();
 
                 return idleState;
             }
@@ -529,6 +556,8 @@ public class FreightManipulator implements PeriodicTask {
                 // This is the test for "until it gets there" in our diagram...
                 if (!armMotor.isBusy()) {
                     headingToPosition = false;
+
+                    resetTimer();
 
                     return idleState;
                 }

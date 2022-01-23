@@ -34,6 +34,7 @@ SOFTWARE.
             <Motor name="rightFrontDriveMotor" port="2" /> <!-- Yellow -->
             <Motor name="rightRearDriveMotor"  port="3" /> <!-- Green  -->
 
+            <REV_VL53L0X_RANGE_SENSOR name="rearDistanceSensor" port="1" bus="0" />
         </LynxModule>
 
         <LynxModule name="Expansion Hub 3" port="3">

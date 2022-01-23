@@ -47,6 +47,9 @@ import com.hfrobots.tnt.corelib.state.ReadyCheckable;
 import com.hfrobots.tnt.corelib.util.RealSimplerHardwareMap;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -55,6 +58,8 @@ import lombok.Setter;
 
 @Autonomous(name="00 Frt Frnzy Auto")
 public class Auto extends OpMode {
+    public static final int TOO_FAR_TO_DRIVE_INTO_STORAGE = 10;
+    public static final int PERFECT_WALL_STORAGE_DISTANCE = 29;
     private Ticker ticker;
 
     private OnOffButton unsafe = new OnOffButton() {
@@ -114,11 +119,15 @@ public class Auto extends OpMode {
 
     private OperatorControls operatorControls;
 
+    private DistanceSensor rearDistanceSensor;
+
     @Override
     public void init() {
         ticker = createAndroidTicker();
 
         setupDriverControls();
+
+        rearDistanceSensor = hardwareMap.get(DistanceSensor.class, "rearDistanceSensor");
 
         RealSimplerHardwareMap simplerHardwareMap = new RealSimplerHardwareMap(this.hardwareMap);
 
@@ -477,9 +486,24 @@ public class Auto extends OpMode {
                     trajectoryBuilder.strafeLeft(23.25 + 24 + 3.25 + 2 + 3);
                 } else {
                     // it's blue
-
-                    // FIXME: When using computer vision - this distance is further!
                     trajectoryBuilder.strafeRight(29.25 + 24 + 3.25 + 2 + 3);
+                }
+
+                return trajectoryBuilder.build();
+            }
+        };
+
+        State squareUp = new TrajectoryFollowerState("SquareUp",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                if (currentAlliance == Constants.Alliance.RED) {
+                    trajectoryBuilder.strafeLeft(7).strafeRight(4);
+                } else {
+                    // it's blue
+                    trajectoryBuilder.strafeRight(7).strafeLeft(4);
                 }
 
                 return trajectoryBuilder.build();
@@ -488,7 +512,13 @@ public class Auto extends OpMode {
 
         backwardFromHub.setNextState(strafeToWall);
 
-        final State waitForDuck = setupCarouselStates(strafeToWall);
+        State squareUpPause = newMsDelayState("square up pause", 250);
+
+        strafeToWall.setNextState(squareUpPause);
+
+        squareUpPause.setNextState(squareUp);
+
+        final State waitForDuck = setupCarouselStates(squareUp);
 
         // drive forward 17"
 
@@ -506,6 +536,40 @@ public class Auto extends OpMode {
 
         waitForDuck.setNextState(forwardToStorage);
 
+        // Have we gone far enough?
+
+        State makeSureInStorage = new TrajectoryFollowerState("MakeSureInStorage",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                final double distanceToWall = rearDistanceSensor.getDistance(DistanceUnit.INCH);
+
+                // ideal distance from wall to put robot in center of storage is 28 inches
+
+                final double distanceRemaining = PERFECT_WALL_STORAGE_DISTANCE - distanceToWall;
+
+                int distanceToDrive = (int)distanceRemaining;
+
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                if (distanceToDrive > TOO_FAR_TO_DRIVE_INTO_STORAGE || distanceToDrive == 0) {
+                    // do nothing
+                    Log.d(LOG_TAG, "No need to drive further");
+                } else if (distanceToDrive < 0) {
+                    trajectoryBuilder.back(Math.abs(distanceToDrive));
+                    Log.d(LOG_TAG, "Backwards " + distanceToDrive + " to be in storage");
+                } else if (distanceToDrive > 0) {
+                    Log.d(LOG_TAG, "Forwards " + distanceToDrive + " to be in storage");
+
+                    trajectoryBuilder.forward(distanceToDrive);
+                }
+
+                return trajectoryBuilder.build();
+            }
+        };
+
+        forwardToStorage.setNextState(makeSureInStorage);
+
         // Stop running the carousel mechanism
         State stopCarousel = new State("Stop carousel", telemetry) {
             @Override
@@ -521,13 +585,13 @@ public class Auto extends OpMode {
             }
         };
 
-        forwardToStorage.setNextState(stopCarousel);
+        makeSureInStorage.setNextState(stopCarousel);
 
         State dropFreightState = new State("Drop freight", telemetry) {
 
             @Override
             public State doStuffAndGetNextState() {
-                freightManipulator.openGripper();
+                freightManipulator.spinOuttake();
 
                 return nextState;
             }
@@ -538,7 +602,7 @@ public class Auto extends OpMode {
             }
         };
 
-        forwardToStorage.setNextState(dropFreightState);
+        stopCarousel.setNextState(dropFreightState);
 
         dropFreightState.setNextState(newDoneState("Done!"));
 
@@ -548,19 +612,35 @@ public class Auto extends OpMode {
     private State setupCarouselStates(State strafeToWall) {
         // backward 9.5" to engage with carousel
 
-        State backToCarousel = new TrajectoryFollowerState("BackToCarousel",
+        State backToCarouselPart1 = new TrajectoryFollowerState("BackToCarousel1",
                 telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
             @Override
             protected Trajectory createTrajectory() {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
-                trajectoryBuilder.back(9.5 - 1);
+                trajectoryBuilder.back(7);
 
                 return trajectoryBuilder.build();
             }
         };
 
-        strafeToWall.setNextState(backToCarousel);
+        State backToCarouselPart2 = new TrajectoryFollowerState("BackToCarousel",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                trajectoryBuilder.back(1);
+
+                return trajectoryBuilder.build();
+            }
+        };
+
+        State pauseABit = newMsDelayState("Pause a bit", 250);
+        backToCarouselPart1.setNextState(pauseABit);
+        pauseABit.setNextState(backToCarouselPart2);
+
+        strafeToWall.setNextState(backToCarouselPart1);
 
         // deliver duck
 
@@ -578,7 +658,7 @@ public class Auto extends OpMode {
             }
         };
 
-        backToCarousel.setNextState(runCarousel);
+        backToCarouselPart2.setNextState(runCarousel);
 
         // Wait for duck to be delivered
         final State waitForDuck = newMsDelayState("Wait for duck", 3500 + (2 * 1000));
@@ -647,14 +727,17 @@ public class Auto extends OpMode {
 
         // (4) Release the freight
         RunnableState dropFreight = new RunnableState("Drop Freight", telemetry,
-                () -> freightManipulator.openGripper());
+                () -> freightManipulator.spinOuttake());
 
         // (5) Wait for the freight to drop (a second/fraction of a second)
         forwardToHub.setNextState(dropFreight);
 
-        State delayState = newMsDelayState("Wait freight", 500);
+        State delayState = newMsDelayState("Wait freight", 1500);
 
         dropFreight.setNextState(delayState);
+
+        RunnableState stopOuttake = new RunnableState("Stop outtake", telemetry,
+                () -> freightManipulator.stopIntake());
 
         // (6) Backwards 15.5" Pull back, at least to where we would've been for the old route
 
@@ -670,7 +753,8 @@ public class Auto extends OpMode {
             }
         };
 
-        delayState.setNextState(backwardFromHub);
+        delayState.setNextState(stopOuttake);
+        stopOuttake.setNextState(backwardFromHub);
 
         // Strafe to the wall to get ready to back up into the carousel
 
