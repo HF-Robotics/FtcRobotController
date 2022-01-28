@@ -233,6 +233,10 @@ public class FreightManipulator implements PeriodicTask {
             return;
         }
 
+        if (intakeButton.isPressed()) {
+            return;
+        }
+
         if (unsafeButton != null && unsafeButton.isPressed()) {
             return;
         }
@@ -409,15 +413,18 @@ public class FreightManipulator implements PeriodicTask {
     }
 
     public void stopIntake() {
+        stopArm();
         intakeServo.setPower(0);
     }
 
     public void spinOuttake() {
+        stopArm();
         intakeServo.setPower(1);
     }
 
     public void spinIntake() {
         intakeServo.setPower(-1);
+        moveArmDown(0.2);
     }
 
     class OpenLoopLiftLoweringState extends State implements ReadyCheckable {
