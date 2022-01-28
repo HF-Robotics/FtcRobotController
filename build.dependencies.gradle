@@ -37,10 +37,10 @@ dependencies {
     testImplementation 'com.google.guava:guava-testlib:27.1-android'
     api 'com.google.guava:guava:27.1-android'
 
-    implementation 'com.ftc9929.TntFtcCore:corelib:3eb51ee'
-    implementation 'com.ftc9929.TntFtcCore:fakeHardware:3eb51ee'
-    implementation 'com.ftc9929.TntFtcCore:metrics:3eb51ee'
-    testImplementation 'com.ftc9929.TntFtcCore:fakeHardware:3eb51ee'
+    implementation 'com.ftc9929.TntFtcCore:corelib:fa9415f'
+    implementation 'com.ftc9929.TntFtcCore:fakeHardware:fa9415f'
+    implementation 'com.ftc9929.TntFtcCore:metrics:fa9415f'
+    testImplementation 'com.ftc9929.TntFtcCore:fakeHardware:fa9415f'
     implementation 'org.firstinspires.ftc:gameAssets-FreightFrenzy:1.0.0'
 }
 
