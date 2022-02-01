@@ -19,7 +19,7 @@
 
 package com.hfrobots.tnt.season2122;
 
-import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
+import static com.ftc9929.corelib.Constants.LOG_TAG;
 
 import android.util.Log;
 
@@ -39,6 +39,7 @@ import com.ftc9929.corelib.state.StopwatchDelayState;
 import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Ticker;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveREV;
@@ -49,8 +50,10 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -536,6 +539,29 @@ public class Auto extends OpMode {
 
         waitForDuck.setNextState(forwardToStorage);
 
+        // Square up again
+        State squareUp2 = new TrajectoryFollowerState("SquareUp2",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                if (currentAlliance == Constants.Alliance.RED) {
+                    trajectoryBuilder.strafeLeft(7).strafeRight(4);
+                } else {
+                    // it's blue
+                    trajectoryBuilder.strafeRight(7).strafeLeft(4);
+                }
+
+                return trajectoryBuilder.build();
+            }
+        };
+
+        State squareUpPause2 = newMsDelayState("square up pause", 250);
+
+        squareUp2.setNextState(squareUpPause2);
+        forwardToStorage.setNextState(squareUp2);
+
         // Have we gone far enough?
 
         State makeSureInStorage = new TrajectoryFollowerState("MakeSureInStorage",
@@ -568,7 +594,7 @@ public class Auto extends OpMode {
             }
         };
 
-        forwardToStorage.setNextState(makeSureInStorage);
+        squareUpPause2.setNextState(makeSureInStorage);
 
         // Stop running the carousel mechanism
         State stopCarousel = new State("Stop carousel", telemetry) {
@@ -736,9 +762,6 @@ public class Auto extends OpMode {
 
         dropFreight.setNextState(delayState);
 
-        RunnableState stopOuttake = new RunnableState("Stop outtake", telemetry,
-                () -> freightManipulator.stopIntake());
-
         // (6) Backwards 15.5" Pull back, at least to where we would've been for the old route
 
         State backwardFromHub = new TrajectoryFollowerState("BackwardFromHub",
@@ -753,10 +776,14 @@ public class Auto extends OpMode {
             }
         };
 
-        delayState.setNextState(stopOuttake);
-        stopOuttake.setNextState(backwardFromHub);
+        delayState.setNextState(backwardFromHub);
 
-        // Strafe to the wall to get ready to back up into the carousel
+        // Stop the outtake only after we back away, prevent freight manipulator
+        // from pulling hub with it as we back away
+        RunnableState stopOuttake = new RunnableState("Stop outtake", telemetry,
+                () -> freightManipulator.stopIntake());
+
+        backwardFromHub.setNextState(stopOuttake);
 
         // end common to all arm positions
 
@@ -774,7 +801,7 @@ public class Auto extends OpMode {
 
         detectionState.checkReady();
 
-        return backwardFromHub;
+        return stopOuttake;
     }
 
     protected void setupParkWarehouse() {
