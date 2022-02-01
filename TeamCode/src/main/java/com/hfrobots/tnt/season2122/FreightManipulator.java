@@ -57,6 +57,7 @@ import lombok.Setter;
  * The class that makes the mechanism that picks up and delivers freight, work.
  */
 public class FreightManipulator implements PeriodicTask {
+    public static final int ARM_HIGH_POSITION = 436;
     // (1) We need to add the motors, servos and sensors this mechanism will use first, they go
     // in this location in the file. The mechanism requirements document can be consulted to
     // figure out what these are.
@@ -218,7 +219,7 @@ public class FreightManipulator implements PeriodicTask {
 
     public void moveArmToTopGoal() {
         try {
-            armMotor.setTargetPosition(armMotorStartingPosition + 420);
+            armMotor.setTargetPosition(armMotorStartingPosition + ARM_HIGH_POSITION);
             armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             armMotor.setPower(0.5);
         } catch (TargetPositionNotSetException error) {
@@ -309,7 +310,7 @@ public class FreightManipulator implements PeriodicTask {
         idleState.setToHubLevelTwoState(toHubLevelTwoState);
 
         ClosedLoopArmMoveState toHubLevelThreeState =
-                new ClosedLoopArmMoveState("Lift - CL - Three", 423);
+                new ClosedLoopArmMoveState("Lift - CL - Three", ARM_HIGH_POSITION);
         toHubLevelThreeState.setIdleState(idleState);
         idleState.setToHubLevelThreeState(toHubLevelThreeState);
 
@@ -366,21 +367,6 @@ public class FreightManipulator implements PeriodicTask {
                 stopIntake();
             }
 
-            if (false) {
-                if (initFromTeleOp) {
-                    if (gripperToggleButton.isToggledTrue()) {
-                        closeGripper();
-                    } else {
-                        openGripper();
-                    }
-                } else {
-                    if (gripperToggleButton.isToggledTrue()) {
-                        openGripper();
-                    } else {
-                        closeGripper();
-                    }
-                }
-            }
 
             if (armThrottle.getPosition() < 0) {
                 return openLoopLiftRisingState;
@@ -413,18 +399,15 @@ public class FreightManipulator implements PeriodicTask {
     }
 
     public void stopIntake() {
-        stopArm();
         intakeServo.setPower(0);
     }
 
     public void spinOuttake() {
-        stopArm();
-        intakeServo.setPower(1);
+        intakeServo.setPower(-1);
     }
 
     public void spinIntake() {
-        intakeServo.setPower(-1);
-        moveArmDown(0.2);
+        intakeServo.setPower(1);
     }
 
     class OpenLoopLiftLoweringState extends State implements ReadyCheckable {
