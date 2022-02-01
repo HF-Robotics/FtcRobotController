@@ -34,15 +34,15 @@ import java.util.concurrent.TimeUnit;
 public class DriveTeamSignal implements PeriodicTask {
     private final RevBlinkinLedDriver blinkinLed;
 
-    private final static RevBlinkinLedDriver.BlinkinPattern GO_TO_END_GAME_PATTERN = RevBlinkinLedDriver.BlinkinPattern.BEATS_PER_MINUTE_RAINBOW_PALETTE;
+    private final static RevBlinkinLedDriver.BlinkinPattern GO_TO_END_GAME_PATTERN = RevBlinkinLedDriver.BlinkinPattern.RED_ORANGE;
 
-    private final static RevBlinkinLedDriver.BlinkinPattern END_GAME_PATTERN = RevBlinkinLedDriver.BlinkinPattern.BEATS_PER_MINUTE_OCEAN_PALETTE;
+    private final static RevBlinkinLedDriver.BlinkinPattern END_GAME_PATTERN = RevBlinkinLedDriver.BlinkinPattern.DARK_GREEN;
 
-    private final static RevBlinkinLedDriver.BlinkinPattern GO_TO_WAREHOUSE_PATTERN = RevBlinkinLedDriver.BlinkinPattern.FIRE_MEDIUM;
+    private final static RevBlinkinLedDriver.BlinkinPattern GO_TO_WAREHOUSE_PATTERN = RevBlinkinLedDriver.BlinkinPattern.VIOLET;
 
     private final static RevBlinkinLedDriver.BlinkinPattern RED_ALLIANCE_PATTERN = RevBlinkinLedDriver.BlinkinPattern.RED;
 
-    private final static RevBlinkinLedDriver.BlinkinPattern BLUE_ALLIANCE_PATTERN = RevBlinkinLedDriver.BlinkinPattern.BLUE_VIOLET;
+    private final static RevBlinkinLedDriver.BlinkinPattern BLUE_ALLIANCE_PATTERN = RevBlinkinLedDriver.BlinkinPattern.BLUE;
 
     private final static RevBlinkinLedDriver.BlinkinPattern SUCCESS_DETECTED_DUCK = RevBlinkinLedDriver.BlinkinPattern.YELLOW;
 
