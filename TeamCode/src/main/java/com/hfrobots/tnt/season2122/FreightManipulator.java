@@ -181,7 +181,7 @@ public class FreightManipulator implements PeriodicTask {
         }
 
         armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        armMotor.setPower(speed / UP_SPEED_DIVISIOR);
+        armMotor.setPower(speed);
     }
 
     public void moveArmDown(double speed) {
@@ -198,6 +198,17 @@ public class FreightManipulator implements PeriodicTask {
     public void moveArmToLowGoal() {
         try {
             armMotor.setTargetPosition(armMotorStartingPosition + 150);
+            armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            armMotor.setPower(0.5);
+        } catch (TargetPositionNotSetException error) {
+            Log.w(LOG_TAG, "Lost target position, disabling auto arm movement");
+            notSafeToAutoMoveArm = true;
+        }
+    }
+
+    public void moveArmToStartPosition() {
+        try {
+            armMotor.setTargetPosition(armMotorStartingPosition);
             armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             armMotor.setPower(0.5);
         } catch (TargetPositionNotSetException error) {

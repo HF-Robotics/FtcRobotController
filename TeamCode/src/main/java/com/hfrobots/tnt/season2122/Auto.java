@@ -612,25 +612,13 @@ public class Auto extends OpMode {
         };
 
         makeSureInStorage.setNextState(stopCarousel);
+        
+        State dropArmState = new RunnableState("drop arm", telemetry, 
+                () -> freightManipulator.moveArmToStartPosition());
 
-        State dropFreightState = new State("Drop freight", telemetry) {
+        stopCarousel.setNextState(dropArmState);
 
-            @Override
-            public State doStuffAndGetNextState() {
-                freightManipulator.spinOuttake();
-
-                return nextState;
-            }
-
-            @Override
-            public void resetToStart() {
-
-            }
-        };
-
-        stopCarousel.setNextState(dropFreightState);
-
-        dropFreightState.setNextState(newDoneState("Done!"));
+        dropArmState.setNextState(newDoneState("Done!"));
 
         stateMachine.setFirstState(detectionState);
     }
