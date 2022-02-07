@@ -443,23 +443,6 @@ public class Auto extends OpMode {
 
         sequence.addSequential(stopCarousel);
 
-        State dropFreightState = new State("Drop freight", telemetry) {
-
-            @Override
-            public State doStuffAndGetNextState() {
-                freightManipulator.openGripper();
-
-                return nextState;
-            }
-
-            @Override
-            public void resetToStart() {
-
-            }
-        };
-
-        sequence.addSequential(dropFreightState);
-
         sequence.addSequential(newDoneState("Done!"));
 
         stateMachine.addSequence(sequence);
@@ -974,6 +957,8 @@ public class Auto extends OpMode {
             public State doStuffAndGetNextState() {
                 if (!issuedStop) {
                     driveBase.setMotorPowers(0, 0, 0, 0);
+
+                    freightManipulator.stopIntake();
 
                     issuedStop = true;
                 }

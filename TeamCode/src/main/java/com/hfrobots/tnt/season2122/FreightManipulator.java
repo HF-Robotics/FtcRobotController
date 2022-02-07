@@ -66,20 +66,6 @@ public class FreightManipulator implements PeriodicTask {
 
     private final DigitalChannel lowPositionLimit;
 
-    public static final double LEFT_FULL_POSITION = 0.0D;
-
-    public static final double RIGHT_FULL_POSITION = 1.0D;
-
-    public static final double CENTER_POSITION = 0.5D;
-
-    public static final double LEFT_GRIPPER_OPEN_POSITION = 0.62;
-
-    public static final double LEFT_GRIPPER_CLOSED_POSITION = 0.16;
-
-    public static final double RIGHT_GRIPPER_OPEN_POSITION = 0.43;
-
-    public static final double RIGHT_GRIPPER_CLOSED_POSITION = 0.881;
-
     public static final double UP_SPEED_DIVISIOR = 1.5;
 
     public static final double DOWN_SPEED_DIVISIOR = 6;
@@ -95,10 +81,6 @@ public class FreightManipulator implements PeriodicTask {
     private StateMachine stateMachine;
 
     private final Set<ReadyCheckable> readyCheckables = Sets.newHashSet();
-
-    // private final Servo leftGripperServo;
-
-    // private final Servo rightGripperServo;
 
     @Setter
     private OnOffButton intakeButton;
@@ -151,9 +133,6 @@ public class FreightManipulator implements PeriodicTask {
         armMotorStartingPosition = armMotor.getCurrentPosition();
 
         armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        //leftGripperServo = hardwareMap.get(Servo.class, "leftGripperServo");
-        //rightGripperServo = hardwareMap.get(Servo.class, "rightGripperServo");
 
         intakeServo = hardwareMap.get(CRServo.class, "intakeServo");
 
@@ -267,16 +246,6 @@ public class FreightManipulator implements PeriodicTask {
             Log.w(LOG_TAG, "Lost target position, disabling auto arm movement");
             notSafeToAutoMoveArm = true;
         }
-    }
-
-    public void openGripper() {
-        //leftGripperServo.setPosition(LEFT_GRIPPER_OPEN_POSITION);
-        //rightGripperServo.setPosition(RIGHT_GRIPPER_OPEN_POSITION);
-    }
-
-    public void closeGripper() {
-        //leftGripperServo.setPosition(LEFT_GRIPPER_CLOSED_POSITION);
-        //rightGripperServo.setPosition(RIGHT_GRIPPER_CLOSED_POSITION);
     }
 
     // (4) If this component needs to take action during every loop of tele-op or auto,
