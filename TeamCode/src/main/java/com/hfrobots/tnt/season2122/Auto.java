@@ -88,6 +88,8 @@ public class Auto extends OpMode {
 
     private BarcodeDetectorPipeline barcodeDetectorPipeline;
 
+    private BarcodeDetectorPipeline.BarcodePosition detectedPosition = BarcodeDetectorPipeline.BarcodePosition.UNKNOWN;
+
     private DriveTeamSignal driveTeamSignal;
 
     private final Set<ReadyCheckable> readyCheckables = Sets.newHashSet();
@@ -663,8 +665,33 @@ public class Auto extends OpMode {
         return waitForDuck;
     }
 
+    private double getDistanceForHubLevel() {
+
+        final double distanceToFromHub = 15.5 - 9 + 2;
+
+        switch (detectedPosition) {
+            case LEFT: {
+                return distanceToFromHub - 1;
+            }
+            case CENTER: {
+                return distanceToFromHub - 1;
+            }
+            case RIGHT: {
+                return distanceToFromHub;
+            }
+            default: {
+                return distanceToFromHub;
+            }
+        }
+    }
+
     @NonNull
     private State setupAfterBarcodeDetectionStates(final BarcodeDetectorState detectionState) {
+        State armClearOfTseState = new RunnableState("Clear TSE", telemetry,
+                () -> freightManipulator.moveArmToMiddleGoal());
+
+        detectionState.setNextState(armClearOfTseState);
+
         // drive forward 14.5"
 
         State forwardFromWall = new TrajectoryFollowerState("ForwardFromWall",
@@ -678,6 +705,8 @@ public class Auto extends OpMode {
                 return trajectoryBuilder.build();
             }
         };
+
+        armClearOfTseState.setNextState(forwardFromWall);
 
         // Navigate to the hub
 
@@ -702,11 +731,17 @@ public class Auto extends OpMode {
             }
         };
 
+
         forwardFromWall.setNextState(strafeToHub);
+
+        // Raise arm to detected level
+        MoveArmToDetectedLevelState moveArmToDetectedLevelState = new MoveArmToDetectedLevelState();
+
+        strafeToHub.setNextState(moveArmToDetectedLevelState);
 
         // (3) Forward 15.5"
 
-        final double distanceToFromHub = 15.5 - 9 + 2;
+        // FIXME: If we're going to score in the lower level, this probably needs to be a bit shorter!
 
         State forwardToHub = new TrajectoryFollowerState("ForwardToHub",
                 telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
@@ -714,13 +749,17 @@ public class Auto extends OpMode {
             protected Trajectory createTrajectory() {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
-                trajectoryBuilder.forward(distanceToFromHub);
+                trajectoryBuilder.forward(getDistanceForHubLevel());
 
                 return trajectoryBuilder.build();
             }
         };
 
-        strafeToHub.setNextState(forwardToHub);
+        State waitForArmState = newMsDelayState("Wait arm move", 750);
+
+        moveArmToDetectedLevelState.setNextState(waitForArmState);
+
+        waitForArmState.setNextState(forwardToHub);
 
         // (4) Release the freight
         RunnableState dropFreight = new RunnableState("Drop Freight", telemetry,
@@ -735,13 +774,15 @@ public class Auto extends OpMode {
 
         // (6) Backwards 15.5" Pull back, at least to where we would've been for the old route
 
+        // FIXME: If we're going to score in the lower level, this probably needs to be a bit shorter!
+
         State backwardFromHub = new TrajectoryFollowerState("BackwardFromHub",
                 telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
             @Override
             protected Trajectory createTrajectory() {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
-                trajectoryBuilder.back(distanceToFromHub);
+                trajectoryBuilder.back(getDistanceForHubLevel());
 
                 return trajectoryBuilder.build();
             }
@@ -756,23 +797,12 @@ public class Auto extends OpMode {
 
         backwardFromHub.setNextState(stopOuttake);
 
-        // end common to all arm positions
+        State armClearOfTseState2 = new RunnableState("Clear TSE", telemetry,
+                () -> freightManipulator.moveArmToMiddleGoal());
 
-        ArmToLevelOneState armToLevelOneState = new ArmToLevelOneState();
-        ArmToLevelTwoState armToLevelTwoState = new ArmToLevelTwoState();
-        ArmToLevelThreeState armToLevelThreeState = new ArmToLevelThreeState();
+        stopOuttake.setNextState(armClearOfTseState2);
 
-        armToLevelOneState.setNextState(forwardFromWall);
-        armToLevelTwoState.setNextState(forwardFromWall);
-        armToLevelThreeState.setNextState(forwardFromWall);
-
-        detectionState.setArmToLevelOne(armToLevelOneState);
-        detectionState.setArmToLevelTwo(armToLevelTwoState);
-        detectionState.setArmToLevelThree(armToLevelThreeState);
-
-        detectionState.checkReady();
-
-        return stopOuttake;
+        return armClearOfTseState2;
     }
 
     protected void setupParkWarehouse() {
@@ -973,19 +1003,10 @@ public class Auto extends OpMode {
         };
     }
 
-    class BarcodeDetectorState extends StopwatchTimeoutSafetyState implements ReadyCheckable {
-        @Setter
-        private ArmToLevelOneState armToLevelOne;
-
-        @Setter
-        private ArmToLevelTwoState armToLevelTwo;
-
-        @Setter
-        private ArmToLevelThreeState armToLevelThree;
+    class BarcodeDetectorState extends StopwatchTimeoutSafetyState {
 
         protected BarcodeDetectorState() {
             super("Detect bc", Auto.this.telemetry, ticker, TimeUnit.SECONDS.toMillis(4));
-            readyCheckables.add(this);
         }
 
         @Override
@@ -996,7 +1017,7 @@ public class Auto extends OpMode {
 
                 shutdownPipeline();
 
-                return armToLevelOne;
+                return nextState;
             }
 
             if (!barcodeDetectorPipeline.isStartLookingForBarcode()) {
@@ -1013,30 +1034,29 @@ public class Auto extends OpMode {
                     driveTeamSignal.setDuckDetected(true);
                     shutdownPipeline();
 
-                    return armToLevelOne;
+                    Auto.this.detectedPosition = detectedPosition;
+
+                    return nextState;
                 case CENTER:
                     Log.d(LOG_TAG, "Detected level two");
                     driveTeamSignal.setDuckDetected(true);
                     shutdownPipeline();
 
-                    return armToLevelTwo;
+                    Auto.this.detectedPosition = detectedPosition;
+
+                    return nextState;
                 case RIGHT:
                     Log.d(LOG_TAG, "Detected level three");
                     driveTeamSignal.setDuckDetected(true);
                     shutdownPipeline();
 
-                    return armToLevelThree;
+                    Auto.this.detectedPosition = detectedPosition;
+
+                    return nextState;
                 case UNKNOWN:
                 default:
                     return this;
             }
-        }
-
-        @Override
-        public void checkReady() {
-            Preconditions.checkNotNull(armToLevelOne);
-            Preconditions.checkNotNull(armToLevelTwo);
-            Preconditions.checkNotNull(armToLevelThree);
         }
 
         private void shutdownPipeline() {
@@ -1047,6 +1067,41 @@ public class Auto extends OpMode {
             } catch (Throwable t) {
                 Log.e(LOG_TAG, "Error while pausing viewport, continuing...", t);
             }
+        }
+    }
+
+    class MoveArmToDetectedLevelState extends State {
+        protected MoveArmToDetectedLevelState() {
+            super("Move arm to detected pos", Auto.this.telemetry);
+        }
+
+        @Override
+        public State doStuffAndGetNextState() {
+            switch (detectedPosition) {
+                case LEFT:
+                    freightManipulator.moveArmToLowGoal();
+
+                    return nextState;
+                case CENTER:
+                    freightManipulator.moveArmToMiddleGoal();
+
+                    return nextState;
+                case RIGHT:
+
+                    freightManipulator.moveArmToTopGoal();
+
+                    return nextState;
+                case UNKNOWN:
+                default:
+                    freightManipulator.moveArmToTopGoal();
+
+                    return nextState;
+            }
+        }
+
+        @Override
+        public void resetToStart() {
+
         }
     }
 
