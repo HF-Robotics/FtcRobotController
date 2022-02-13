@@ -115,4 +115,12 @@ public class EasyOpenCvPipelineAndCamera {
             cvCamera.resumeViewport();
         }
     }
+
+    public void stopStreaming() {
+        cvCamera.stopStreaming();
+    }
+
+    public void closeCameraDeviceAsync() {
+        cvCamera.closeCameraDeviceAsync(() -> Log.i(LOG_TAG, "Camera has been closed"));
+    }
 }

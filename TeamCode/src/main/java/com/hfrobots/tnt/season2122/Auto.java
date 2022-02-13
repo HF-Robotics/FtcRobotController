@@ -1067,6 +1067,18 @@ public class Auto extends OpMode {
             } catch (Throwable t) {
                 Log.e(LOG_TAG, "Error while pausing viewport, continuing...", t);
             }
+
+            try {
+                pipelineAndCamera.stopStreaming();
+            } catch (Throwable t) {
+                Log.e(LOG_TAG, "Error while stopping streaming, continuing...", t);
+            }
+
+            try {
+                pipelineAndCamera.closeCameraDeviceAsync();
+            } catch (Throwable t) {
+                Log.e(LOG_TAG, "Error while closing camera, continuing...", t);
+            }
         }
     }
 
