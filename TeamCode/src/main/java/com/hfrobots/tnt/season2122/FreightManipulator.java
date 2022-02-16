@@ -74,6 +74,10 @@ public class FreightManipulator implements PeriodicTask {
 
     public static final int ARM_LIMIT_POSITION_DIFFERENCE = 600;
 
+    private static final int ARM_LOW_POSITION = 108;
+
+    private static final int ARM_MID_POSITION = 260;
+
     @Getter(AccessLevel.PACKAGE)
     @VisibleForTesting
     private int armMotorStartingPosition;
@@ -87,6 +91,9 @@ public class FreightManipulator implements PeriodicTask {
 
     @Setter
     private OnOffButton outtakeButton;
+
+    @Setter
+    private OnOffButton slowOuttakeButton;
 
     private final CRServo intakeServo;
 
@@ -176,7 +183,7 @@ public class FreightManipulator implements PeriodicTask {
 
     public void moveArmToLowGoal() {
         try {
-            armMotor.setTargetPosition(armMotorStartingPosition + 150);
+            armMotor.setTargetPosition(armMotorStartingPosition + ARM_LOW_POSITION);
             armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             armMotor.setPower(0.5);
         } catch (TargetPositionNotSetException error) {
@@ -198,7 +205,7 @@ public class FreightManipulator implements PeriodicTask {
 
     public void moveArmToMiddleGoal() {
         try {
-            armMotor.setTargetPosition(armMotorStartingPosition + 286);
+            armMotor.setTargetPosition(armMotorStartingPosition + ARM_MID_POSITION);
             armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             armMotor.setPower(0.5);
         } catch (TargetPositionNotSetException error) {
@@ -280,12 +287,12 @@ public class FreightManipulator implements PeriodicTask {
         idleState.setOpenLoopLiftLoweringState(openLoopLiftLoweringState);
 
         ClosedLoopArmMoveState toHubLevelOneState =
-                new ClosedLoopArmMoveState("Lift - CL - One", 150);
+                new ClosedLoopArmMoveState("Lift - CL - One", ARM_LOW_POSITION);
         toHubLevelOneState.setIdleState(idleState);
         idleState.setToHubLevelOneState(toHubLevelOneState);
 
         ClosedLoopArmMoveState toHubLevelTwoState =
-                new ClosedLoopArmMoveState("Lift - CL - Two", 286);
+                new ClosedLoopArmMoveState("Lift - CL - Two", ARM_MID_POSITION);
         toHubLevelTwoState.setIdleState(idleState);
         idleState.setToHubLevelTwoState(toHubLevelTwoState);
 
@@ -343,6 +350,8 @@ public class FreightManipulator implements PeriodicTask {
                 spinIntake();
             } else if (outtakeButton != null && outtakeButton.isPressed()) {
                 spinOuttake();
+            } else if (slowOuttakeButton != null && slowOuttakeButton.isPressed()) {
+                spinOuttakeSlow();
             } else {
                 stopIntake();
             }
@@ -384,6 +393,9 @@ public class FreightManipulator implements PeriodicTask {
 
     public void spinOuttake() {
         intakeServo.setPower(-1);
+    }
+    public void spinOuttakeSlow() {
+        intakeServo.setPower(-0.5);
     }
 
     public void spinIntake() {

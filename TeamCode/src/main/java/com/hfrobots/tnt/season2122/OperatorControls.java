@@ -88,6 +88,8 @@ public class OperatorControls implements PeriodicTask {
 
     private OnOffButton outtakeButton;
 
+    private OnOffButton slowOuttakeButton;
+
     private MaxMotorPowerMagnitude maxMotorPowerMagnitude;
 
     private DebouncedButton armToLowGoalButton;
@@ -191,6 +193,7 @@ public class OperatorControls implements PeriodicTask {
 
         intakeButton = operatorGamepad.getYButton();
         outtakeButton = operatorGamepad.getAButton();
+        slowOuttakeButton = operatorGamepad.getXButton();
 
         gripperToggle = new ToggledButton(operatorGamepad.getAButton());
 
@@ -215,6 +218,7 @@ public class OperatorControls implements PeriodicTask {
         freightManipulator.setUnsafeButton(unsafe);
         freightManipulator.setOuttakeButton(outtakeButton);
         freightManipulator.setIntakeButton(intakeButton);
+        freightManipulator.setSlowOuttakeButton(slowOuttakeButton);
     }
 
     @Override

@@ -36,7 +36,7 @@ import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
  * Provide a basic manual operational mode that controls the tank drive.
  */
 @TeleOp(name="Jackiebot", group="Utilities")
-@Disabled
+//@Disabled
 public class JackiebotTeleop extends JackiebotTelemetry
 
 {
@@ -123,6 +123,10 @@ public class JackiebotTeleop extends JackiebotTelemetry
         double x = driveStrafe.getPosition(); // positive robot x axis is negative joystick axis
         double y = - driveForwardReverse.getPosition(); // positive robot y axis is negative joystick axis
         double rot = driveRotate.getPosition(); // positive robot z rotation (human-normal) is negative joystick x axis
+
+        x /= 3;
+        y /= 3;
+        rot /= 3;
 
         // do this first, it will be cancelled out by bump-strafe
         if (!driveFastButton.isPressed()) {
