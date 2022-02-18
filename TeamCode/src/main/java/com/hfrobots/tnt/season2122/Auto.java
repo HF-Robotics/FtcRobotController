@@ -563,14 +563,16 @@ public class Auto extends OpMode {
 
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
-                if (distanceToDrive > TOO_FAR_TO_DRIVE_INTO_STORAGE || distanceToDrive == 0) {
+                Log.d(LOG_TAG, "Calculated distance  " + distanceToDrive + " to be in storage");
+
+                if (Math.abs(distanceToDrive) > TOO_FAR_TO_DRIVE_INTO_STORAGE || distanceToDrive == 0) {
                     // do nothing
                     Log.d(LOG_TAG, "No need to drive further");
                 } else if (distanceToDrive < 0) {
                     trajectoryBuilder.back(Math.abs(distanceToDrive));
-                    Log.d(LOG_TAG, "Backwards " + distanceToDrive + " to be in storage");
+                    Log.d(LOG_TAG, "Backwards " + Math.abs(distanceToDrive) + " to be in storage");
                 } else if (distanceToDrive > 0) {
-                    Log.d(LOG_TAG, "Forwards " + distanceToDrive + " to be in storage");
+                    Log.d(LOG_TAG, "Forwards " + Math.abs(distanceToDrive) + " to be in storage");
 
                     trajectoryBuilder.forward(distanceToDrive);
                 }
