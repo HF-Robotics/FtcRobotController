@@ -61,7 +61,7 @@ import lombok.Setter;
 
 @Autonomous(name="00 Frt Frnzy Auto")
 public class Auto extends OpMode {
-    public static final int TOO_FAR_TO_DRIVE_INTO_STORAGE = 10;
+    public static final int TOO_FAR_TO_DRIVE_INTO_STORAGE = 4;
     public static final int PERFECT_WALL_STORAGE_DISTANCE = 29;
     private Ticker ticker;
 
