@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2020 HF Robotics (http://www.hfrobots.com)
+ Copyright (c) 2021 HF Robotics (http://www.hfrobots.com)
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
@@ -17,7 +17,9 @@
  SOFTWARE.
  */
 
-package com.hfrobots.tnt.season2021;
+package com.hfrobots.tnt.season2122;
+
+import static com.ftc9929.corelib.Constants.LOG_TAG;
 
 import android.util.Log;
 
@@ -27,15 +29,14 @@ import com.ftc9929.metrics.StatsdMetricsReporter;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import org.apache.commons.math3.analysis.function.Max;
 
 import java.util.List;
 
-import static com.ftc9929.corelib.Constants.LOG_TAG;
-
-@TeleOp(name = "UltGoal TeleOp")
+@TeleOp(name = "00 Frt Frnzy TeleOp")
 public class DriverControlled extends OpMode {
 
     private Drivebase drivebase;
@@ -44,19 +45,30 @@ public class DriverControlled extends OpMode {
 
     private OperatorControls operatorControls;
 
-    private RevBlinkinLedDriver blinkinLed;
-
     private StatsDMetricSampler legacyMetricsSampler;
 
     private RobotMetricsSampler newMetricsSampler;
+
+    private FreightManipulator freightManipulator;
+
+    private CarouselMechanism carouselMechanism;
 
     private boolean useLegacyMetricsSampler = true;
 
     private List<LynxModule> allHubs;
 
+    private DriveTeamSignal driveTeamSignal;
+
     @Override
     public void init() {
+        final Ticker ticker = Ticker.systemTicker();
+
         drivebase = new Drivebase(hardwareMap);
+        freightManipulator = new FreightManipulator(hardwareMap, telemetry, ticker);
+        freightManipulator.setInitFromTeleOp(true);
+        carouselMechanism = new CarouselMechanism(hardwareMap);
+
+        driveTeamSignal = new DriveTeamSignal(hardwareMap, ticker);
 
         NinjaGamePad driversGamepad = new NinjaGamePad(gamepad1);
 
@@ -64,26 +76,26 @@ public class DriverControlled extends OpMode {
                 .driversGamepad(driversGamepad)
                 .kinematics(drivebase).build();
 
-        ScoringMechanism scoringMechanism = ScoringMechanism.builder()
-                .hardwareMap(hardwareMap)
-                .telemetry(telemetry)
-                .ticker(Ticker.systemTicker()).build();
-
-        scoringMechanism.toDeployedPosition();
-
-        WobbleGoal wobbleGoal = WobbleGoal.builder().hardwareMap(hardwareMap)
-                .telemetry(telemetry).ticker(Ticker.systemTicker()).build();
-
         NinjaGamePad operatorGamepad = new NinjaGamePad(gamepad2);
 
+        MaxMotorPowerMagnitude maxMotorPowerMagnitude = MaxMotorPowerMagnitude.forDrivebase(hardwareMap);
+
         operatorControls = OperatorControls.builder().operatorGamepad(operatorGamepad)
-                .driverGamepad(driversGamepad) // Allow driver to do some launching
-                .scoringMechanism(scoringMechanism)
-                .wobbleGoal(wobbleGoal).build();
+                .freightManipulator(freightManipulator)
+                .carouselMechanism(carouselMechanism)
+                .maxMotorPowerMagnitude(maxMotorPowerMagnitude).build();
 
-        blinkinLed = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
-        blinkinLed.setPattern(RevBlinkinLedDriver.BlinkinPattern.BREATH_GRAY);
+        setupMetricsSampler(driversGamepad, operatorGamepad);
 
+        allHubs = hardwareMap.getAll(LynxModule.class);
+
+        for (LynxModule hub : allHubs) {
+            Log.d(LOG_TAG, String.format("Setting hub %s to BulkCachingMode.MANUAL", hub));
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
+    }
+
+    private void setupMetricsSampler(NinjaGamePad driversGamepad, NinjaGamePad operatorGamepad) {
         try {
             if (useLegacyMetricsSampler) {
                 legacyMetricsSampler = new StatsDMetricSampler(hardwareMap, driversGamepad, operatorGamepad);
@@ -102,13 +114,6 @@ public class DriverControlled extends OpMode {
         } catch (Exception ex) {
             Log.w(LOG_TAG, "Unable to setup metrics sampler", ex);
         }
-
-        allHubs = hardwareMap.getAll(LynxModule.class);
-
-        for (LynxModule hub : allHubs) {
-            Log.d(LOG_TAG, String.format("Setting hub %s to BulkCachingMode.MANUAL", hub));
-            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
-        }
     }
 
     @Override
@@ -126,11 +131,20 @@ public class DriverControlled extends OpMode {
     }
 
     @Override
+    public void start() {
+        super.start();
+
+        driveTeamSignal.startMatch();
+    }
+
+    @Override
     public void loop() {
         clearHubsBulkCaches(); // important, do not remove this line, or reads from robot break!
 
         driverControls.periodicTask();
         operatorControls.periodicTask();
+
+        driveTeamSignal.periodicTask();
 
         if (useLegacyMetricsSampler) {
             if (legacyMetricsSampler != null) {

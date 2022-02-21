@@ -15,36 +15,18 @@
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
-*/
+ */
 
-package com.hfrobots.tnt.corelib.metrics.sources;
+package com.hfrobots.tnt.corelib.task;
 
-import com.hfrobots.tnt.corelib.metrics.GaugeMetricSource;
-import com.hfrobots.tnt.util.NamedDeviceMap;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
+/**
+ * An API called by OpMode loops for components to do repetitive work
+ * (usually run a state machine, or check inputs and do something)
+ */
+public interface PeriodicTask {
 
-import lombok.EqualsAndHashCode;
-import lombok.NonNull;
-
-@EqualsAndHashCode
-public class MotorVelocityMetricSource implements GaugeMetricSource {
-    private final DcMotorEx motor;
-
-    private final String sampleName;
-
-    public MotorVelocityMetricSource(@NonNull final NamedDeviceMap.NamedDevice<DcMotorEx> namedMotor) {
-        this.motor = namedMotor.getDevice();
-
-        sampleName = String.format("dcm_vel_%s", namedMotor.getName());
-    }
-
-    @Override
-    public String getSampleName() {
-        return sampleName;
-    }
-
-    @Override
-    public double getValue() {
-        return motor.getVelocity();
-    }
+    /**
+     * Perform work on a repetitive task.
+     */
+    void periodicTask();
 }

@@ -15,36 +15,22 @@
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
-*/
+ */
 
-package com.hfrobots.tnt.corelib.metrics.sources;
+package com.hfrobots.tnt.season2122;
 
-import com.hfrobots.tnt.corelib.metrics.GaugeMetricSource;
-import com.hfrobots.tnt.util.NamedDeviceMap;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import lombok.EqualsAndHashCode;
-import lombok.NonNull;
+import org.junit.Before;
 
-@EqualsAndHashCode
-public class MotorVelocityMetricSource implements GaugeMetricSource {
-    private final DcMotorEx motor;
+public class CarouselMechanismTest {
 
-    private final String sampleName;
+    private CarouselMechanism carouselMechanism;
 
-    public MotorVelocityMetricSource(@NonNull final NamedDeviceMap.NamedDevice<DcMotorEx> namedMotor) {
-        this.motor = namedMotor.getDevice();
-
-        sampleName = String.format("dcm_vel_%s", namedMotor.getName());
+    @Before
+    public void setup() {
+        final HardwareMap hardwareMap = FreightFrenzyTestConstants.HARDWARE_MAP;
+        carouselMechanism = new CarouselMechanism(hardwareMap);
     }
 
-    @Override
-    public String getSampleName() {
-        return sampleName;
-    }
-
-    @Override
-    public double getValue() {
-        return motor.getVelocity();
-    }
 }

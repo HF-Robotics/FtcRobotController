@@ -1,5 +1,5 @@
-/*
- Copyright (c) 2021 HF Robotics (http://www.hfrobots.com)
+/**
+ Copyright (c) 2022 HF Robotics (http://www.hfrobots.com)
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
@@ -15,36 +15,26 @@
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
-*/
+ **/
 
-package com.hfrobots.tnt.corelib.metrics.sources;
+package com.hfrobots.tnt.corelib.drive;
 
-import com.hfrobots.tnt.corelib.metrics.GaugeMetricSource;
-import com.hfrobots.tnt.util.NamedDeviceMap;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.google.common.base.Ticker;
+import com.qualcomm.robotcore.hardware.DcMotor;
 
-import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 
-@EqualsAndHashCode
-public class MotorVelocityMetricSource implements GaugeMetricSource {
-    private final DcMotorEx motor;
+public class DcMotorStallDetector extends StallDetector {
+    private final DcMotor dcMotor;
 
-    private final String sampleName;
 
-    public MotorVelocityMetricSource(@NonNull final NamedDeviceMap.NamedDevice<DcMotorEx> namedMotor) {
-        this.motor = namedMotor.getDevice();
+    public DcMotorStallDetector(@NonNull final DcMotor dcMotor, @NonNull final Ticker ticker, double tolerance, long timeWindowMillis) {
+        super(ticker, tolerance, timeWindowMillis);
 
-        sampleName = String.format("dcm_vel_%s", namedMotor.getName());
+        this.dcMotor = dcMotor;
     }
 
-    @Override
-    public String getSampleName() {
-        return sampleName;
-    }
-
-    @Override
-    public double getValue() {
-        return motor.getVelocity();
+    public boolean isStalled() {
+        return isStalled(dcMotor.getCurrentPosition());
     }
 }

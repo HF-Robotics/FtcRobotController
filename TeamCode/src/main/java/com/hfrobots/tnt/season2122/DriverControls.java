@@ -1,5 +1,5 @@
-/**
- Copyright (c) 2019 HF Robotics (http://www.hfrobots.com)
+/*
+ Copyright (c) 2021 HF Robotics (http://www.hfrobots.com)
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
@@ -15,10 +15,9 @@
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
- **/
+ */
 
-package com.hfrobots.tnt.season2021;
-
+package com.hfrobots.tnt.season2122;
 
 import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.LowPassFilteredRangeInput;
@@ -28,10 +27,11 @@ import com.ftc9929.corelib.control.ParametricScaledRangeInput;
 import com.ftc9929.corelib.control.RangeInput;
 import com.ftc9929.corelib.control.RangeInputButton;
 import com.ftc9929.corelib.drive.OpenLoopMecanumKinematics;
+import com.hfrobots.tnt.corelib.task.PeriodicTask;
 
 import lombok.Builder;
 
-public class DriverControls {
+public class DriverControls implements PeriodicTask {
     protected RangeInput leftStickX;
 
     protected RangeInput leftStickY;
@@ -83,13 +83,13 @@ public class DriverControls {
 
     private OpenLoopMecanumKinematics kinematics;
 
-    private final float throttleGain = 0.7F;
+    private final float throttleGain = 0.4F;
 
     private final float throttleExponent = 5; // MUST BE AN ODD NUMBER!
 
     private final float throttleDeadband = 0;
 
-    private final float lowPassFilterFactor = .95F;
+    private final float lowPassFilterFactor = 1.0F;
 
     @Builder
     private DriverControls(RangeInput leftStickX,
@@ -151,7 +151,9 @@ public class DriverControls {
                 new LowPassFilteredRangeInput(leftStickY, lowPassFilterFactor),
                 throttleDeadband, throttleGain, throttleExponent);
 
-        driveRotate = new LowPassFilteredRangeInput(rightStickX, lowPassFilterFactor);
+        driveRotate = new ParametricScaledRangeInput(
+                new LowPassFilteredRangeInput(rightStickX, lowPassFilterFactor),
+                throttleDeadband, 0.4F, 9);
     }
 
     private void setupFromGamepad() {
@@ -187,18 +189,18 @@ public class DriverControls {
 
     private boolean gripUpFirstTime = false;
 
+    @Override
     public void periodicTask() {
-        double x = driveStrafe.getPosition();
+        double x = driveStrafe.getPosition() * 1.1;
         double y = - driveForwardReverse.getPosition();
         double rot = driveRotate.getPosition(); // positive robot z rotation (human-normal) is negative joystick x axis
         boolean useEncoders = false;
 
         // do this first, it will be cancelled out by bump-strafe
         if (!(driveFastButton.isPressed())) {
-
-            y /= 5;
-            x /= 5;
-            rot /= 5;
+            y /= 1.5;
+            x /= 1.25;
+            rot /= 1.5;
             useEncoders = false;
         }
 

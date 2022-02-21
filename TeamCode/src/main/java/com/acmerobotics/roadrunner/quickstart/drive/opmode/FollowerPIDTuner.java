@@ -2,6 +2,8 @@ package com.acmerobotics.roadrunner.quickstart.drive.opmode;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.quickstart.drive.tank.SampleTankDriveBase;
+import com.acmerobotics.roadrunner.quickstart.drive.tank.SampleTankDriveREV;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;

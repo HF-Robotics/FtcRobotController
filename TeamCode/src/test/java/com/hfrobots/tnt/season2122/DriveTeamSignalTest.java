@@ -15,36 +15,44 @@
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
-*/
+ */
 
-package com.hfrobots.tnt.corelib.metrics.sources;
+package com.hfrobots.tnt.season2122;
 
-import com.hfrobots.tnt.corelib.metrics.GaugeMetricSource;
-import com.hfrobots.tnt.util.NamedDeviceMap;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import lombok.EqualsAndHashCode;
-import lombok.NonNull;
+import com.google.common.testing.FakeTicker;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
-@EqualsAndHashCode
-public class MotorVelocityMetricSource implements GaugeMetricSource {
-    private final DcMotorEx motor;
+import org.junit.Before;
+import org.junit.Test;
 
-    private final String sampleName;
+import java.util.concurrent.TimeUnit;
 
-    public MotorVelocityMetricSource(@NonNull final NamedDeviceMap.NamedDevice<DcMotorEx> namedMotor) {
-        this.motor = namedMotor.getDevice();
+public class DriveTeamSignalTest {
 
-        sampleName = String.format("dcm_vel_%s", namedMotor.getName());
+    private DriveTeamSignal driveTeamSignal;
+
+    private FakeTicker fakeTicker = new FakeTicker();
+
+    @Before
+    public void setup() {
+        final HardwareMap hardwareMap = FreightFrenzyTestConstants.HARDWARE_MAP;
+        driveTeamSignal = new DriveTeamSignal(hardwareMap, fakeTicker);
     }
 
-    @Override
-    public String getSampleName() {
-        return sampleName;
+    @Test
+    public void matchStages() {
+        driveTeamSignal.startMatch();
+
+        assertTrue(driveTeamSignal.matchStarted());
+
+        fakeTicker.advance(81, TimeUnit.SECONDS);
+
+        assertTrue(driveTeamSignal.readyForEndGame());
+        assertFalse(driveTeamSignal.startWarehouseRun());
+        assertFalse(driveTeamSignal.isEndGame());
     }
 
-    @Override
-    public double getValue() {
-        return motor.getVelocity();
-    }
 }
