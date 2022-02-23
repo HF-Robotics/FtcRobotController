@@ -21,15 +21,10 @@ package com.hfrobots.tnt.season1819;
 
 import android.util.Log;
 
-//import com.acmerobotics.roadrunner.Pose2d;
-//import com.acmerobotics.roadrunner.control.PIDCoefficients;
-//import com.acmerobotics.roadrunner.followers.MecanumPIDVAFollower;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
-import com.acmerobotics.roadrunner.trajectory.constraints.MecanumConstraints;
-import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.state.State;
 import com.hfrobots.tnt.corelib.Constants;
+import com.hfrobots.tnt.corelib.drive.mecanum.DriveConstants;
 import com.hfrobots.tnt.corelib.state.TimeoutSafetyState;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -44,9 +39,9 @@ public class TrajectoryFollowerState extends TimeoutSafetyState {
 
     private RoadrunnerMecanumDriveAdapter driveAdapter;
 
-    private DriveConstraints baseConstraints;
+    private DriveConstants.DriveConstraints baseConstraints;
 
-    private MecanumConstraints constraints;
+    private DriveConstants.DriveConstraints constraints;
 
     private boolean initialized = false;
 
@@ -56,8 +51,8 @@ public class TrajectoryFollowerState extends TimeoutSafetyState {
 
     protected TrajectoryFollowerState(String name, Telemetry telemetry, long safetyTimeoutMillis,
                                       Trajectory trajectory,
-                                      DriveConstraints baseConstraints,
-                                      MecanumConstraints constraints,
+                                      DriveConstants.DriveConstraints baseConstraints,
+                                      DriveConstants.DriveConstraints constraints,
                                       HardwareMap hardwareMap) {
         super(name, telemetry, safetyTimeoutMillis);
 

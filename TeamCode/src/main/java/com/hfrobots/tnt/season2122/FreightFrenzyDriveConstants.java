@@ -21,7 +21,6 @@ package com.hfrobots.tnt.season2122;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
-import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
 import com.hfrobots.tnt.corelib.drive.mecanum.DriveConstants;
 
 @Config
@@ -45,5 +44,10 @@ public class FreightFrenzyDriveConstants extends DriveConstants {
     @Override
     public PIDCoefficients getHeadingPid() {
         return HEADING_PID_COEFFICIENTS;
+    }
+
+    @Override
+    public DriveConstraints getDriveConstraints() {
+        return DRIVE_CONSTRAINTS;
     }
 }
