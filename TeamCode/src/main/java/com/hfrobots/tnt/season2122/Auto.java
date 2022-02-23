@@ -42,7 +42,7 @@ import com.google.common.base.Ticker;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.hfrobots.tnt.corelib.Constants;
-import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveREV;
+import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
 import com.hfrobots.tnt.corelib.drive.mecanum.TrajectoryFollowerState;
 import com.hfrobots.tnt.corelib.state.ReadyCheckable;
 import com.hfrobots.tnt.corelib.util.RealSimplerHardwareMap;
@@ -78,7 +78,7 @@ public class Auto extends OpMode {
         }
     };
 
-    private RoadRunnerMecanumDriveREV driveBase;
+    private RoadRunnerMecanumDriveBase driveBase;
 
     private StateMachine stateMachine;
 
@@ -136,8 +136,8 @@ public class Auto extends OpMode {
 
         RealSimplerHardwareMap simplerHardwareMap = new RealSimplerHardwareMap(this.hardwareMap);
 
-        driveBase = new RoadRunnerMecanumDriveREV(new FreightFrenzyDriveConstants(),
-                simplerHardwareMap, true);
+        driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
+                new FreightFrenzyDriveConstants());
 
         stateMachine = new StateMachine(telemetry);
 
@@ -481,22 +481,40 @@ public class Auto extends OpMode {
             }
         };
 
-        State squareUp = new TrajectoryFollowerState("SquareUp",
+        State squareUpA = new TrajectoryFollowerState("SquareUp1",
                 telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
             @Override
             protected Trajectory createTrajectory() {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
                 if (currentAlliance == Constants.Alliance.RED) {
-                    trajectoryBuilder.strafeLeft(7).strafeRight(4);
+                    trajectoryBuilder.strafeLeft(7);
                 } else {
                     // it's blue
-                    trajectoryBuilder.strafeRight(7).strafeLeft(4);
+                    trajectoryBuilder.strafeRight(7);
                 }
 
                 return trajectoryBuilder.build();
             }
         };
+
+        State squareUpB = new TrajectoryFollowerState("SquareUp2",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                if (currentAlliance == Constants.Alliance.RED) {
+                    trajectoryBuilder.strafeRight(4);
+                } else {
+                    // it's blue
+                    trajectoryBuilder.strafeLeft(4);
+                }
+
+                return trajectoryBuilder.build();
+            }
+        };
+
 
         backwardFromHub.setNextState(strafeToWall);
 
@@ -504,9 +522,10 @@ public class Auto extends OpMode {
 
         strafeToWall.setNextState(squareUpPause);
 
-        squareUpPause.setNextState(squareUp);
+        squareUpPause.setNextState(squareUpA);
+        squareUpA.setNextState(squareUpB);
 
-        final State waitForDuck = setupCarouselStates(squareUp);
+        final State waitForDuck = setupCarouselStates(squareUpB);
 
         // drive forward 17"
 
@@ -525,17 +544,34 @@ public class Auto extends OpMode {
         waitForDuck.setNextState(forwardToStorage);
 
         // Square up again
-        State squareUp2 = new TrajectoryFollowerState("SquareUp2",
+        State squareUp2A = new TrajectoryFollowerState("SquareUp2",
                 telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
             @Override
             protected Trajectory createTrajectory() {
                 TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
 
                 if (currentAlliance == Constants.Alliance.RED) {
-                    trajectoryBuilder.strafeLeft(7).strafeRight(4);
+                    trajectoryBuilder.strafeLeft(7);
                 } else {
                     // it's blue
-                    trajectoryBuilder.strafeRight(7).strafeLeft(4);
+                    trajectoryBuilder.strafeRight(7);
+                }
+
+                return trajectoryBuilder.build();
+            }
+        };
+
+        State squareUp2B = new TrajectoryFollowerState("SquareUp2",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected Trajectory createTrajectory() {
+                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+
+                if (currentAlliance == Constants.Alliance.RED) {
+                    trajectoryBuilder.strafeRight(4);
+                } else {
+                    // it's blue
+                    trajectoryBuilder.strafeLeft(4);
                 }
 
                 return trajectoryBuilder.build();
@@ -544,8 +580,10 @@ public class Auto extends OpMode {
 
         State squareUpPause2 = newMsDelayState("square up pause", 250);
 
-        squareUp2.setNextState(squareUpPause2);
-        forwardToStorage.setNextState(squareUp2);
+        squareUp2A.setNextState(squareUp2B);
+        squareUp2B.setNextState(squareUpPause2);
+
+        forwardToStorage.setNextState(squareUp2A);
 
         // Have we gone far enough?
 
@@ -568,6 +606,8 @@ public class Auto extends OpMode {
                 if (Math.abs(distanceToDrive) > TOO_FAR_TO_DRIVE_INTO_STORAGE || distanceToDrive == 0) {
                     // do nothing
                     Log.d(LOG_TAG, "No need to drive further");
+
+                    return null;
                 } else if (distanceToDrive < 0) {
                     trajectoryBuilder.back(Math.abs(distanceToDrive));
                     Log.d(LOG_TAG, "Backwards " + Math.abs(distanceToDrive) + " to be in storage");

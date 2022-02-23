@@ -25,9 +25,6 @@ import android.util.Log;
 import com.acmerobotics.roadrunner.path.heading.ConstantInterpolator;
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
-import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
-import com.acmerobotics.roadrunner.trajectory.constraints.MecanumConstraints;
-import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.state.ServoPositionState;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
@@ -83,15 +80,15 @@ public class CleanRoverRuckusAutonomous extends RoverRuckusHardware {
 
     private int initialDelaySeconds = 0;
 
-    // change these constraints to something reasonable for your drive
-    DriveConstraints baseConstraints = null; // new DriveConstraints(25.0,
-            // 40.0,
-            // Math.PI / 2,
-            // Math.PI / 2);
-
-    MecanumConstraints mecanumConstraints = mecanumConstraints  = new MecanumConstraints(
-            baseConstraints, RoadrunnerMecanumDriveAdapter.TRACK_WIDTH
-            , RoadrunnerMecanumDriveAdapter.WHEEL_BASE);
+//    // change these constraints to something reasonable for your drive
+//    DriveConstraints baseConstraints = null; // new DriveConstraints(25.0,
+//            // 40.0,
+//            // Math.PI / 2,
+//            // Math.PI / 2);
+//
+//    MecanumConstraints mecanumConstraints = mecanumConstraints  = new MecanumConstraints(
+//            baseConstraints, RoadrunnerMecanumDriveAdapter.TRACK_WIDTH
+//            , RoadrunnerMecanumDriveAdapter.WHEEL_BASE);
 
     boolean shouldTipBox = false;
 
@@ -389,8 +386,8 @@ public class CleanRoverRuckusAutonomous extends RoverRuckusHardware {
                 sampleCenterThenAlignWithWallTrajectory,
                 sampleRightThenAlignWithWallTrajectory,
                 tfResultsMailbox,
-                baseConstraints,
-                mecanumConstraints,
+                null,
+                null,
                 hardwareMap);
 
         stateMachine.addSequential(sampleThenAlignWithWallState);
@@ -400,17 +397,18 @@ public class CleanRoverRuckusAutonomous extends RoverRuckusHardware {
         // move backward 45.4 inches
         // --------------------------------------------------------------
 
-        Trajectory toWallThenDepotTrajectory = new TrajectoryBuilder(TntPose2d.toPose2d(0, 0, 0), mecanumConstraints) // Always starting from 0, 0, 0
+        Trajectory toWallThenDepotTrajectory = null; /* new TrajectoryBuilder(TntPose2d.toPose2d(0, 0, 0), mecanumConstraints) // Always starting from 0, 0, 0
                 .lineTo(TntPose2d.toVector2d(-12, 0), new ConstantInterpolator(0)) // strafe
                 .lineTo(TntPose2d.toVector2d(-5 - 1, -49.4), new ConstantInterpolator(0)).build(); // to crater
+        */
 
         TrajectoryFollowerState toWallThenDepotState = new TrajectoryFollowerState(
                 "To wall, then depot",
                 telemetry,
                 TimeUnit.SECONDS.toMillis(30 /* FIXME */),
                 toWallThenDepotTrajectory,
-                baseConstraints,
-                mecanumConstraints,
+                null,
+                null,
                 hardwareMap);
         stateMachine.addSequential(toWallThenDepotState);
 
@@ -432,18 +430,19 @@ public class CleanRoverRuckusAutonomous extends RoverRuckusHardware {
         // (parked at crater)
         // --------------------------------------------------------------
 
-        Trajectory toCraterTrajectory = new TrajectoryBuilder(
+        Trajectory toCraterTrajectory = null; /* new TrajectoryBuilder(
                 TntPose2d.toPose2d(0, 0, 0), mecanumConstraints) // Always starting from 0, 0, 0
                 .lineTo(TntPose2d.toVector2d(-8 + 2, 62.3 + 3 + 3),
                         new ConstantInterpolator(0)).build(); // Always a constant interpolator to hold heading
+        */
 
         TrajectoryFollowerState toCraterState = new TrajectoryFollowerState(
                 "To crater",
                 telemetry,
                 TimeUnit.SECONDS.toMillis(30 /* FIXME */),
                 toCraterTrajectory,
-                baseConstraints,
-                mecanumConstraints,
+                null,
+                null,
                 hardwareMap);
         stateMachine.addSequential(toCraterState);
 
@@ -517,8 +516,8 @@ public class CleanRoverRuckusAutonomous extends RoverRuckusHardware {
                 sampleCenterThenAlignWithWallTrajectory,
                 sampleRightThenAlignWithWallTrajectory,
                 tfResultsMailbox,
-                baseConstraints,
-                mecanumConstraints,
+                null,
+                null,
                 hardwareMap);
 
         stateMachine.addSequential(sampleThenAlignWithWallState);
@@ -528,17 +527,17 @@ public class CleanRoverRuckusAutonomous extends RoverRuckusHardware {
         // move backward 45.4 inches
         // --------------------------------------------------------------
 
-        Trajectory toWallThenDepotTrajectory = new TrajectoryBuilder(TntPose2d.toPose2d(0, 0, 0), mecanumConstraints) // Always starting from 0, 0, 0
+        Trajectory toWallThenDepotTrajectory = null; /* new TrajectoryBuilder(TntPose2d.toPose2d(0, 0, 0), mecanumConstraints) // Always starting from 0, 0, 0
                 .lineTo(TntPose2d.toVector2d(12, 0), new ConstantInterpolator(0)) // strafe
-                .lineTo(TntPose2d.toVector2d(5, -49.4), new ConstantInterpolator(0)).build(); // to depot
+                .lineTo(TntPose2d.toVector2d(5, -49.4), new ConstantInterpolator(0)).build(); // to depot */
 
         TrajectoryFollowerState toWallThenDepotState = new TrajectoryFollowerState(
                 "To wall, then depot",
                 telemetry,
                 TimeUnit.SECONDS.toMillis(30 /* FIXME */),
                 toWallThenDepotTrajectory,
-                baseConstraints,
-                mecanumConstraints,
+                null,
+                null,
                 hardwareMap);
         stateMachine.addSequential(toWallThenDepotState);
 
@@ -560,18 +559,19 @@ public class CleanRoverRuckusAutonomous extends RoverRuckusHardware {
         // (parked at crater)
         // --------------------------------------------------------------
 
-        Trajectory toCraterTrajectory = new TrajectoryBuilder(
+        Trajectory toCraterTrajectory = null; /* new TrajectoryBuilder(
                 TntPose2d.toPose2d(0, 0, 0), mecanumConstraints) // Always starting from 0, 0, 0
                 .lineTo(TntPose2d.toVector2d(8 - 2, 62.3 + 3 + 3),
                         new ConstantInterpolator(0)).build(); // Always a constant interpolator to hold heading
+        */
 
         TrajectoryFollowerState toCraterState = new TrajectoryFollowerState(
                 "To crater",
                 telemetry,
                 TimeUnit.SECONDS.toMillis(30 /* FIXME */),
                 toCraterTrajectory,
-                baseConstraints,
-                mecanumConstraints,
+                null,
+                null,
                 hardwareMap);
         stateMachine.addSequential(toCraterState);
 
@@ -592,80 +592,83 @@ public class CleanRoverRuckusAutonomous extends RoverRuckusHardware {
 
     // come forward 1" more
 
-    @NonNull
     private NewMineralTrajectoryState.MineralTrajectorySegments createSampleLeftThenAlignWithWallTrajectory(double turnToStrafeInDegrees) {
-        Trajectory pastGoldMineral = new TrajectoryBuilder(
-                TntPose2d.toPose2d(0, 0, 0), mecanumConstraints) // Always starting from 0, 0, 0
-                .lineTo(TntPose2d.toVector2d(0, 8.0 - 10 + THROUGH_MINERAL_DISTANCE), new ConstantInterpolator(0)) // get to mineral
-                .build();
+//        Trajectory pastGoldMineral = new TrajectoryBuilder(
+//                TntPose2d.toPose2d(0, 0, 0), mecanumConstraints) // Always starting from 0, 0, 0
+//                .lineTo(TntPose2d.toVector2d(0, 8.0 - 10 + THROUGH_MINERAL_DISTANCE), new ConstantInterpolator(0)) // get to mineral
+//                .build();
+//
+//        Trajectory throughGoldMineral = new TrajectoryBuilder(
+//                TntPose2d.toPose2d(0, 0, 0), mecanumConstraints)
+//                .lineTo(TntPose2d.toVector2d(0, - (THROUGH_MINERAL_DISTANCE + 2)), new ConstantInterpolator(0)) // FIXME M3 Changes
+//                .build();
+//
+//        // Really should be this, but later:
+//        // .lineTo(TntPose2d.toVector2d(0, 34.5 - 6.0 /* distance traveled to mineral */), new ConstantInterpolator(0))
+//        //        .turnTo(Math.toRadians(turnToStrafeInDegrees))
+//
+//        Trajectory toTurnAndStrafe  = new TrajectoryBuilder(
+//                TntPose2d.toPose2d(0, 0, 0), mecanumConstraints)
+//                .lineTo(TntPose2d.toVector2d(0, 22 + THROUGH_MINERAL_DISTANCE + 2), new ConstantInterpolator(0))
+//                //.turnTo(Math.toRadians(turnToStrafeInDegrees))
+//                .build();
+//
+//        return new NewMineralTrajectoryState.MineralTrajectorySegments(pastGoldMineral, throughGoldMineral, toTurnAndStrafe);
 
-        Trajectory throughGoldMineral = new TrajectoryBuilder(
-                TntPose2d.toPose2d(0, 0, 0), mecanumConstraints)
-                .lineTo(TntPose2d.toVector2d(0, - (THROUGH_MINERAL_DISTANCE + 2)), new ConstantInterpolator(0)) // FIXME M3 Changes
-                .build();
-
-        // Really should be this, but later:
-        // .lineTo(TntPose2d.toVector2d(0, 34.5 - 6.0 /* distance traveled to mineral */), new ConstantInterpolator(0))
-        //        .turnTo(Math.toRadians(turnToStrafeInDegrees))
-
-        Trajectory toTurnAndStrafe  = new TrajectoryBuilder(
-                TntPose2d.toPose2d(0, 0, 0), mecanumConstraints)
-                .lineTo(TntPose2d.toVector2d(0, 22 + THROUGH_MINERAL_DISTANCE + 2), new ConstantInterpolator(0))
-                //.turnTo(Math.toRadians(turnToStrafeInDegrees))
-                .build();
-
-        return new NewMineralTrajectoryState.MineralTrajectorySegments(pastGoldMineral, throughGoldMineral, toTurnAndStrafe);
+        return null; // Too difficult to port to new RoadRunner APIs, left here for archaeology
     }
 
     @NonNull
     private NewMineralTrajectoryState.MineralTrajectorySegments createSampleCenterThenAlignWithWallTrajectory(double turnToStrafeInDegrees) {
-        Trajectory pastGoldMineral =  new TrajectoryBuilder(
-                TntPose2d.toPose2d(0, 0, 0), mecanumConstraints) // Always starting from 0, 0, 0
-                .lineTo(TntPose2d.toVector2d(0, -3 - 15.5 /* FIXME: how far and in what direction do we drive? */), new ConstantInterpolator(0)) // get to mineral
-
-                .build();
-
-        Trajectory throughGoldMineral = new TrajectoryBuilder(
-                TntPose2d.toPose2d(0, 0, 0), mecanumConstraints)
-                .lineTo(TntPose2d.toVector2d(0, THROUGH_MINERAL_DISTANCE), new ConstantInterpolator(0))
-                .build();
-
-        // Really should be this, but later:
-        //.lineTo(TntPose2d.toVector2d(0, 34.5 - 4 + 3 /* distance traveled to mineral */), new ConstantInterpolator(0))
-        //        .turnTo(Math.toRadians(turnToStrafeInDegrees))
-
-        Trajectory toTurnAndStrafe  = new TrajectoryBuilder(
-                TntPose2d.toPose2d(0, 0, 0), mecanumConstraints)
-                .lineTo(TntPose2d.toVector2d(0, 38.5), new ConstantInterpolator(0))
-                //.turnTo(Math.toRadians(turnToStrafeInDegrees))
-                .build();
-
-        return new NewMineralTrajectoryState.MineralTrajectorySegments(pastGoldMineral, throughGoldMineral, toTurnAndStrafe);
+//        Trajectory pastGoldMineral =  new TrajectoryBuilder(
+//                TntPose2d.toPose2d(0, 0, 0), mecanumConstraints) // Always starting from 0, 0, 0
+//                .lineTo(TntPose2d.toVector2d(0, -3 - 15.5 /* FIXME: how far and in what direction do we drive? */), new ConstantInterpolator(0)) // get to mineral
+//
+//                .build();
+//
+//        Trajectory throughGoldMineral = new TrajectoryBuilder(
+//                TntPose2d.toPose2d(0, 0, 0), mecanumConstraints)
+//                .lineTo(TntPose2d.toVector2d(0, THROUGH_MINERAL_DISTANCE), new ConstantInterpolator(0))
+//                .build();
+//
+//        // Really should be this, but later:
+//        //.lineTo(TntPose2d.toVector2d(0, 34.5 - 4 + 3 /* distance traveled to mineral */), new ConstantInterpolator(0))
+//        //        .turnTo(Math.toRadians(turnToStrafeInDegrees))
+//
+//        Trajectory toTurnAndStrafe  = new TrajectoryBuilder(
+//                TntPose2d.toPose2d(0, 0, 0), mecanumConstraints)
+//                .lineTo(TntPose2d.toVector2d(0, 38.5), new ConstantInterpolator(0))
+//                //.turnTo(Math.toRadians(turnToStrafeInDegrees))
+//                .build();
+//
+//        return new NewMineralTrajectoryState.MineralTrajectorySegments(pastGoldMineral, throughGoldMineral, toTurnAndStrafe);
+        return null;
     }
 
-    @NonNull
     private NewMineralTrajectoryState.MineralTrajectorySegments createSampleRightThenAlignWithWallTrajectory(double turnToStrafeInDegrees) {
-        Trajectory pastGoldMineral = new TrajectoryBuilder(
-                TntPose2d.toPose2d(0, 0, 0), mecanumConstraints) // Always starting from 0, 0, 0
-                .lineTo(TntPose2d.toVector2d(0, -35), new ConstantInterpolator(0)) // get to mineral
-                .build();
+//        Trajectory pastGoldMineral = new TrajectoryBuilder(
+//                TntPose2d.toPose2d(0, 0, 0), mecanumConstraints) // Always starting from 0, 0, 0
+//                .lineTo(TntPose2d.toVector2d(0, -35)) // get to mineral
+//                .build();
+//
+//        Trajectory throughGoldMineral = new TrajectoryBuilder(
+//                TntPose2d.toPose2d(0, 0, 0), mecanumConstraints)
+//                .lineTo(TntPose2d.toVector2d(0, THROUGH_MINERAL_DISTANCE), new ConstantInterpolator(0)) // FIXME M3 Changes
+//                .build();
+//
+//        // Really should be this, but later:
+//        // .lineTo(TntPose2d.toVector2d(0, 34.5 - 4 + 5 /* distance traveled to mineral */), new ConstantInterpolator(0))
+//        //        .turnTo(Math.toRadians(turnToStrafeInDegrees))
+//
+//        Trajectory toTurnAndStrafe  = new TrajectoryBuilder(
+//                TntPose2d.toPose2d(0, 0, 0), mecanumConstraints)
+//                .lineTo(TntPose2d.toVector2d(0, 54.5), new ConstantInterpolator(0))
+//                //.turnTo(Math.toRadians(turnToStrafeInDegrees))
+//                .build();
+//
+//        return new NewMineralTrajectoryState.MineralTrajectorySegments(pastGoldMineral, throughGoldMineral, toTurnAndStrafe);
 
-        Trajectory throughGoldMineral = new TrajectoryBuilder(
-                TntPose2d.toPose2d(0, 0, 0), mecanumConstraints)
-                .lineTo(TntPose2d.toVector2d(0, THROUGH_MINERAL_DISTANCE), new ConstantInterpolator(0)) // FIXME M3 Changes
-                .build();
-
-        // Really should be this, but later:
-        // .lineTo(TntPose2d.toVector2d(0, 34.5 - 4 + 5 /* distance traveled to mineral */), new ConstantInterpolator(0))
-        //        .turnTo(Math.toRadians(turnToStrafeInDegrees))
-
-        Trajectory toTurnAndStrafe  = new TrajectoryBuilder(
-                TntPose2d.toPose2d(0, 0, 0), mecanumConstraints)
-                .lineTo(TntPose2d.toVector2d(0, 54.5), new ConstantInterpolator(0))
-                //.turnTo(Math.toRadians(turnToStrafeInDegrees))
-                .build();
-
-        return new NewMineralTrajectoryState.MineralTrajectorySegments(pastGoldMineral, throughGoldMineral, toTurnAndStrafe);
+        return null;
     }
 
     class DescenderState extends TimeoutSafetyState {

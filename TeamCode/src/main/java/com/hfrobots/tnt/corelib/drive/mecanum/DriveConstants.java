@@ -2,13 +2,24 @@ package com.hfrobots.tnt.corelib.drive.mecanum;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
-import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+
+import lombok.Value;
 
 /*
  * Constants shared between multiple drive types.
  */
 @Config
 public abstract class DriveConstants {
+    @Value
+    public static class DriveConstraints {
+        double maxVel;
+        double maxAccel;
+        double maxJerk;
+        double maxAngVel;
+        double maxAngAccel;
+        double maxAngJerk;
+    }
 
     /*
      * TODO: Tune or adjust the following constants to fit your robot. Note that the non-final
@@ -52,7 +63,7 @@ public abstract class DriveConstants {
      */
     public abstract DriveConstraints getBaseConstraints();
 
-    public double encoderTicksToInches(int ticks) {
+    public double encoderTicksToInches(double ticks) {
         return wheelRadius * 2 * Math.PI * gearRatio * ticks / TICKS_PER_REV;
     }
 
@@ -83,4 +94,10 @@ public abstract class DriveConstants {
     public abstract PIDCoefficients getTranslationalPID();
 
     public abstract PIDCoefficients getHeadingPid();
+
+    public PIDFCoefficients getMotorVeloPid() {
+        return null;
+    }
+
+    public abstract DriveConstraints getDriveConstraints();
 }

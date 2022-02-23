@@ -2,7 +2,7 @@ package com.hfrobots.tnt.season1920;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
-import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
+
 import com.hfrobots.tnt.corelib.drive.mecanum.DriveConstants;
 
 @Config
@@ -26,5 +26,10 @@ public class SkystoneDriveConstants extends DriveConstants {
     @Override
     public PIDCoefficients getHeadingPid() {
         return HEADING_PID_COEFFICIENTS;
+    }
+
+    @Override
+    public DriveConstraints getDriveConstraints() {
+        return DRIVE_CONSTRAINTS;
     }
 }

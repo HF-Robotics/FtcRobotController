@@ -19,14 +19,14 @@
 
 package com.hfrobots.tnt.season1920;
 
-import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveREV;
+import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
 import com.qualcomm.robotcore.util.Range;
 
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class OpenLoopMecanumKinematics {
-    private final RoadRunnerMecanumDriveREV mecanumDrive;
+    private final RoadRunnerMecanumDriveBase mecanumDrive;
 
     public void driveCartesian(double xPower,
                                double yPower,
@@ -51,12 +51,6 @@ public class OpenLoopMecanumKinematics {
 
         xPower = xPower * cosA - yPower * sinA;
         yPower = xPower * sinA + yPower * cosA;
-
-        if (useEncoders) {
-            mecanumDrive.enableEncoders();
-        } else {
-            mecanumDrive.disableEncoders();
-        }
 
         //if (gyroAssistEnabled)
         //{

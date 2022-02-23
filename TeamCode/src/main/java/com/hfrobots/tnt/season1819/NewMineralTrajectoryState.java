@@ -22,11 +22,9 @@ package com.hfrobots.tnt.season1819;
 import android.util.Log;
 
 import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.acmerobotics.roadrunner.trajectory.constraints.DriveConstraints;
-import com.acmerobotics.roadrunner.trajectory.constraints.MecanumConstraints;
-import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.state.ServoPositionState;
 import com.ftc9929.corelib.state.State;
+import com.hfrobots.tnt.corelib.drive.mecanum.DriveConstants;
 import com.hfrobots.tnt.corelib.state.DelayState;
 import com.hfrobots.tnt.corelib.state.TimeoutSafetyState;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -56,9 +54,9 @@ public class NewMineralTrajectoryState extends TimeoutSafetyState {
 
     private final Servo mineralMoverFlagServo;
 
-    private final DriveConstraints baseConstraints;
+    private final DriveConstants.DriveConstraints baseConstraints;
 
-    private final MecanumConstraints mecanumConstraints;
+    private final DriveConstants.DriveConstraints mecanumConstraints;
 
     private final HardwareMap hardwareMap;
 
@@ -94,8 +92,8 @@ public class NewMineralTrajectoryState extends TimeoutSafetyState {
                                      final MineralTrajectorySegments centerTrajectorySegments,
                                      final MineralTrajectorySegments rightTrajectorySegments,
                                      final Queue<TensorflowThread.GOLD_MINERAL_POSITION> mailbox,
-                                     final DriveConstraints baseConstraints,
-                                     final MecanumConstraints mecanumConstraints,
+                                     final DriveConstants.DriveConstraints baseConstraints,
+                                     final DriveConstants.DriveConstraints mecanumConstraints,
                                      final HardwareMap hardwareMap) {
         super(name, telemetry, safetyTimeoutMillis);
 

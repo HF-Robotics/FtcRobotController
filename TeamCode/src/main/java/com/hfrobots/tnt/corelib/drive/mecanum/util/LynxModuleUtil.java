@@ -1,4 +1,4 @@
-package com.acmerobotics.roadrunner.quickstart.util;
+package com.hfrobots.tnt.corelib.drive.mecanum.util;
 
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -7,8 +7,6 @@ import org.firstinspires.ftc.robotcore.internal.system.Misc;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import lombok.NonNull;
 
 /**
  * Collection of utilites for interacting with Lynx modules.
@@ -20,7 +18,7 @@ public class LynxModuleUtil {
     /**
      * Parsed representation of a Lynx module firmware version.
      */
-    public static class LynxFirmwareVersion implements Comparable {
+    public static class LynxFirmwareVersion implements Comparable<LynxFirmwareVersion> {
         public final int major;
         public final int minor;
         public final int eng;
@@ -43,22 +41,18 @@ public class LynxModuleUtil {
         }
 
         @Override
-        public int compareTo(@NonNull Object another) {
-            if (another instanceof LynxFirmwareVersion) {
-                LynxFirmwareVersion anotherVersion = (LynxFirmwareVersion) another;
-                int majorComp = Integer.compare(major, anotherVersion.major);
-                if (majorComp == 0) {
-                    int minorComp = Integer.compare(minor, anotherVersion.minor);
-                    if (minorComp == 0) {
-                        return Integer.compare(eng, anotherVersion.eng);
-                    } else {
-                        return minorComp;
-                    }
+        public int compareTo(LynxFirmwareVersion other) {
+            int majorComp = Integer.compare(major, other.major);
+            if (majorComp == 0) {
+                int minorComp = Integer.compare(minor, other.minor);
+                if (minorComp == 0) {
+                    return Integer.compare(eng, other.eng);
                 } else {
-                    return majorComp;
+                    return minorComp;
                 }
+            } else {
+                return majorComp;
             }
-            return 0;
         }
 
         @Override
@@ -117,7 +111,7 @@ public class LynxModuleUtil {
         if (outdatedModules.size() > 0) {
             StringBuilder msgBuilder = new StringBuilder();
             msgBuilder.append("One or more of the attached Lynx modules has outdated firmware\n");
-            msgBuilder.append(Misc.formatInvariant("Mandatory minimum firmware version: %s\n",
+            msgBuilder.append(Misc.formatInvariant("Mandatory minimum firmware version for Road Runner: %s\n",
                     MIN_VERSION.toString()));
             for (Map.Entry<String, LynxFirmwareVersion> entry : outdatedModules.entrySet()) {
                 msgBuilder.append(Misc.formatInvariant(

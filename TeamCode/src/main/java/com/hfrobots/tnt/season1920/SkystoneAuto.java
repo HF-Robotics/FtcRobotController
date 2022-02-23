@@ -35,7 +35,7 @@ import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.corelib.drive.Turn;
-import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveREV;
+import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
 import com.hfrobots.tnt.corelib.drive.mecanum.TrajectoryFollowerState;
 import com.hfrobots.tnt.corelib.drive.mecanum.TurnState;
 import com.hfrobots.tnt.corelib.util.RealSimplerHardwareMap;
@@ -62,7 +62,7 @@ import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
 public class SkystoneAuto extends OpMode {
     private Ticker ticker;
 
-    private RoadRunnerMecanumDriveREV driveBase;
+    private RoadRunnerMecanumDriveBase driveBase;
 
     private StateMachine stateMachine;
 
@@ -126,8 +126,8 @@ public class SkystoneAuto extends OpMode {
         setupDriverControls();
 
         RealSimplerHardwareMap simplerHardwareMap = new RealSimplerHardwareMap(this.hardwareMap);
-        driveBase = new RoadRunnerMecanumDriveREV(new SkystoneDriveConstants(),
-                simplerHardwareMap, true);
+        driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
+                new SkystoneDriveConstants());
 
         foundationGripper = new FoundationGripMechanism(simplerHardwareMap);
 

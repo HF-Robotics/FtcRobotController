@@ -64,6 +64,11 @@ public abstract class TrajectoryFollowerState extends StopwatchTimeoutSafetyStat
         if (!initialized) {
             trajectory = createTrajectory();
 
+            if (trajectory == null) {
+                Log.d(Constants.LOG_TAG, "No trajectory, nothing to follow");
+                return nextState;
+            }
+
             driveBase.followTrajectory(trajectory);
 
             initialized = true;
