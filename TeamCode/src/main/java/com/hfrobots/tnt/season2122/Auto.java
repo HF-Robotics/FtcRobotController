@@ -43,6 +43,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
+import com.hfrobots.tnt.corelib.drive.mecanum.TrajectoryAwareSequenceOfStates;
 import com.hfrobots.tnt.corelib.drive.mecanum.TrajectoryFollowerState;
 import com.hfrobots.tnt.corelib.state.ReadyCheckable;
 import com.hfrobots.tnt.corelib.util.RealSimplerHardwareMap;
@@ -332,7 +333,7 @@ public class Auto extends OpMode {
     }
 
     protected void setupDeliverDuckParkStorage() {
-        SequenceOfStates sequence = new SequenceOfStates();
+        SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
 
         // deliver duck program
 
@@ -848,7 +849,7 @@ public class Auto extends OpMode {
     }
 
     protected void setupParkWarehouse() {
-        final SequenceOfStates sequence = new SequenceOfStates();
+        final SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
 
         // Starting position Back of robot towards warehouse, lined up with seam from third and fourth tile from carousel.
 
@@ -906,6 +907,32 @@ public class Auto extends OpMode {
         };
 
         sequence.addSequential(backwardToWarehouse);
+
+        sequence.addSequential(newDoneState("Done!"));
+
+        stateMachine.addSequence(sequence);
+    }
+
+    protected void setupParkWarehouseSimple() {
+        final TrajectoryAwareSequenceOfStates sequence = TrajectoryAwareSequenceOfStates.builder()
+                .driveBase(driveBase).telemetry(telemetry).ticker(ticker).build();
+
+        // Starting position Back of robot towards warehouse, lined up with seam from third and fourth tile from carousel.
+
+        sequence.addRunnableStep("Arm safe", () -> freightManipulator.moveToSafePosition());
+
+        sequence.addTrajectory("Strafe from wall", (t) -> {
+            if (currentAlliance == Constants.Alliance.RED) {
+                return t.strafeRight(18.5);
+            }
+
+            // it's blue
+            return t.strafeLeft(18.5);
+        });
+
+
+        // Backwards to the warehouse
+        sequence.addTrajectory("Back into warehouse", (t) -> t.back(80 - 10));
 
         sequence.addSequential(newDoneState("Done!"));
 

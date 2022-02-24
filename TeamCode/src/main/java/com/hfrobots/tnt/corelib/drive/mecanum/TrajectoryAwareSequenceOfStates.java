@@ -14,14 +14,16 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 import lombok.Builder;
 import lombok.NonNull;
-
-@Builder
 public class TrajectoryAwareSequenceOfStates extends SequenceOfStates {
     private final RoadRunnerMecanumDriveBase driveBase;
 
-    private final Telemetry telemetry;
+    @Builder
+    private TrajectoryAwareSequenceOfStates(final RoadRunnerMecanumDriveBase driveBase,
+                                            final Telemetry telemetry,final Ticker ticker) {
+        super(ticker, telemetry);
 
-    private final Ticker ticker;
+        this.driveBase = driveBase;
+    }
 
     public void addTrajectory(@NonNull final String name, Function<TrajectoryBuilder, TrajectoryBuilder> trjaectoryProvider) {
         SimpleTrajectoryState state = new SimpleTrajectoryState(name, trjaectoryProvider, telemetry, driveBase, ticker);
