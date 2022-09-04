@@ -20,15 +20,16 @@
 package com.hfrobots.tnt.learning;
 
 import com.google.common.base.Stopwatch;
+import com.hfrobots.tnt.corelib.drive.PidController;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import java.util.concurrent.TimeUnit;
 
-@TeleOp(name = "Linear-Auto-learning")
+@Autonomous(name = "Linear-Auto-learning")
 @Disabled
 public class LinearAuto extends LinearOpMode {
     private DcMotorEx rightFrontDriveMotor;
@@ -67,6 +68,8 @@ public class LinearAuto extends LinearOpMode {
         //doDeadReckoning();
 
         //doBangBang();
+
+        //doPid();
     }
 
     void doDeadReckoning() {
@@ -178,5 +181,72 @@ public class LinearAuto extends LinearOpMode {
                 break; // exit the loop
             }
         }
+
+        // FIXME: Op-mode has stopped. Set all motors
+        //        to '0' power to stop the robot
+    }
+
+    void doPid() {
+        // PID is Proportional, Integral, Derivative control. It aims to get to the target
+        // as quickly as possible, without over-shooting or oscillating
+        // (going back and forth). Getting there does take some tuning, though.
+        //
+        // Just like "bang bang", step one is to calculate the "goal" which is
+        // the number of encoder counts needed to travel the distance.
+        //
+
+
+        // If we want to convert distance traveled to encoder count, you need to divide the
+        // distance by the circumference of the wheels, and then multiply that by encoder count
+        // for a full revolution of the motor.
+        //
+        // Our robot wheels are 4", what is their circumference?
+        //
+        // The motors on most of our robots are Neverest 20's, with 537.6 encoders/revolution
+        //
+        // So, let's get started:
+
+        double ticksPerRev = 537.6; // Neverest 20 orbital has this many ticks/revolution
+        double distanceInEncoderCounts = 36 /* inches */ / 1 /* FIXME: use real circumference */ * ticksPerRev;
+
+        // DcMotors don't usually start with their encoder count at 0. It certainly won't be there
+        // if the robot has moved beforehand. Therefore, we need to calculate the "target" or
+        // "goal" encoder count.
+        //
+        // To keep things simple for this lesson, pick one motor only to use as the encoder
+        // feedback to the control algorithm.
+
+        int currentEncoderCount = leftFrontDriveMotor.getCurrentPosition();
+
+        // (1) You now know the current position of one motor, and how many encoder ticks/counts
+        //     it should take to move the distance of 3 feet. Calculate the "target" encoder count
+
+        double targetEncoderCount = 0; // FIXME: Calculate this value
+
+        // (2) Now, address the FIXMEs inside the while loop, load the program onto the robot and
+        //     see what happens when it runs.
+        //
+        //     We'll come back to try and address tuning the PID controller step by step
+        //     and adding the I and D (not always needed) terms.
+
+        PidController pidController = PidController.builder().setAllowOscillation(true)
+                .setKp(0 /* FIXME */)
+                //.setkI(0) FIXME - once we have a good kP, set kI
+                //.setkD(0) FIXME - once we have a good kI - *maybe* set a kD
+                .setTolerance(100 /* FIXME - what would be a good value here? */)
+                .build();
+
+        pidController.setTarget(targetEncoderCount, leftFrontDriveMotor.getCurrentPosition());
+
+        while (opModeIsActive() && !pidController.isOnTarget()) {
+            currentEncoderCount = leftFrontDriveMotor.getCurrentPosition();
+
+            double motorPower = pidController.getOutput(currentEncoderCount);
+
+            // FIXME: Send this power to all four motors
+        }
+
+        // FIXME: Either op-mode has stopped, or reached target, set all motors
+        //        to '0' power to stop the robot
     }
 }
