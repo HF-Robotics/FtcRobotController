@@ -62,16 +62,11 @@ public class LinearAuto extends LinearOpMode {
         // the code needs to have a loop, but that loop must always check opModeIsActive() too!
         // It looks something like this:
 
-        /*
+        // FIXME: Pick one of these to run at a time:
 
+        //doDeadReckoning();
 
-        while (opModeIsActive()) {
-            // do something until a condition is reached
-        }
-
-
-         */
-
+        //doBangBang();
     }
 
     void doDeadReckoning() {
@@ -108,7 +103,7 @@ public class LinearAuto extends LinearOpMode {
 
         // FIXME: This loop might be missing something that is required in linear op modes!
 
-        while (stopwatch.elapsed(TimeUnit.MILLISECONDS) < elapsedTimeMilliseconds);
+        while (opModeIsActive() && stopwatch.elapsed(TimeUnit.MILLISECONDS) < elapsedTimeMilliseconds);
 
         // (4) Stop the motors by setting all of their power to 0.
 
