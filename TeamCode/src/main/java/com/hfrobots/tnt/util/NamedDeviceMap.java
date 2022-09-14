@@ -71,10 +71,8 @@ public class NamedDeviceMap {
         buildDeviceToNameMapping(hardwareMap.servo);
         buildDeviceToNameMapping(hardwareMap.crservo);
 
-        buildDeviceToNameMapping(hardwareMap.legacyModule);
         buildDeviceToNameMapping(hardwareMap.touchSensorMultiplexer);
 
-        buildDeviceToNameMapping(hardwareMap.deviceInterfaceModule);
         buildDeviceToNameMapping(hardwareMap.analogInput);
         buildDeviceToNameMapping(hardwareMap.digitalChannel);
         buildDeviceToNameMapping(hardwareMap.opticalDistanceSensor);
@@ -82,7 +80,6 @@ public class NamedDeviceMap {
         buildDeviceToNameMapping(hardwareMap.pwmOutput);
         buildDeviceToNameMapping(hardwareMap.i2cDevice);
         buildDeviceToNameMapping(hardwareMap.i2cDeviceSynch);
-        buildDeviceToNameMapping(hardwareMap.analogOutput);
         buildDeviceToNameMapping(hardwareMap.colorSensor);
         buildDeviceToNameMapping(hardwareMap.led);
 
