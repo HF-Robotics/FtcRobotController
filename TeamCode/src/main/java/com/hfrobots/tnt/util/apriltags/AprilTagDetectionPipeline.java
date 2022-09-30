@@ -21,6 +21,10 @@
 
 package com.hfrobots.tnt.util.apriltags;
 
+import com.google.common.base.Stopwatch;
+
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -36,6 +40,7 @@ import org.openftc.apriltag.AprilTagDetectorJNI;
 import org.openftc.easyopencv.OpenCvPipeline;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 class AprilTagDetectionPipeline extends OpenCvPipeline
 {
@@ -67,7 +72,12 @@ class AprilTagDetectionPipeline extends OpenCvPipeline
     private boolean needToSetDecimation;
     private final Object decimationSync = new Object();
 
-    public AprilTagDetectionPipeline(double tagsize, double fx, double fy, double cx, double cy)
+    private final Telemetry telemetry;
+
+    private DescriptiveStatistics stats = new DescriptiveStatistics(1000);
+
+
+    public AprilTagDetectionPipeline(double tagsize, double fx, double fy, double cx, double cy, Telemetry telemetry)
     {
         this.tagsize = tagsize;
         this.tagsizeX = tagsize;
@@ -76,6 +86,7 @@ class AprilTagDetectionPipeline extends OpenCvPipeline
         this.fy = fy;
         this.cx = cx;
         this.cy = cy;
+        this.telemetry = telemetry;
 
         constructMatrix();
 
@@ -102,6 +113,8 @@ class AprilTagDetectionPipeline extends OpenCvPipeline
     @Override
     public Mat processFrame(Mat input)
     {
+        Stopwatch timer = Stopwatch.createUnstarted();
+
         // Convert to greyscale
         Imgproc.cvtColor(input, grey, Imgproc.COLOR_RGBA2GRAY);
 
@@ -116,6 +129,21 @@ class AprilTagDetectionPipeline extends OpenCvPipeline
 
         // Run AprilTag
         detections = AprilTagDetectorJNI.runAprilTagDetectorSimple(nativeApriltagPtr, grey, tagsize, fx, fy, cx, cy);
+
+        long pipelineTimeMicros = timer.elapsed(TimeUnit.MICROSECONDS);
+
+        if(detections.size() != 0) {
+            boolean tagFound = false;
+
+            for (AprilTagDetection tag : detections) {
+                if (tag.id == AprilTagAutoDemo.ID_TAG_OF_INTEREST) {
+
+                    stats.addValue(pipelineTimeMicros);
+                    telemetry.addLine("P95 time (ms)" + stats.getPercentile(95) / 1000);
+                    break;
+                }
+            }
+        }
 
         synchronized (detectionsUpdateSync)
         {
