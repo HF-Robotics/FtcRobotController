@@ -113,7 +113,7 @@ class AprilTagDetectionPipeline extends OpenCvPipeline
     @Override
     public Mat processFrame(Mat input)
     {
-        Stopwatch timer = Stopwatch.createUnstarted();
+        Stopwatch timer = Stopwatch.createStarted();
 
         // Convert to greyscale
         Imgproc.cvtColor(input, grey, Imgproc.COLOR_RGBA2GRAY);
@@ -139,7 +139,7 @@ class AprilTagDetectionPipeline extends OpenCvPipeline
                 if (tag.id == AprilTagAutoDemo.ID_TAG_OF_INTEREST) {
 
                     stats.addValue(pipelineTimeMicros);
-                    telemetry.addLine("P95 time (ms)" + stats.getPercentile(95) / 1000);
+
                     break;
                 }
             }
@@ -158,6 +158,8 @@ class AprilTagDetectionPipeline extends OpenCvPipeline
             drawAxisMarker(input, tagsizeY/2.0, 6, pose.rvec, pose.tvec, cameraMatrix);
             draw3dCubeMarker(input, tagsizeX, tagsizeX, tagsizeY, 5, pose.rvec, pose.tvec, cameraMatrix);
         }
+
+        telemetry.addLine("P95 time (ms)" + stats.getPercentile(95) / 1000);
 
         return input;
     }

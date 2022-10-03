@@ -43,7 +43,7 @@ import java.util.List;
 *
 * @author GRIP
 */
-public class CyanGripPipeline implements ContourFinderPipeline {
+public class PinkGripPipeline implements ContourFinderPipeline {
 
 	//Outputs
 	private Mat hsvThresholdOutput = new Mat();
@@ -57,9 +57,9 @@ public class CyanGripPipeline implements ContourFinderPipeline {
 	public void process(Mat source0) {
 		// Step HSV_Threshold0:
 		Mat hsvThresholdInput = source0;
-		double[] hsvThresholdHue = {87.41007194244605, 115.82342954159596};
-		double[] hsvThresholdSaturation = {57.32913669064748, 250.67062818336163};
-		double[] hsvThresholdValue = {0.0, 255.0};
+		double[] hsvThresholdHue = {113.30935251, 170.8319185059};
+		double[] hsvThresholdSaturation = {94.01978417266, 172.7419354838};
+		double[] hsvThresholdValue = {73.3812949640, 216.03565365};
 		hsvThreshold(hsvThresholdInput, hsvThresholdHue, hsvThresholdSaturation, hsvThresholdValue, hsvThresholdOutput);
 
 		// Step Blur0:
