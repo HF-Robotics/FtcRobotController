@@ -86,7 +86,7 @@ public class EasyOpenCvPipelineAndCamera {
                      * For a rear facing camera or a webcam, rotation is defined assuming the camera is facing
                      * away from the user.
                      */
-                    cvCamera.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT);
+                    cvCamera.startStreaming(800, 448, OpenCvCameraRotation.UPRIGHT);
                 }
 
                 @Override

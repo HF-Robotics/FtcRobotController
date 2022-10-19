@@ -23,6 +23,7 @@
 package com.hfrobots.tnt.season2223.pipelines;
 
 import com.google.common.base.Stopwatch;
+import com.hfrobots.tnt.season2223.SignalDetector;
 import com.hfrobots.tnt.util.opencv.ContourUtils;
 
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -35,8 +36,9 @@ import org.openftc.easyopencv.OpenCvPipeline;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
-public class ColorSignalDetectorPipeline extends OpenCvPipeline {
+public class ColorSignalDetectorPipeline extends OpenCvPipeline implements SignalDetector {
     private final Scalar RGB_CYAN = new Scalar(4, 255, 255);
 
     private final Scalar RGB_MAGENTA = new Scalar(255, 10, 255);
@@ -60,6 +62,11 @@ public class ColorSignalDetectorPipeline extends OpenCvPipeline {
     private final Mat cyanMat = new Mat();
 
     private final Mat pinkMat = new Mat();
+
+    // Start with unknown, because until we start the pipeline
+    // we do not know what signal the robot is seeing
+    private final AtomicReference<DetectedSignal> detectedSignalRef
+            = new AtomicReference<>(DetectedSignal.UNKNOWN);
 
     public ColorSignalDetectorPipeline(ContourFinderPipeline cyanContourFinder,
                                        ContourFinderPipeline pinkContourFinder,
@@ -120,11 +127,18 @@ public class ColorSignalDetectorPipeline extends OpenCvPipeline {
 
         if (numberOfCyanContours == 1) {
             telemetry.addLine("Found cyan signal");
+
+            detectedSignalRef.set(DetectedSignal.ORIENTATION_C);
+
             stats.addValue(pipelineTimeMicros);
         } else if (numberOfPinkContours == 1) {
             telemetry.addLine("Found pink signal");
+
+            detectedSignalRef.set(DetectedSignal.ORIENTATION_A);
+
             stats.addValue(pipelineTimeMicros);
         } else {
+            detectedSignalRef.set(DetectedSignal.UNKNOWN);
             telemetry.addLine("No signal detected");
         }
 
@@ -133,4 +147,8 @@ public class ColorSignalDetectorPipeline extends OpenCvPipeline {
         return displayMat; // show on the DS, what the camera actually saw, with contours highlighted
     }
 
+    @Override
+    public DetectedSignal getDetectedSignal() {
+        return detectedSignalRef.get();
+    }
 }

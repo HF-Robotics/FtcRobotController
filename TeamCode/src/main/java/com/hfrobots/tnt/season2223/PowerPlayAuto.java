@@ -24,6 +24,7 @@ package com.hfrobots.tnt.season2223;
 
 import static com.ftc9929.corelib.Constants.LOG_TAG;
 
+import android.icu.lang.UCharacter;
 import android.util.Log;
 
 import com.acmerobotics.roadrunner.geometry.Vector2d;
@@ -36,16 +37,25 @@ import com.ftc9929.corelib.state.SequenceOfStates;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
 import com.ftc9929.corelib.state.StopwatchDelayState;
+import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.google.common.base.Ticker;
 import com.google.common.collect.Sets;
 import com.hfrobots.tnt.corelib.Constants;
+import com.hfrobots.tnt.corelib.drive.mecanum.MultipleTrajectoriesFollowerState;
 import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
 import com.hfrobots.tnt.corelib.drive.mecanum.TrajectoryFollowerState;
 import com.hfrobots.tnt.corelib.state.ReadyCheckable;
+import com.hfrobots.tnt.corelib.state.TimeoutSafetyState;
+import com.hfrobots.tnt.season2223.pipelines.ColorSignalDetectorPipeline;
+import com.hfrobots.tnt.season2223.pipelines.CyanGripPipeline;
+import com.hfrobots.tnt.season2223.pipelines.PinkGripPipeline;
+import com.hfrobots.tnt.season2223.pipelines.PowerPlayTagDetectionPipeline;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -60,11 +70,19 @@ public class PowerPlayAuto extends OpMode {
     // Used to ensure that states with circular dependencies are setup correctly
     private final Set<ReadyCheckable> readyCheckables = Sets.newHashSet();
 
+    private SignalDetector signalDetector;
+
+    private enum LOCATION {
+        LOCATION_ONE,
+        LOCATION_TWO,
+        LOCATION_THREE;
+    }
+
+    private LOCATION detectedLocation = LOCATION.LOCATION_THREE; // FIXME:
+
     // The routes our robot knows how to do - rename these to something meaningful for the season!
     private enum Routes {
-        ROUTE_CHOICE_A("Loc 1"),
-        ROUTE_CHOICE_B("Loc 2"),
-        ROUTE_CHOICE_C("Loc 3");
+        DETECT_SIGNAL("Detect Signal");
 
         final String description;
 
@@ -99,20 +117,30 @@ public class PowerPlayAuto extends OpMode {
 
         stateMachine = new StateMachine(telemetry);
 
-        //setupOpenCvCameraAndPipeline();
+        setupOpenCvCameraAndPipeline();
     }
 
     private com.hfrobots.tnt.corelib.vision.EasyOpenCvPipelineAndCamera pipelineAndCamera;
 
     private void setupOpenCvCameraAndPipeline() {
+        // FIXME: Auto really should not know these cyan/pink/whatever details
+        CyanGripPipeline cyanContourFinder = new CyanGripPipeline();
+        PinkGripPipeline pinkContourFinder = new PinkGripPipeline();
+        ColorSignalDetectorPipeline pipeline = new ColorSignalDetectorPipeline(
+                cyanContourFinder,
+                pinkContourFinder, null, telemetry);
 
-        // Create the pipeline here
+        // Or - to use AprilTags, use this pipeline
+        // PowerPlayTagDetectionPipeline pipeline =
+        //         new PowerPlayTagDetectionPipeline(telemetry);
+
+        signalDetector = pipeline;
 
         com.hfrobots.tnt.corelib.vision.EasyOpenCvPipelineAndCamera.EasyOpenCvPipelineAndCameraBuilder pipelineBuilder =
                 com.hfrobots.tnt.corelib.vision.EasyOpenCvPipelineAndCamera.builder();
 
         pipelineBuilder.hardwareMap(hardwareMap).telemetry(telemetry)
-                .openCvPipeline(null /* FIXME: Add Your Pipeline Here */);
+                .openCvPipeline(pipeline);
 
         pipelineAndCamera = pipelineBuilder.build();
 
@@ -236,14 +264,8 @@ public class PowerPlayAuto extends OpMode {
                 Routes selectedRoute = possibleRoutes[selectedRoutesIndex];
 
                 switch (selectedRoute) {
-                    case ROUTE_CHOICE_A:
-                        setupRouteChoiceA();
-                        break;
-                    case ROUTE_CHOICE_B:
-                        setupRouteChoiceB();
-                        break;
-                    case ROUTE_CHOICE_C:
-                        setupRouteChoiceC();
+                    case DETECT_SIGNAL:
+                        setupRouteChoiceDetected();
                         break;
                     default:
                         stateMachine.addSequential(newDoneState("Default done"));
@@ -280,130 +302,74 @@ public class PowerPlayAuto extends OpMode {
         }
     }
 
-    protected void setupRouteChoiceA() {
-        State moveRobot = new TrajectoryFollowerState("Move robot",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+    protected void setupRouteChoiceDetected() {
+
+        State detectState = new StopwatchTimeoutSafetyState("Detect Signal",
+                telemetry, ticker, 5000) {
             @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+            public State doStuffAndGetNextState() {
+                if (isTimedOut()) {
+                    resetTimer();
 
-                trajectoryBuilder.forward(3);
+                    return nextState;
+                }
 
+                SignalDetector.DetectedSignal signal = signalDetector.getDetectedSignal();
 
-                return trajectoryBuilder.build();
+                switch (signal) {
+                    case ORIENTATION_A: {
+                        detectedLocation = LOCATION.LOCATION_ONE;
+                        resetTimer();
+
+                        return nextState;
+                    }
+                    case ORIENTATION_B: {
+                        detectedLocation = LOCATION.LOCATION_TWO;
+                        resetTimer();
+
+                        return nextState;
+                    }
+                    case ORIENTATION_C: {
+                        detectedLocation = LOCATION.LOCATION_THREE;
+                        resetTimer();
+
+                        return nextState;
+                    }
+                }
+
+                return this;
             }
         };
 
-        State moveRobot2 = new TrajectoryFollowerState("Move robot2",
+        State moveRobot = new MultipleTrajectoriesFollowerState("Move robot",
                 telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
             @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-
-                trajectoryBuilder.strafeLeft(29);
-
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-        State moveRobot3 = new TrajectoryFollowerState("Move robot3",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-                trajectoryBuilder.forward(24);
-
-
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-        SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
-        sequence.addSequential(moveRobot);
-        sequence.addSequential(moveRobot2);
-        sequence.addSequential(moveRobot3);
-        sequence.addSequential(newDoneState("Done!"));
-        stateMachine.addSequence(sequence);
-    }
-
-    void setupRouteChoiceB() {
-
-        // START HERE
-
-        State moveRobot = new TrajectoryFollowerState("Move robot",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-                trajectoryBuilder.forward(3 + 24);
-
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-
-
-        SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
-        sequence.addSequential(moveRobot);
-
-        sequence.addSequential(newDoneState("Done loc 2!"));
-        stateMachine.addSequence(sequence);
-
-        // STOP HERE
-    }
-
-    protected void setupRouteChoiceC() {
-        State moveRobot = new TrajectoryFollowerState("Move robot",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-                trajectoryBuilder.forward(3);
-
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-        State moveRobot2 = new TrajectoryFollowerState("Move robot2",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-
-                trajectoryBuilder.strafeRight(29);
-
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-        State moveRobot3 = new TrajectoryFollowerState("Move robot3",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-                trajectoryBuilder.forward(24);
-
-
-
-                return trajectoryBuilder.build();
+            protected void createTrajectoryProviders() {
+                switch (detectedLocation) {
+                    case LOCATION_ONE: {
+                        addTrajectoryProvider("Off wall", (t) -> t.forward(3));
+                        addTrajectoryProvider("Align with location", (t) -> t.strafeLeft(29));
+                        addTrajectoryProvider("Into location", (t) -> t.forward(24));
+                        break;
+                    }
+                    case LOCATION_TWO: {
+                        addTrajectoryProvider("Off wall", (t) -> t.forward(27));
+                        break;
+                    }
+                    case LOCATION_THREE: {
+                        addTrajectoryProvider("Off wall", (t) -> t.forward(3));
+                        addTrajectoryProvider("Align with location", (t) -> t.strafeRight(29));
+                        addTrajectoryProvider("Into location", (t) -> t.forward(24));
+                        break;
+                    }
+                }
             }
         };
 
         SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
+        sequence.addSequential(detectState);
         sequence.addSequential(moveRobot);
-        sequence.addSequential(moveRobot2);
-        sequence.addSequential(moveRobot3);
+
         sequence.addSequential(newDoneState("Done loc 3!"));
         stateMachine.addSequence(sequence);
     }
