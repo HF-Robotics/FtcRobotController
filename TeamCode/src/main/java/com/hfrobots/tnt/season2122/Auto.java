@@ -48,6 +48,7 @@ import com.hfrobots.tnt.corelib.drive.mecanum.TrajectoryFollowerState;
 import com.hfrobots.tnt.corelib.state.ReadyCheckable;
 import com.hfrobots.tnt.corelib.util.RealSimplerHardwareMap;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 
@@ -60,6 +61,7 @@ import java.util.concurrent.TimeUnit;
 
 import lombok.Setter;
 
+@Disabled
 @Autonomous(name="00 Frt Frnzy Auto")
 public class Auto extends OpMode {
     public static final int TOO_FAR_TO_DRIVE_INTO_STORAGE = 4;

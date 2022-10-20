@@ -47,6 +47,7 @@ import com.hfrobots.tnt.season1920.SkystoneDriveConstants;
 import com.hfrobots.tnt.season1920.SkystoneGrabber;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
@@ -56,7 +57,7 @@ import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
 
 import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
-
+@Disabled
 @Autonomous(name="UltGoal Auto")
 public class Auto extends OpMode {
     private Ticker ticker;
