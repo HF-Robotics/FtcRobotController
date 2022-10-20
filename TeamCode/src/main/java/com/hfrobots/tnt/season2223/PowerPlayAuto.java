@@ -48,6 +48,7 @@ import com.hfrobots.tnt.corelib.state.ReadyCheckable;
 import com.hfrobots.tnt.corelib.state.TimeoutSafetyState;
 import com.hfrobots.tnt.season2223.pipelines.ColorSignalDetectorPipeline;
 import com.hfrobots.tnt.season2223.pipelines.CyanGripPipeline;
+import com.hfrobots.tnt.season2223.pipelines.GreenGripPipeline;
 import com.hfrobots.tnt.season2223.pipelines.PinkGripPipeline;
 import com.hfrobots.tnt.season2223.pipelines.PowerPlayTagDetectionPipeline;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -126,9 +127,10 @@ public class PowerPlayAuto extends OpMode {
         // FIXME: Auto really should not know these cyan/pink/whatever details
         CyanGripPipeline cyanContourFinder = new CyanGripPipeline();
         PinkGripPipeline pinkContourFinder = new PinkGripPipeline();
+        GreenGripPipeline greenContourFinder = new GreenGripPipeline();
         ColorSignalDetectorPipeline pipeline = new ColorSignalDetectorPipeline(
                 cyanContourFinder,
-                pinkContourFinder, null, telemetry);
+                pinkContourFinder, greenContourFinder, telemetry);
 
         // Or - to use AprilTags, use this pipeline
         // PowerPlayTagDetectionPipeline pipeline =

@@ -49,7 +49,7 @@ public class ColorSignalDetectorPipeline extends OpenCvPipeline implements Signa
 
     private final ContourFinderPipeline pinkContourFinder;
 
-    private final ContourFinderPipeline blackContourFinder;
+    private final ContourFinderPipeline greenContourFinder;
 
     private final Telemetry telemetry;
 
@@ -63,6 +63,8 @@ public class ColorSignalDetectorPipeline extends OpenCvPipeline implements Signa
 
     private final Mat pinkMat = new Mat();
 
+    private final Mat greenMat = new Mat();
+
     // Start with unknown, because until we start the pipeline
     // we do not know what signal the robot is seeing
     private final AtomicReference<DetectedSignal> detectedSignalRef
@@ -70,11 +72,11 @@ public class ColorSignalDetectorPipeline extends OpenCvPipeline implements Signa
 
     public ColorSignalDetectorPipeline(ContourFinderPipeline cyanContourFinder,
                                        ContourFinderPipeline pinkContourFinder,
-                                       ContourFinderPipeline blackContourFinder,
+                                       ContourFinderPipeline greenContourFinder,
                                        Telemetry telemetry) {
         this.cyanContourFinder = cyanContourFinder;
         this.pinkContourFinder = pinkContourFinder;
-        this.blackContourFinder = blackContourFinder;
+        this.greenContourFinder = greenContourFinder;
         this.telemetry = telemetry;
     }
 
@@ -104,7 +106,6 @@ public class ColorSignalDetectorPipeline extends OpenCvPipeline implements Signa
             Imgproc.drawContours(displayMat, cyanContours, -1, RGB_CYAN, 2);
         }
 
-        // START HERE
         int numberOfPinkContours = 0;
 
         if (pinkContourFinder != null) {
@@ -121,6 +122,23 @@ public class ColorSignalDetectorPipeline extends OpenCvPipeline implements Signa
             Imgproc.drawContours(displayMat, pinkContours, -1, RGB_CYAN, 2);
         }
 
+        // START HERE
+        int numberOfGreenContours = 0;
+
+        if (greenContourFinder != null) {
+            final ArrayList<MatOfPoint> greenContours;
+
+            bgrMat.copyTo(greenMat);
+            greenContours = greenContourFinder.findContours(greenMat);
+            numberOfGreenContours = greenContours.size();
+
+            for (MatOfPoint contour : greenContours) {
+                ContourUtils.labelContour(displayMat, contour);
+            }
+
+            Imgproc.drawContours(displayMat, greenContours, -1, RGB_CYAN, 2);
+        }
+
         // STOP HERE
 
         long pipelineTimeMicros = timer.elapsed(TimeUnit.MICROSECONDS);
@@ -135,6 +153,13 @@ public class ColorSignalDetectorPipeline extends OpenCvPipeline implements Signa
             telemetry.addLine("Found pink signal");
 
             detectedSignalRef.set(DetectedSignal.ORIENTATION_A);
+
+            stats.addValue(pipelineTimeMicros);
+        }
+        else if (numberOfGreenContours == 1) {
+            telemetry.addLine("Found green signal");
+
+            detectedSignalRef.set(DetectedSignal.ORIENTATION_B);
 
             stats.addValue(pipelineTimeMicros);
         } else {
