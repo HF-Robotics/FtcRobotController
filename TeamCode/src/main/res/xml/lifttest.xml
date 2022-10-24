@@ -25,6 +25,9 @@ SOFTWARE.
             <!-- DC Motors -->
             <Motor name="beltMotor"  port="0" /> <!-- yellow -->
             <Motor name="chainMotor" port="1" /> <!-- orange -->
+
+            <DigitalDevice name="lowLimitSwitch" port="1"/>
+            <DigitalDevice name="highLimitSwitch" port="3"/>
         </LynxModule>
     </LynxUsbDevice>
 </Robot>
