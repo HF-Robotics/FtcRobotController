@@ -43,12 +43,12 @@ public class LiftTester extends OpMode {
     private List<LynxModule> allHubs;
 
     private LiftMechanism liftMechanism;
+
+    private OperatorControls operatorControls;
     
     @Override
     public void init() {
         final Ticker ticker = Ticker.systemTicker();
-
-        NinjaGamePad driversGamepad = new NinjaGamePad(gamepad1);
 
         allHubs = hardwareMap.getAll(LynxModule.class);
 
@@ -57,28 +57,22 @@ public class LiftTester extends OpMode {
             hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
 
-        // Test the belt lift
-        //DcMotorEx liftMotor = hardwareMap.get(DcMotorEx.class, "beltMotor");
-
         DigitalChannel lowerLimit = hardwareMap.get(DigitalChannel.class, "lowLimitSwitch");
         DigitalChannel higherLimit = hardwareMap.get(DigitalChannel.class, "highLimitSwitch");
-
 
         // Test the chain lift
         DcMotorEx liftMotor = hardwareMap.get(DcMotorEx.class, "chainMotor");
         
         liftMechanism = LiftMechanism.builder().liftMotor(NinjaMotor.asNeverest20(liftMotor))
-                .telemetry(telemetry)
-                .upperLiftLimit(higherLimit)
                 .lowerLiftLimit(lowerLimit)
-                .liftThrottle(driversGamepad.getLeftStickY())
-                .liftGoSmallButton(driversGamepad.getDpadLeft().debounced())
-                .liftGoMediumButton(driversGamepad.getDpadRight().debounced())
-                .liftLowerLimitButton(driversGamepad.getDpadDown().debounced())
-                .liftUpperLimitButton(driversGamepad.getDpadUp().debounced())
-                .limitOverrideButton(driversGamepad.getXButton())
-                .liftEmergencyStopButton(driversGamepad.getBButton().debounced()).build();
-                
+                .upperLiftLimit(higherLimit)
+                .telemetry(telemetry).build();
+
+        NinjaGamePad driversGamepad = new NinjaGamePad(gamepad1);
+
+        operatorControls = OperatorControls.builder()
+                .operatorGamepad(driversGamepad)
+                .liftMechanism(liftMechanism).build();
     }
     
     @Override
@@ -101,7 +95,7 @@ public class LiftTester extends OpMode {
     public void loop() {
         clearHubsBulkCaches(); // important, do not remove this line, or reads from robot break!
 
-        liftMechanism.doPeriodicTask();
+        operatorControls.periodicTask();
 
         telemetry.update();
     }

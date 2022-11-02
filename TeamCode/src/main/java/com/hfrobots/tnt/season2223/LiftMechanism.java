@@ -42,6 +42,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import java.util.concurrent.TimeUnit;
 
 import lombok.Builder;
+import lombok.Setter;
 
 public class LiftMechanism {
     private static final double LIFT_POWER_LEVEL = 1;
@@ -66,17 +67,26 @@ public class LiftMechanism {
 
     private static final int AUTO_STALL_TIMEOUT_SECONDS = 8;
 
-    private final RangeInput liftThrottle;
+    @Setter
+    private RangeInput liftThrottle;
 
-    private final DebouncedButton liftUpperLimitButton;
+    @Setter
+    private DebouncedButton liftUpperLimitButton;
 
-    private final DebouncedButton liftLowerLimitButton;
+    @Setter
+    private DebouncedButton liftLowerLimitButton;
 
-    private final DebouncedButton liftGoSmallButton;
+    @Setter
+    private DebouncedButton liftGoSmallButton;
 
-    private final DebouncedButton liftGoMediumButton;
+    @Setter
+    private DebouncedButton liftGoMediumButton;
 
-    private final DebouncedButton liftEmergencyStopButton;
+    @Setter
+    private DebouncedButton liftEmergencyStopButton;
+
+    @Setter
+    private OnOffButton limitOverrideButton;
 
     private final ExtendedDcMotor liftMotor;
 
@@ -87,9 +97,7 @@ public class LiftMechanism {
     private final Telemetry telemetry;
 
     private State currentState;
-    
-    private final OnOffButton limitOverrideButton;
-    
+
     @Builder
     public LiftMechanism(final RangeInput liftThrottle,
                          final DebouncedButton liftUpperLimitButton,
@@ -216,6 +224,7 @@ public class LiftMechanism {
     }
     
     @VisibleForTesting
+    @SuppressWarnings("unused")
     public boolean currentStateIsOpenLoopUpOrDown() {
         if (currentState == null) {
             return false;
@@ -228,6 +237,7 @@ public class LiftMechanism {
     }
 
     @VisibleForTesting
+    @SuppressWarnings("unused")
     public boolean currentStateIsIdle() {
         if (currentState == null) {
             return false;
@@ -237,6 +247,7 @@ public class LiftMechanism {
     }
 
     @VisibleForTesting
+    @SuppressWarnings("unused")
     public boolean currentStateIsAtUpperLimit() {
         if (currentState == null) {
             return false;
@@ -246,6 +257,7 @@ public class LiftMechanism {
     }
 
     @VisibleForTesting
+    @SuppressWarnings("unused")
     public boolean currentStateIsAtLowerLimit() {
         if (currentState == null) {
             return false;
@@ -255,6 +267,7 @@ public class LiftMechanism {
     }
 
     @VisibleForTesting
+    @SuppressWarnings("unused")
     public boolean currentStateIsClosedLoopUp() {
         if (currentState == null) {
             return false;
@@ -264,6 +277,7 @@ public class LiftMechanism {
     }
 
     @VisibleForTesting
+    @SuppressWarnings("unused")
     public boolean currentStateIsClosedLoopDown() {
         if (currentState == null) {
             return false;
@@ -273,6 +287,7 @@ public class LiftMechanism {
     }
 
     @VisibleForTesting
+    @SuppressWarnings("unused")
     public boolean currentStateIsGoingUpOrAtUpperLimit() {
         if (currentState == null) {
             return false;
@@ -283,11 +298,13 @@ public class LiftMechanism {
     }
 
     @VisibleForTesting
+    @SuppressWarnings("unused")
     public boolean isAtUpperLimit() {
         return currentState.getClass().getName().equals(LiftAtUpperLimitState.class.getName());
     }
 
     @VisibleForTesting
+    @SuppressWarnings("unused")
     public boolean isAtLowerLimit() {
        return currentState.getClass().getName().equals(LiftAtLowerLimitState.class.getName());
     }
@@ -312,7 +329,7 @@ public class LiftMechanism {
         LiftIdleState idleState;
 
         LiftBaseState(String name, Telemetry telemetry, long timeoutMillis) {
-            super(name, telemetry, TimeUnit.SECONDS.toMillis(60)); // FIXME
+            super(name, telemetry, timeoutMillis);
         }
 
         protected void setAllTransitionToStates(final LiftGoUpperLimitState goUpperLimitState,
@@ -407,7 +424,7 @@ public class LiftMechanism {
         boolean initialized = false;
 
         LiftClosedLoopState(String name, Telemetry telemetry, long timeoutMillis) {
-            super(name, telemetry, TimeUnit.SECONDS.toMillis(60)); // FIXME
+            super(name, telemetry, timeoutMillis);
         }
 
         protected void setupPidController(double kP) {
