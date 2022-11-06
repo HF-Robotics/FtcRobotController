@@ -32,10 +32,13 @@ import com.ftc9929.corelib.control.RangeInput;
 import com.ftc9929.corelib.state.State;
 import com.google.common.annotations.VisibleForTesting;
 import com.hfrobots.tnt.corelib.drive.ExtendedDcMotor;
+import com.hfrobots.tnt.corelib.drive.NinjaMotor;
 import com.hfrobots.tnt.corelib.drive.PidController;
 import com.hfrobots.tnt.corelib.state.TimeoutSafetyState;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -66,6 +69,19 @@ public class LiftMechanism {
     private static final int LIFT_LOWER_LIMIT_ENCODER_POS = 0;
 
     private static final int AUTO_STALL_TIMEOUT_SECONDS = 8;
+
+    public static LiftMechanism fromHardwareMap(final HardwareMap hardwareMap,
+                                                final Telemetry telemetry) {
+        DigitalChannel lowerLimit = hardwareMap.get(DigitalChannel.class, "lowLimitSwitch");
+        DigitalChannel higherLimit = hardwareMap.get(DigitalChannel.class, "highLimitSwitch");
+
+        DcMotorEx liftMotor = hardwareMap.get(DcMotorEx.class, "liftMotor");
+
+        return LiftMechanism.builder().liftMotor(NinjaMotor.asNeverest20(liftMotor))
+                .lowerLiftLimit(lowerLimit)
+                .upperLiftLimit(higherLimit)
+                .telemetry(telemetry).build();
+    }
 
     @Setter
     private RangeInput liftThrottle;
@@ -199,7 +215,7 @@ public class LiftMechanism {
         liftMotor.setPower(-Math.abs(liftThrottle.getPosition()));
     }
 
-    public void doPeriodicTask() {
+    public void periodicTask() {
         String currentStateName = currentState.getName();
 
         if (currentStateName != null) {

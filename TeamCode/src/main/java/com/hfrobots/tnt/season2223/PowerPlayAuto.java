@@ -24,39 +24,32 @@ package com.hfrobots.tnt.season2223;
 
 import static com.ftc9929.corelib.Constants.LOG_TAG;
 
-import android.icu.lang.UCharacter;
 import android.util.Log;
 
-import com.acmerobotics.roadrunner.geometry.Vector2d;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
 import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.control.RangeInput;
 import com.ftc9929.corelib.state.SequenceOfStates;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
-import com.ftc9929.corelib.state.StopwatchDelayState;
 import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
+import com.ftc9929.testing.fakes.control.FakeOnOffButton;
+import com.google.common.base.Optional;
 import com.google.common.base.Ticker;
 import com.google.common.collect.Sets;
 import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.corelib.drive.mecanum.MultipleTrajectoriesFollowerState;
 import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
-import com.hfrobots.tnt.corelib.drive.mecanum.TrajectoryFollowerState;
+import com.hfrobots.tnt.corelib.drive.mecanum.util.AxisDirection;
 import com.hfrobots.tnt.corelib.state.ReadyCheckable;
-import com.hfrobots.tnt.corelib.state.TimeoutSafetyState;
 import com.hfrobots.tnt.season2223.pipelines.ColorSignalDetectorPipeline;
 import com.hfrobots.tnt.season2223.pipelines.CyanGripPipeline;
 import com.hfrobots.tnt.season2223.pipelines.GreenGripPipeline;
 import com.hfrobots.tnt.season2223.pipelines.PinkGripPipeline;
-import com.hfrobots.tnt.season2223.pipelines.PowerPlayTagDetectionPipeline;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.Servo;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -73,13 +66,21 @@ public class PowerPlayAuto extends OpMode {
 
     private SignalDetector signalDetector;
 
+    private LiftMechanism liftMechanism;
+
+    private Gripper gripper;
+
+    private OperatorControls operatorControls;
+
+    private FakeOnOffButton goSmallJunctionAutoButton = new FakeOnOffButton();
+
     private enum LOCATION {
         LOCATION_ONE,
         LOCATION_TWO,
         LOCATION_THREE;
     }
 
-    private LOCATION detectedLocation = LOCATION.LOCATION_THREE; // FIXME:
+    private LOCATION detectedLocation = LOCATION.LOCATION_THREE;
 
     // The routes our robot knows how to do - rename these to something meaningful for the season!
     private enum Routes {
@@ -107,18 +108,43 @@ public class PowerPlayAuto extends OpMode {
 
     private int initialDelaySeconds = 0;
 
+    private PowerPlayDriveTeamSignal driveTeamSignal;
+
     @Override
     public void init() {
         ticker = createAndroidTicker();
 
         setupDriverControls();
 
+        setupLift();
+
+        setupOperatorControls();
+
         driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
-                new PowerPlayDriveConstants());
+                new PowerPlayDriveConstants(),
+                Optional.of(AxisDirection.POS_X));
 
         stateMachine = new StateMachine(telemetry);
 
+        driveTeamSignal = new PowerPlayDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
+
         setupOpenCvCameraAndPipeline();
+    }
+
+    private void setupOperatorControls() {
+        NinjaGamePad operatorsGamepad = new NinjaGamePad(gamepad2);
+
+        operatorControls = OperatorControls.builder()
+                .operatorGamepad(operatorsGamepad)
+                .liftMechanism(liftMechanism)
+                .gripper(gripper).build();
+    }
+
+    private void setupLift() {
+        liftMechanism = LiftMechanism.fromHardwareMap(hardwareMap, telemetry);
+        Servo gripperServo = hardwareMap.get(Servo.class, "gripperServo");
+
+        gripper = new Gripper(gripperServo);
     }
 
     private com.hfrobots.tnt.corelib.vision.EasyOpenCvPipelineAndCamera pipelineAndCamera;
@@ -131,10 +157,6 @@ public class PowerPlayAuto extends OpMode {
         ColorSignalDetectorPipeline pipeline = new ColorSignalDetectorPipeline(
                 cyanContourFinder,
                 pinkContourFinder, greenContourFinder, telemetry);
-
-        // Or - to use AprilTags, use this pipeline
-        // PowerPlayTagDetectionPipeline pipeline =
-        //         new PowerPlayTagDetectionPipeline(telemetry);
 
         signalDetector = pipeline;
 
@@ -152,6 +174,9 @@ public class PowerPlayAuto extends OpMode {
     @Override
     public void start() {
         super.start();
+
+        // Gives control to move the lift to the state machine
+        liftMechanism.setLiftGoSmallButton(goSmallJunctionAutoButton.debounced());
 
         if (pipelineAndCamera != null) {
             try {
@@ -194,10 +219,12 @@ public class PowerPlayAuto extends OpMode {
             telemetry.addData("00", "UNLOCKED: Press Lt stick lock");
         }
 
-        // If you have a drive team signal, change the color here:
-        //
-        // driveTeamSignal.setAlliance(currentAlliance);
-        // driveTeamSignal.periodicTask();
+        if (operatorControls != null) {
+            operatorControls.periodicTask();
+        }
+
+        driveTeamSignal.setAlliance(currentAlliance);
+        driveTeamSignal.periodicTask();
 
         telemetry.addData("01", "Alliance: %s", currentAlliance);
         telemetry.addData("02", "Task: %s", possibleRoutes[selectedRoutesIndex].getDescription());
@@ -283,10 +310,9 @@ public class PowerPlayAuto extends OpMode {
 
             stateMachine.doOneStateLoop();
 
-            // If you have other mechanisms, like a DriveTeamSignal that needs
-            // to run, do it here
-            //
-            // driveTeamSignal.periodicTask();
+            liftMechanism.periodicTask();
+
+            driveTeamSignal.periodicTask();
 
             telemetry.update(); // send all telemetry to the drivers' station
         } catch (Throwable t) {
@@ -370,14 +396,19 @@ public class PowerPlayAuto extends OpMode {
 
         SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
         sequence.addSequential(detectState);
+
+        // FIXME: Probably want to lift the cone a bit to avoid running into stuff,
+        //        and then wait a 'beat' for it to happen before moving
+
+        //sequence.addSequential(new RunnableState("Lift cone", telemetry,
+        //        () -> freightManipulator.spinOuttake()););
+        //
+        //sequence.addWaitStep(name, amount, TimeUnit.SECONDS);
+
         sequence.addSequential(moveRobot);
 
-        sequence.addSequential(newDoneState("Done loc 3!"));
+        sequence.addSequential(newDoneState("Done!"));
         stateMachine.addSequence(sequence);
-    }
-
-    protected State newMsDelayState(String name, final int numberOfMillis) {
-        return new StopwatchDelayState(name, telemetry, ticker, numberOfMillis, TimeUnit.MILLISECONDS);
     }
 
     /**

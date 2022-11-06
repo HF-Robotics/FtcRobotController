@@ -1,5 +1,9 @@
 package com.hfrobots.tnt.corelib.drive.mecanum;
 
+import static com.ftc9929.corelib.Constants.LOG_TAG;
+
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.config.Config;
@@ -16,9 +20,12 @@ import com.acmerobotics.roadrunner.trajectory.constraints.MinVelocityConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.ProfileAccelerationConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryAccelerationConstraint;
 import com.acmerobotics.roadrunner.trajectory.constraints.TrajectoryVelocityConstraint;
+import com.google.common.base.Optional;
 import com.hfrobots.tnt.corelib.drive.mecanum.trajectorysequence.TrajectorySequence;
 import com.hfrobots.tnt.corelib.drive.mecanum.trajectorysequence.TrajectorySequenceBuilder;
 import com.hfrobots.tnt.corelib.drive.mecanum.trajectorysequence.TrajectorySequenceRunner;
+import com.hfrobots.tnt.corelib.drive.mecanum.util.AxisDirection;
+import com.hfrobots.tnt.corelib.drive.mecanum.util.BNO055IMUUtil;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -64,6 +71,12 @@ public class RoadRunnerMecanumDriveBase extends MecanumDrive {
     private DriveConstants driveConstants;
 
     public RoadRunnerMecanumDriveBase(HardwareMap hardwareMap, DriveConstants driveConstants) {
+        this(hardwareMap, driveConstants, Optional.absent());
+    }
+
+    public RoadRunnerMecanumDriveBase(HardwareMap hardwareMap,
+                                      DriveConstants driveConstants,
+                                      Optional<AxisDirection> imuAxisDirection) {
         super(driveConstants.getKv(),
                 driveConstants.getKa(),
                 driveConstants.getKstatic(),
@@ -116,7 +129,11 @@ public class RoadRunnerMecanumDriveBase extends MecanumDrive {
         // and the placement of the dot/orientation from https://docs.revrobotics.com/rev-control-system/control-system-overview/dimensions#imu-location
         //
         // For example, if +Y in this diagram faces downwards, you would use AxisDirection.NEG_Y.
-        // BNO055IMUUtil.remapZAxis(imu, AxisDirection.NEG_Y);
+
+        if (imuAxisDirection.isPresent()) {
+            Log.i(LOG_TAG, "IMU rotation axis is: " + imuAxisDirection.get());
+            BNO055IMUUtil.remapZAxis(imu, imuAxisDirection.get());
+        }
 
         leftFront = hardwareMap.get(DcMotorEx.class, "leftFrontDriveMotor");
         leftRear = hardwareMap.get(DcMotorEx.class, "leftRearDriveMotor");

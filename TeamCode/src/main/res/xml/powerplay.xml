@@ -40,6 +40,7 @@ SOFTWARE.
             <Motor name="liftMotor"  port="0" /> <!-- Red    -->
 
             <Servo name="gripperServo"          port="1" />
+            <Servo name="blinkin"               port="2" />
 
             <DigitalDevice name="lowLimitSwitch" port="1"/>
             <DigitalDevice name="highLimitSwitch" port="3"/>

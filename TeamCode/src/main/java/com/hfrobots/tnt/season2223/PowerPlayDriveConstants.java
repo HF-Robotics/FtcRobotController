@@ -31,8 +31,24 @@ public class PowerPlayDriveConstants extends DriveConstants {
 
     private static DriveConstraints DRIVE_CONSTRAINTS = new DriveConstraints(80, 30.0, 0.0,
             Math.toRadians(180.0), Math.toRadians(180.0), 0.0);
+
     private static PIDCoefficients TRANSLATIONAL_PID_COEFFICIENTS = new PIDCoefficients(4.2D, 0, 0);
+
     private static PIDCoefficients HEADING_PID_COEFFICIENTS = new PIDCoefficients(0.295D, 0, 0);
+
+    // FIXME:
+    private static double ENCODER_PPR = 537.6; // NR-20!!
+
+    // FIXME:
+    private static double WHEEL_RADIUS_IN = 2.0; // Andymark Mecanums
+
+    // FIXME:
+    private static double TRACK_WIDTH_IN = 12;
+
+    // FIXME:
+    private static double MAX_MOTOR_RPM = 9000;
+
+    private static double GEAR_RATIO = 1.0;
 
     @Override
     public DriveConstraints getBaseConstraints() {
@@ -52,5 +68,25 @@ public class PowerPlayDriveConstants extends DriveConstants {
     @Override
     public DriveConstraints getDriveConstraints() {
         return DRIVE_CONSTRAINTS;
+    }
+
+    @Override
+    public double encoderTicksToInches(double ticks) {
+        return WHEEL_RADIUS_IN * 2 * Math.PI * GEAR_RATIO * ticks / ENCODER_PPR;
+    }
+
+    @Override
+    public double rpmToVelocity(double rpm) {
+        return rpm * GEAR_RATIO * 2 * Math.PI * WHEEL_RADIUS_IN / 60.0;
+    }
+
+    @Override
+    public double getMaxRpm() {
+        return MAX_MOTOR_RPM;
+    }
+
+    @Override
+    public double getTrackWidth() {
+        return TRACK_WIDTH_IN;
     }
 }

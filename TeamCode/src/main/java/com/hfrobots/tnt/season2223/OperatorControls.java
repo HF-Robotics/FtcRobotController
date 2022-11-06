@@ -208,7 +208,7 @@ public class OperatorControls implements PeriodicTask {
         // Here is where we ask the various mechanisms to respond to operator input
 
         if (liftMechanism != null) {
-            liftMechanism.doPeriodicTask();
+            liftMechanism.periodicTask();
         }
 
         if (gripperOpenButton.getRise()) {

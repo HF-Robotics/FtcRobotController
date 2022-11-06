@@ -42,6 +42,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.apache.commons.math3.analysis.function.Power;
+
 import java.util.List;
 
 @TeleOp(name = "00 PP TeleOp")
@@ -64,6 +66,8 @@ public class PowerPlayDriverControlled extends OpMode {
     private LiftMechanism liftMechanism;
 
     private Gripper gripper;
+
+    private PowerPlayDriveTeamSignal driveTeamSignal;
 
     @Override
     public void init() {
@@ -97,6 +101,8 @@ public class PowerPlayDriverControlled extends OpMode {
                 .liftMechanism(liftMechanism)
                 .gripper(gripper)
                 .build();
+
+        driveTeamSignal = new PowerPlayDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
         setupMetricsSampler(driversGamepad, operatorGamepad);
 
@@ -143,6 +149,7 @@ public class PowerPlayDriverControlled extends OpMode {
     @Override
     public void start() {
         super.start();
+        driveTeamSignal.startMatch();
     }
 
     @Override
@@ -161,6 +168,8 @@ public class PowerPlayDriverControlled extends OpMode {
                 newMetricsSampler.doSamples();
             }
         }
+
+        driveTeamSignal.periodicTask();
 
         telemetry.update();
     }
