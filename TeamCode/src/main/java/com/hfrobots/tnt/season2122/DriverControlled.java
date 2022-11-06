@@ -29,14 +29,14 @@ import com.ftc9929.metrics.StatsdMetricsReporter;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-import org.apache.commons.math3.analysis.function.Max;
 
 import java.util.List;
 
 @TeleOp(name = "00 Frt Frnzy TeleOp")
+@Disabled
 public class DriverControlled extends OpMode {
 
     private Drivebase drivebase;
