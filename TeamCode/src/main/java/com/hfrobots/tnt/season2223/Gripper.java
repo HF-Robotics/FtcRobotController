@@ -30,7 +30,7 @@ public class Gripper {
 
     private final Servo servo;
 
-    private static final double OPEN_POSITION = 0;
+    private static final double OPEN_POSITION = 0.586;
 
     private static final double CLOSED_POSITION = 1;
 

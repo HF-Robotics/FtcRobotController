@@ -83,6 +83,10 @@ public class TurnState extends StopwatchTimeoutSafetyState {
         }
 
         if (!initialized) {
+            if (delayedDecisionTurn.get() ==  null) {
+                return nextState; // no turn!
+            }
+
             double angleRadians = Math.toRadians(delayedDecisionTurn.get().getHeading());
             driveBase.turn(angleRadians);
 

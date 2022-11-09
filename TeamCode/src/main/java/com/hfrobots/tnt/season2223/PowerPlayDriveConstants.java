@@ -36,17 +36,13 @@ public class PowerPlayDriveConstants extends DriveConstants {
 
     private static PIDCoefficients HEADING_PID_COEFFICIENTS = new PIDCoefficients(0.295D, 0, 0);
 
-    // FIXME:
-    private static double ENCODER_PPR = 537.6; // NR-20!!
+    private static double ENCODER_PPR = 384.5;
 
-    // FIXME:
-    private static double WHEEL_RADIUS_IN = 2.0; // Andymark Mecanums
+    private static double WHEEL_RADIUS_IN = 1.89;
 
-    // FIXME:
-    private static double TRACK_WIDTH_IN = 12;
+    private static double TRACK_WIDTH_IN = 8.5;
 
-    // FIXME:
-    private static double MAX_MOTOR_RPM = 9000;
+    private static double MAX_MOTOR_RPM = 435;
 
     private static double GEAR_RATIO = 1.0;
 

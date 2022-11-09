@@ -29,17 +29,21 @@ import android.util.Log;
 import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.control.RangeInput;
+import com.ftc9929.corelib.state.RunnableState;
 import com.ftc9929.corelib.state.SequenceOfStates;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
 import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.ftc9929.testing.fakes.control.FakeOnOffButton;
 import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
 import com.google.common.base.Ticker;
 import com.google.common.collect.Sets;
 import com.hfrobots.tnt.corelib.Constants;
+import com.hfrobots.tnt.corelib.drive.Turn;
 import com.hfrobots.tnt.corelib.drive.mecanum.MultipleTrajectoriesFollowerState;
 import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
+import com.hfrobots.tnt.corelib.drive.mecanum.TurnState;
 import com.hfrobots.tnt.corelib.drive.mecanum.util.AxisDirection;
 import com.hfrobots.tnt.corelib.state.ReadyCheckable;
 import com.hfrobots.tnt.season2223.pipelines.ColorSignalDetectorPipeline;
@@ -49,6 +53,8 @@ import com.hfrobots.tnt.season2223.pipelines.PinkGripPipeline;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -73,6 +79,8 @@ public class PowerPlayAuto extends OpMode {
     private OperatorControls operatorControls;
 
     private FakeOnOffButton goSmallJunctionAutoButton = new FakeOnOffButton();
+
+    private FakeOnOffButton liftToBottom = new FakeOnOffButton();
 
     private enum LOCATION {
         LOCATION_ONE,
@@ -177,6 +185,7 @@ public class PowerPlayAuto extends OpMode {
 
         // Gives control to move the lift to the state machine
         liftMechanism.setLiftGoSmallButton(goSmallJunctionAutoButton.debounced());
+        liftMechanism.setLiftLowerLimitButton(liftToBottom.debounced());
 
         if (pipelineAndCamera != null) {
             try {
@@ -376,18 +385,22 @@ public class PowerPlayAuto extends OpMode {
                 switch (detectedLocation) {
                     case LOCATION_ONE: {
                         addTrajectoryProvider("Off wall", (t) -> t.forward(3));
-                        addTrajectoryProvider("Align with location", (t) -> t.strafeLeft(29));
-                        addTrajectoryProvider("Into location", (t) -> t.forward(24));
+                        addTrajectoryProvider("Align with location", (t) -> t.strafeLeft(29 - 3));
+                        addTrajectoryProvider("Into location", (t) -> t.forward(24 + 15));
                         break;
                     }
                     case LOCATION_TWO: {
-                        addTrajectoryProvider("Off wall", (t) -> t.forward(27));
+                        // needs to be even further!!!
+                        addTrajectoryProvider("Off wall 1", (t) -> t.forward(12));
+                        addTrajectoryProvider("Off wall 2", (t) -> t.forward(12 + 4));
+                        addTrajectoryProvider("Push signal", (t) -> t.forward(4));
+                        addTrajectoryProvider("Retreat from signal", (t) -> t.back(8));
                         break;
                     }
                     case LOCATION_THREE: {
                         addTrajectoryProvider("Off wall", (t) -> t.forward(3));
-                        addTrajectoryProvider("Align with location", (t) -> t.strafeRight(29));
-                        addTrajectoryProvider("Into location", (t) -> t.forward(24));
+                        addTrajectoryProvider("Align with location", (t) -> t.strafeRight(29 - 3));
+                        addTrajectoryProvider("Into location", (t) -> t.forward(24 + 15));
                         break;
                     }
                 }
@@ -397,15 +410,18 @@ public class PowerPlayAuto extends OpMode {
         SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
         sequence.addSequential(detectState);
 
-        // FIXME: Probably want to lift the cone a bit to avoid running into stuff,
-        //        and then wait a 'beat' for it to happen before moving
+        sequence.addSequential(new RunnableState("Lift cone", telemetry,
+                () -> goSmallJunctionAutoButton.setPressed(true)));
 
-        //sequence.addSequential(new RunnableState("Lift cone", telemetry,
-        //        () -> freightManipulator.spinOuttake()););
-        //
-        //sequence.addWaitStep(name, amount, TimeUnit.SECONDS);
+        sequence.addWaitStep("wait on cone", 1, TimeUnit.SECONDS);
+
+        sequence.addSequential(new RunnableState("Clear lift cone", telemetry,
+                () -> goSmallJunctionAutoButton.setPressed(false)));
 
         sequence.addSequential(moveRobot);
+
+        sequence.addSequential(new RunnableState("Move cone down", telemetry,
+                () -> liftToBottom.setPressed(true)));
 
         sequence.addSequential(newDoneState("Done!"));
         stateMachine.addSequence(sequence);

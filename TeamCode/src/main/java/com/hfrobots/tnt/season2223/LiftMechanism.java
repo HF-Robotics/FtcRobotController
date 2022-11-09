@@ -54,17 +54,17 @@ public class LiftMechanism {
 
     private static final double K_P_LOWER_LIMIT = .008;
 
-    private static final double K_P_SMALL_JUNCTION = .008;
+    private static final double K_P_SMALL_JUNCTION = .004;
 
-    private static final double K_P_MEDIUM_JUNCTION = .008;
+    private static final double K_P_MEDIUM_JUNCTION = .004;
 
-    private static final double ANTIGRAVITY_FEED_FORWARD = 0;
+    private static final double ANTIGRAVITY_FEED_FORWARD = .17;
 
-    private static final int LIFT_UPPER_LIMIT_ENCODER_POS = 3581;
+    private static final int LIFT_UPPER_LIMIT_ENCODER_POS = 2600;
 
-    private static final int LIFT_SMALL_JUNCTION_ENCODER_POS = 649;
+    private static final int LIFT_SMALL_JUNCTION_ENCODER_POS = 1243;
 
-    private static final int LIFT_MEDIUM_JUNCTION_ENCODER_POS = 1475;
+    private static final int LIFT_MEDIUM_JUNCTION_ENCODER_POS = 1930;
 
     private static final int LIFT_LOWER_LIMIT_ENCODER_POS = 0;
 
