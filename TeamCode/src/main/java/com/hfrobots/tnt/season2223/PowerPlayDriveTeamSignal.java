@@ -56,6 +56,7 @@ public class PowerPlayDriveTeamSignal implements PeriodicTask {
     private final Gamepad operatorGamepad;
 
     private Constants.Alliance chosenAlliance = null;
+    private boolean haveSentRumble;
 
     public PowerPlayDriveTeamSignal(final HardwareMap hardwareMap, final Ticker ticker,
                                     final Gamepad driverGamepad,
@@ -95,8 +96,13 @@ public class PowerPlayDriveTeamSignal implements PeriodicTask {
         if (isEndGame()) {
             // FIXME: Rumble pattern?
             blinkinPattern = END_GAME_PATTERN;
-        } else if (readyForEndGame()){
+        } else if (readyForEndGame()) {
             // FIXME: Rumble pattern?
+            if (!haveSentRumble) {
+                driverGamepad.rumbleBlips(3);
+                operatorGamepad.rumbleBlips(3);
+                haveSentRumble = true;
+            }
             blinkinPattern = GO_TO_END_GAME_PATTERN;
         } else if (chosenAlliance != null) {
            switch (chosenAlliance) {
