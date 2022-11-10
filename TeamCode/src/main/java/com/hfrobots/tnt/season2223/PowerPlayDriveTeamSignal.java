@@ -21,7 +21,6 @@ package com.hfrobots.tnt.season2223;
 
 import static com.qualcomm.hardware.rev.RevBlinkinLedDriver.BlinkinPattern.BREATH_GRAY;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
@@ -56,7 +55,8 @@ public class PowerPlayDriveTeamSignal implements PeriodicTask {
     private final Gamepad operatorGamepad;
 
     private Constants.Alliance chosenAlliance = null;
-    private boolean haveSentRumble;
+    private boolean haveSentReadyForEndGameRumble;
+    private boolean haveEndGameRumble;
 
     public PowerPlayDriveTeamSignal(final HardwareMap hardwareMap, final Ticker ticker,
                                     final Gamepad driverGamepad,
@@ -94,14 +94,17 @@ public class PowerPlayDriveTeamSignal implements PeriodicTask {
         // is up to you, the drive team, to decide.
 
         if (isEndGame()) {
-            // FIXME: Rumble pattern?
+            if (!haveEndGameRumble) {
+                driverGamepad.rumble(750);
+                operatorGamepad.rumble(750);
+                haveEndGameRumble = true;
+            }
             blinkinPattern = END_GAME_PATTERN;
         } else if (readyForEndGame()) {
-            // FIXME: Rumble pattern?
-            if (!haveSentRumble) {
+            if (!haveSentReadyForEndGameRumble) {
                 driverGamepad.rumbleBlips(3);
                 operatorGamepad.rumbleBlips(3);
-                haveSentRumble = true;
+                haveSentReadyForEndGameRumble = true;
             }
             blinkinPattern = GO_TO_END_GAME_PATTERN;
         } else if (chosenAlliance != null) {
