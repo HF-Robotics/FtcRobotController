@@ -393,7 +393,7 @@ public class PowerPlayAuto extends OpMode {
                         // needs to be even further!!!
                         addTrajectoryProvider("Off wall 1", (t) -> t.forward(12));
                         addTrajectoryProvider("Off wall 2", (t) -> t.forward(12 + 4));
-                        addTrajectoryProvider("Push signal", (t) -> t.forward(4));
+                        addTrajectoryProvider("Push signal", (t) -> t.forward(4 + 4));
                         addTrajectoryProvider("Retreat from signal", (t) -> t.back(8));
                         break;
                     }
