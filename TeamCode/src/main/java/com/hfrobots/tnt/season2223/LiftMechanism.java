@@ -453,7 +453,10 @@ public class LiftMechanism {
         }
 
         protected State transitionToState(State state) {
-            pidController.reset();
+            if (pidController != null) {
+                pidController.reset();
+            }
+
             initialized = false;
 
             return state;
@@ -468,8 +471,6 @@ public class LiftMechanism {
 
         @Override
         public State doStuffAndGetNextState() {
-            Log.d(LOG_TAG, "Running closed loop state: " + getName());
-
             if (isTimedOut() && limitOverrideButton != null && !limitOverrideButton.isPressed()) {
                 resetTimer();
                 stopLift();
@@ -517,7 +518,10 @@ public class LiftMechanism {
             if (limitSwitchIsOn(upperLiftLimit)) {
                 stopLift();
 
-                pidController.reset();
+                if (pidController != null) {
+                    pidController.reset();
+                }
+
                 initialized = false;
 
                 return atUpperLimitState;
@@ -546,9 +550,6 @@ public class LiftMechanism {
 
         @Override
         public State doStuffAndGetNextState() {
-
-            Log.d(LOG_TAG, "Running closed loop state: " + getName());
-
             if (isTimedOut() && limitOverrideButton != null && !limitOverrideButton.isPressed()) {
                 resetTimer();
                 stopLift();
@@ -612,9 +613,6 @@ public class LiftMechanism {
 
         @Override
         public State doStuffAndGetNextState() {
-
-            Log.d(LOG_TAG, "Running closed loop state: " + getName());
-
             if (isTimedOut() && limitOverrideButton != null && !limitOverrideButton.isPressed()) {
                 resetTimer();
                 stopLift();
@@ -672,9 +670,6 @@ public class LiftMechanism {
 
         @Override
         public State doStuffAndGetNextState() {
-
-            Log.d(LOG_TAG, "Running closed loop state: " + getName());
-
             if (isTimedOut() && limitOverrideButton != null && !limitOverrideButton.isPressed()) {
                 resetTimer();
                 stopLift();
@@ -756,7 +751,6 @@ public class LiftMechanism {
             // to hold position
 
             liftMotor.setPower(ANTIGRAVITY_FEED_FORWARD);
-            Log.d(LOG_TAG, getName() + " nothing to do, remaining in same state");
 
             return this;
         }
@@ -786,8 +780,6 @@ public class LiftMechanism {
                     return fromButtonState;
                 }
             }
-
-            Log.d(LOG_TAG, getName() + " nothing to do, remaining in same state");
 
             return this;
         }
