@@ -32,24 +32,19 @@ import com.ftc9929.metrics.StatsdMetricsReporter;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.drive.NinjaMotor;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
-import com.hfrobots.tnt.util.templates.Drivebase;
-import com.hfrobots.tnt.util.templates.DriverControls;
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.apache.commons.math3.analysis.function.Power;
-
 import java.util.List;
 
 @TeleOp(name = "00 PP TeleOp")
 public class PowerPlayDriverControlled extends OpMode {
 
-    private com.hfrobots.tnt.util.templates.Drivebase drivebase;
+    private Drivebase drivebase;
 
     private DriverControls driverControls;
 

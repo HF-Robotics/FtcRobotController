@@ -54,7 +54,7 @@ public class PowerPlayDriveTeamSignal implements PeriodicTask {
 
     private final Gamepad operatorGamepad;
 
-    private Constants.Alliance chosenAlliance = null;
+    private static Constants.Alliance chosenAlliance = null;
     private boolean haveSentReadyForEndGameRumble;
     private boolean haveEndGameRumble;
 
