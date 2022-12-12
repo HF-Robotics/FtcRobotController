@@ -34,13 +34,13 @@ SOFTWARE.
             <Motor name="rightFrontDriveMotor" port="2" /> <!-- Yellow -->
             <Motor name="rightRearDriveMotor"  port="3" /> <!-- Green  -->
 
-            <Servo name="gripperServo"              port="0" />
+
         </LynxModule>
 
         <LynxModule name="Expansion Hub 3" port="2">
 
             <Motor name="liftMotor"  port="0" /> <!-- Red    -->
-
+            <Servo name="gripperServo"              port="0" />
 
             <RevBlinkinLedDriver name="blinkin"     port="2" />
 
