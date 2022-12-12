@@ -30,6 +30,7 @@ import com.ftc9929.corelib.control.NinjaGamePad;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.drive.NinjaMotor;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -38,6 +39,7 @@ import com.qualcomm.robotcore.hardware.DigitalChannel;
 import java.util.List;
 
 @TeleOp(name = "Lift Tester")
+@Disabled
 public class LiftTester extends OpMode {
     
     private List<LynxModule> allHubs;
