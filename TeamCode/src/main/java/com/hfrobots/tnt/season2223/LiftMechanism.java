@@ -58,21 +58,21 @@ public class LiftMechanism {
 
     private static final double K_P_MEDIUM_JUNCTION = .004;
 
-    private static final double ANTIGRAVITY_FEED_FORWARD = .17; // FIXME: needs adjusted for new lift setup
+    private static final double ANTIGRAVITY_FEED_FORWARD = .24; // FIXME: needs adjusted for new lift setup
 
-    private static final int LIFT_UPPER_LIMIT_ENCODER_POS = 2600; // FIXME: Needs tuned
+    private static final int LIFT_SMALL_JUNCTION_ENCODER_POS = 473; // FIXME: Needs tuned
 
-    private static final int LIFT_SMALL_JUNCTION_ENCODER_POS = 1243; // FIXME: Needs tuned
+    private static final int LIFT_MEDIUM_JUNCTION_ENCODER_POS = 857; // FIXME: Needs tuned
 
-    private static final int LIFT_MEDIUM_JUNCTION_ENCODER_POS = 1930; // FIXME: Needs tuned
+    private static final int LIFT_UPPER_LIMIT_ENCODER_POS = 1224; // FIXME: Needs tuned
 
     private static final int LIFT_LOWER_LIMIT_ENCODER_POS = 0;
 
     private static final int AUTO_STALL_TIMEOUT_SECONDS = 8;
 
-    private static final double OPEN_LOOP_DOWN_POWER_RATIO = .25;
+    private static final double OPEN_LOOP_DOWN_POWER_RATIO = .02;
 
-    private static final double PID_OUTPUT_LOWER_LIMIT_MIN = -.1; // FIXME: Needs tuned - or disabled
+    private static final double PID_OUTPUT_LOWER_LIMIT_MIN = -.02; // FIXME: Needs tuned - or disabled
     private static final double PID_OUTPUT_LOWER_LIMIT_MAX = 1;
 
     public static LiftMechanism fromHardwareMap(final HardwareMap hardwareMap,
