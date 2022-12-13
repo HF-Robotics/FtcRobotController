@@ -97,6 +97,9 @@ public class PowerPlayDriverControlled extends OpMode {
                 .gripper(gripper)
                 .build();
 
+        // Cone is usually right there, this saves time
+        gripper.close();
+
         driveTeamSignal = new PowerPlayDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
         setupMetricsSampler(driversGamepad, operatorGamepad);
