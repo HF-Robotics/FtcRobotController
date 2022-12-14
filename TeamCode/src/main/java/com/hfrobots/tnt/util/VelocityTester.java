@@ -22,6 +22,7 @@ package com.hfrobots.tnt.util;
 import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.google.common.base.Stopwatch;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -42,6 +43,7 @@ import java.util.concurrent.TimeUnit;
  * a button - run to desired relative position using encoders
  */
 @TeleOp(name="Velocity Tester", group="Utilities")
+@Disabled
 public class VelocityTester extends OpMode {
     private List<NamedDeviceMap.NamedDevice<DcMotorEx>> namedMotors;
     private Map<DcMotorEx, String> motorsToNames = new HashMap<>();

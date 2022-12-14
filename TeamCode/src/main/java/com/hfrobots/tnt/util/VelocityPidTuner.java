@@ -25,6 +25,7 @@ import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.google.common.base.Stopwatch;
 import com.hfrobots.tnt.corelib.drive.PidController;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -37,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 import static com.ftc9929.corelib.Constants.LOG_TAG;
 
 @TeleOp(name="Velocity PID", group="Utilities")
+@Disabled
 public class VelocityPidTuner extends OpMode {
     private List<NamedDeviceMap.NamedDevice<DcMotor>> namedMotors;
     private Map<DcMotor, String> motorsToNames = new HashMap<>();

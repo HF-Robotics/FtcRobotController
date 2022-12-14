@@ -22,6 +22,7 @@ package com.hfrobots.tnt.season2021;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.control.RangeInput;
 import com.google.common.base.Stopwatch;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -29,6 +30,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import java.util.concurrent.TimeUnit;
 
 @TeleOp(name="Launcher Tester", group="Utilities")
+@Disabled
 public class LauncherTester extends OpMode {
 
     private int lastFrontEncoderPos = Integer.MIN_VALUE;

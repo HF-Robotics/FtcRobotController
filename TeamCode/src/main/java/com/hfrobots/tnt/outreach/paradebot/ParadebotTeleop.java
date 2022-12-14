@@ -41,6 +41,7 @@ import java.util.Iterator;
 import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
 
 @TeleOp(name="Paradebot Teleop")
+@Disabled
 public class ParadebotTeleop extends OpMode
 
 {

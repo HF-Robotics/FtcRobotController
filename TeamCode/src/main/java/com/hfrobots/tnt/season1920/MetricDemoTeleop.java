@@ -1,5 +1,6 @@
 package com.hfrobots.tnt.season1920;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 /**
@@ -8,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
  * let the robot move on the floor, since it may be on a table or stand
  */
 @TeleOp(name="Metrics Demo", group="util")
+@Disabled
 @SuppressWarnings("unused")
 public class MetricDemoTeleop extends SkystoneTeleop {
     @Override

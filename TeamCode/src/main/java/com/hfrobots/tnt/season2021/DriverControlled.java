@@ -28,6 +28,7 @@ import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
@@ -36,6 +37,7 @@ import java.util.List;
 import static com.ftc9929.corelib.Constants.LOG_TAG;
 
 @TeleOp(name = "UltGoal TeleOp")
+@Disabled
 public class DriverControlled extends OpMode {
 
     private Drivebase drivebase;

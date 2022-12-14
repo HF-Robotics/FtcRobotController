@@ -33,6 +33,7 @@ import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
 import com.hfrobots.tnt.corelib.util.RealSimplerHardwareMap;
 import com.hfrobots.tnt.corelib.util.SimplerHardwareMap;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -41,6 +42,7 @@ import java.util.Set;
 import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
 
 @TeleOp(name="Skystone Teleop", group="Old")
+@Disabled
 @SuppressWarnings("unused")
 public class SkystoneTeleop extends OpMode {
     private OpenLoopMecanumKinematics kinematics;

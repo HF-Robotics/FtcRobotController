@@ -22,6 +22,7 @@ package com.hfrobots.tnt.util.apriltags;
  */
 
 import com.google.common.base.Stopwatch;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -37,6 +38,7 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 @TeleOp
+@Disabled
 public class AprilTagAutoDemo extends LinearOpMode
 {
     OpenCvCamera camera;

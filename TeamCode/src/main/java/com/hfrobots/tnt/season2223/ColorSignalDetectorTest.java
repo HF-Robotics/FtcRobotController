@@ -25,6 +25,7 @@ package com.hfrobots.tnt.season2223;
 import com.hfrobots.tnt.season2223.pipelines.ColorSignalDetectorPipeline;
 import com.hfrobots.tnt.season2223.pipelines.CyanGripPipeline;
 import com.hfrobots.tnt.season2223.pipelines.PinkGripPipeline;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -35,6 +36,7 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 
 @TeleOp
+@Disabled
 public class ColorSignalDetectorTest extends LinearOpMode
 {
     OpenCvCamera camera;
