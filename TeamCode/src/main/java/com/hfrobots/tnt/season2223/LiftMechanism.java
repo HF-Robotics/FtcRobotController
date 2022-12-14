@@ -413,6 +413,12 @@ public class LiftMechanism {
 
             return null;
         }
+
+        protected State transitionToState(State state) {
+            resetTimer();
+
+            return state;
+        }
     }
 
     private boolean liftThrottleIsDown() {
@@ -457,19 +463,21 @@ public class LiftMechanism {
             pidController.setOutputRange(-LIFT_POWER_LEVEL, LIFT_POWER_LEVEL);
         }
 
+        @Override
         protected State transitionToState(State state) {
+            State transition = super.transitionToState(state);
+
             if (pidController != null) {
                 pidController.reset();
             }
 
             initialized = false;
 
-            return state;
+            return transition;
         }
     }
 
     class LiftGoUpperLimitState extends LiftClosedLoopState {
-
         LiftGoUpperLimitState(Telemetry telemetry) {
             super("Elev-auto-top", telemetry, TimeUnit.SECONDS.toMillis(AUTO_STALL_TIMEOUT_SECONDS));
         }
@@ -477,11 +485,10 @@ public class LiftMechanism {
         @Override
         public State doStuffAndGetNextState() {
             if (isTimedOut() && limitOverrideButton != null && !limitOverrideButton.isPressed()) {
-                resetTimer();
                 stopLift();
                 Log.e(LOG_TAG, "Timed out while going to upper limit");
 
-                return idleState;
+                return transitionToState(idleState);
             }
 
             State fromButtonState = handleButtons();
@@ -514,22 +521,17 @@ public class LiftMechanism {
 
                 Log.d(LOG_TAG, "Lift reached upper target");
 
-                pidController.reset();
                 initialized = false;
 
-                return atUpperLimitState ;
+                return transitionToState(atUpperLimitState);
             }
 
             if (limitSwitchIsOn(upperLiftLimit)) {
                 stopLift();
 
-                if (pidController != null) {
-                    pidController.reset();
-                }
-
                 initialized = false;
 
-                return atUpperLimitState;
+                return transitionToState(atUpperLimitState);
             }
 
             Log.d(LOG_TAG, "Lift setting power via PID to: " + pidOutput);
@@ -544,6 +546,11 @@ public class LiftMechanism {
 
             return this;
         }
+
+        @Override
+        protected State transitionToState(State state) {
+            return super.transitionToState(state);
+        }
     }
 
 
@@ -556,11 +563,10 @@ public class LiftMechanism {
         @Override
         public State doStuffAndGetNextState() {
             if (isTimedOut() && limitOverrideButton != null && !limitOverrideButton.isPressed()) {
-                resetTimer();
                 stopLift();
                 Log.e(LOG_TAG, "Timed out while going to low limit");
 
-                return idleState;
+                return transitionToState(idleState);
             }
 
             State fromButtonState = handleButtons();
@@ -619,11 +625,10 @@ public class LiftMechanism {
         @Override
         public State doStuffAndGetNextState() {
             if (isTimedOut() && limitOverrideButton != null && !limitOverrideButton.isPressed()) {
-                resetTimer();
                 stopLift();
                 Log.e(LOG_TAG, "Timed out while going to small junction");
 
-                return idleState;
+                return transitionToState(idleState);
             }
 
             State fromButtonState = handleButtons();
@@ -676,11 +681,10 @@ public class LiftMechanism {
         @Override
         public State doStuffAndGetNextState() {
             if (isTimedOut() && limitOverrideButton != null && !limitOverrideButton.isPressed()) {
-                resetTimer();
                 stopLift();
                 Log.e(LOG_TAG, "Timed out while going to medium junction");
 
-                return idleState;
+                return transitionToState(idleState);
             }
 
             State fromButtonState = handleButtons();
@@ -790,7 +794,7 @@ public class LiftMechanism {
         }
     }
 
-    class LiftDownCommandState extends LiftBaseState{
+    class LiftDownCommandState extends LiftBaseState {
 
         LiftDownCommandState(Telemetry telemetry) {
             super("Lift-cmd-dn", telemetry, TimeUnit.SECONDS.toMillis(60)); // FIXME
@@ -799,19 +803,19 @@ public class LiftMechanism {
         @Override
         public State doStuffAndGetNextState() {
             if (liftThrottleIsUp()) {
-                    return upCommandState;
+                    return transitionToState(upCommandState);
             } else if (liftUpperLimitButton.getRise()) {
-                    return goUpperLimitState;
+                    return transitionToState(goUpperLimitState);
             } else if (liftLowerLimitButton.getRise()){
-                    return goLowerLimitState;
+                    return transitionToState(goLowerLimitState);
             } else if (liftGoSmallButton.getRise()) {
-                return goSmallJunctionState;
+                return transitionToState(goSmallJunctionState);
             } else if (liftGoMediumButton.getRise()) {
-                return goMediumJunctionState;
+                return transitionToState(goMediumJunctionState);
             } else if (liftEmergencyStopButton.getRise()) {
                 stopLift();
 
-                return idleState;
+                return transitionToState(idleState);
             }
 
             if (limitSwitchIsOn(lowerLiftLimit)) {
@@ -819,12 +823,12 @@ public class LiftMechanism {
 
                 liftMotor.resetLogicalEncoderCount();
 
-                return atLowerLimitState;
+                return transitionToState(atLowerLimitState);
             } else if (!liftThrottleIsUp() && !liftThrottleIsDown()) {
                 Log.d(LOG_TAG, "Lift - down command button released");
                 stopLift();
 
-                return idleState;
+                return transitionToState(idleState);
             }
 
             liftDown();
@@ -846,32 +850,32 @@ public class LiftMechanism {
         @Override
         public State doStuffAndGetNextState() {
             if (liftThrottleIsDown()) {
-                return downCommandState;
+                return transitionToState(downCommandState);
             } else if (liftUpperLimitButton.getRise()) {
-                return goUpperLimitState;
+                return transitionToState(goUpperLimitState);
             } else if (liftLowerLimitButton.getRise()){
-                return goLowerLimitState;
+                return transitionToState(goLowerLimitState);
             } else if (liftGoSmallButton.getRise()) {
-                return goSmallJunctionState;
+                return transitionToState(goSmallJunctionState);
             } else if (liftGoMediumButton.getRise()) {
-                return goMediumJunctionState;
+                return transitionToState(goMediumJunctionState);
             } else if (liftEmergencyStopButton.getRise()) {
                 stopLift();
 
-                return idleState;
+                return transitionToState(idleState);
             }
 
             if (limitSwitchIsOn(upperLiftLimit)) {
                 stopLift();
 
-                return atUpperLimitState;
+                return transitionToState(atUpperLimitState);
             }
 
             if (!liftThrottleIsUp() /* FiXME: !liftCommandDownButton.isPressed()*/) {
                 Log.d(LOG_TAG, "Lift - up command button released");
                 stopLift();
 
-                return idleState;
+                return transitionToState(idleState);
             }
 
             liftUp();
