@@ -62,13 +62,14 @@ public class StatsDMetricSampler implements MetricsSampler {
 
     private final List<LynxModule> expansionHubs;
 
-    public StatsDMetricSampler(HardwareMap hardwareMap, NinjaGamePad driverControls, NinjaGamePad operatorControls) {
+    public StatsDMetricSampler(HardwareMap hardwareMap, NinjaGamePad driverControls, NinjaGamePad operatorControls,
+                                      boolean sampleDistanceSensors) {
         this.hardwareMap = hardwareMap;
         this.namedDeviceMap = new NamedDeviceMap(hardwareMap);
 
         expansionHubs = hardwareMap.getAll(LynxModule.class);
 
-        addAllByHardwareMap();
+        addAllByHardwareMap(sampleDistanceSensors);
 
         addGamepad("drv", driverControls);
         addGamepad("opr", operatorControls);
@@ -80,6 +81,10 @@ public class StatsDMetricSampler implements MetricsSampler {
         } catch (Exception ex) {
             throw new RuntimeException("Can't open statsd client", ex);
         }
+    }
+
+    public StatsDMetricSampler(HardwareMap hardwareMap, NinjaGamePad driverControls, NinjaGamePad operatorControls) {
+        this(hardwareMap, driverControls, operatorControls, false);
     }
 
     @Override
@@ -109,12 +114,15 @@ public class StatsDMetricSampler implements MetricsSampler {
         gaugeSources.add(metricSource);
     }
 
-    private void addAllByHardwareMap() {
+    private void addAllByHardwareMap(final boolean sampleDistanceSensors) {
         addDcMotors();
         addVoltages();
         addDigitalChannels();
         addServos();
-        //addDistanceSensors();
+
+        if (sampleDistanceSensors) {
+            addDistanceSensors();
+        }
     }
 
     @Override
