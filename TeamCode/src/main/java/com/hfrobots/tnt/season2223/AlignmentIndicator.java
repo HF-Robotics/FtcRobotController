@@ -38,12 +38,10 @@ class AlignmentIndicator {
         rightLed = new RevLedIndicator(hardwareMap, "rightConeLed");
     }
 
-    public void distancesToLights(final double leftDistanceMm,
-                                  final double centerDistanceMm,
-                                  final double rightDistanceMm) {
-        doIndicator(leftDistanceMm, leftLed);
-        doIndicator(centerDistanceMm, centerLed);
-        doIndicator(rightDistanceMm, rightLed);
+    public void distancesToLights(final ConeLocalizer.ConeDistances coneDistances) {
+        doIndicator(coneDistances.getLeftDistanceMm(), leftLed);
+        doIndicator(coneDistances.getCenterDistanceMm(), centerLed);
+        doIndicator(coneDistances.getRightDistanceMm(), rightLed);
     }
 
     private void doIndicator(final double distanceMm,
