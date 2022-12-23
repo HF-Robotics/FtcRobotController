@@ -75,7 +75,7 @@ public class LiftMechanism {
     private static final double PID_OUTPUT_LOWER_LIMIT_MIN = -.02; // FIXME: Needs tuned - or disabled
     private static final double PID_OUTPUT_LOWER_LIMIT_MAX = 1;
 
-    public static LiftMechanism fromHardwareMap(final HardwareMap hardwareMap,
+    public static LiftMechanismBuilder builderFromHardwareMap(final HardwareMap hardwareMap,
                                                 final Telemetry telemetry) {
         DigitalChannel lowerLimit = hardwareMap.get(DigitalChannel.class, "lowLimitSwitch");
         DigitalChannel higherLimit = hardwareMap.get(DigitalChannel.class, "highLimitSwitch");
@@ -85,7 +85,7 @@ public class LiftMechanism {
         return LiftMechanism.builder().liftMotor(NinjaMotor.asNeverest20(liftMotor))
                 .lowerLiftLimit(lowerLimit)
                 .upperLiftLimit(higherLimit)
-                .telemetry(telemetry).build();
+                .telemetry(telemetry);
     }
 
     @Setter
@@ -119,6 +119,8 @@ public class LiftMechanism {
 
     private State currentState;
 
+    private final Gripper gripper;
+
     @Builder
     public LiftMechanism(final RangeInput liftThrottle,
                          final DebouncedButton liftUpperLimitButton,
@@ -129,6 +131,7 @@ public class LiftMechanism {
                          final ExtendedDcMotor liftMotor,
                          final DigitalChannel upperLiftLimit,
                          final DigitalChannel lowerLiftLimit,
+                         final Gripper gripper,
                          final Telemetry telemetry,
                          final OnOffButton limitOverrideButton) {
         this.liftThrottle = liftThrottle;
@@ -147,6 +150,8 @@ public class LiftMechanism {
 
         this.liftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         this.liftMotor.resetLogicalEncoderCount();
+
+        this.gripper = gripper;
 
         this.upperLiftLimit = upperLiftLimit;
 
@@ -556,6 +561,8 @@ public class LiftMechanism {
 
     class LiftGoLowerLimitState extends LiftClosedLoopState {
 
+        int leavingFromPosition = LIFT_UPPER_LIMIT_ENCODER_POS;
+
         LiftGoLowerLimitState(Telemetry telemetry) {
             super("Lift-auto-bot", telemetry, TimeUnit.SECONDS.toMillis(AUTO_STALL_TIMEOUT_SECONDS)); // FIXME
         }
@@ -585,20 +592,30 @@ public class LiftMechanism {
 
                 pidController.setOutputRange(PID_OUTPUT_LOWER_LIMIT_MIN, PID_OUTPUT_LOWER_LIMIT_MAX); // fix slamming while descending
                 pidController.setAbsoluteSetPoint(true); // MM
+                int currentPosition = liftMotor.getCurrentPosition();
+
                 pidController.setTarget(LIFT_LOWER_LIMIT_ENCODER_POS,
-                        liftMotor.getCurrentPosition());
+                        currentPosition);
+
+                leavingFromPosition = currentPosition;
+
+                gripper.close();
 
                 initialized = true;
             }
 
             // closed loop control based on motor encoders
 
-            double pidOutput = pidController.getOutput(liftMotor.getCurrentPosition());
+            int currentPosition = liftMotor.getCurrentPosition();
+
+            double pidOutput = pidController.getOutput(currentPosition);
 
             if (pidController.isOnTarget()) {
                 Log.d(LOG_TAG, "Lift reached lower target");
 
                 liftMotor.setPower(ANTIGRAVITY_FEED_FORWARD);
+
+                gripper.open();
 
                 return transitionToState(atLowerLimitState);
             }
@@ -607,6 +624,9 @@ public class LiftMechanism {
                 stopLift();
 
                 liftMotor.resetLogicalEncoderCount();
+
+                gripper.open();
+
                 return transitionToState(atLowerLimitState);
             }
 

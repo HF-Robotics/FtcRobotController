@@ -83,14 +83,15 @@ public class PowerPlayDriverControlled extends OpMode {
         DigitalChannel lowerLimit = hardwareMap.get(DigitalChannel.class, "lowLimitSwitch");
         DigitalChannel higherLimit = hardwareMap.get(DigitalChannel.class, "highLimitSwitch");
 
-        liftMechanism = LiftMechanism.builder().liftMotor(NinjaMotor.asNeverest20(liftMotor))
-                .lowerLiftLimit(lowerLimit)
-                .upperLiftLimit(higherLimit)
-                .telemetry(telemetry).build();
-
         Servo gripperServo = hardwareMap.get(Servo.class, "gripperServo");
 
         gripper = new Gripper(gripperServo);
+
+        liftMechanism = LiftMechanism.builder().liftMotor(NinjaMotor.asNeverest20(liftMotor))
+                .gripper(gripper)
+                .lowerLiftLimit(lowerLimit)
+                .upperLiftLimit(higherLimit)
+                .telemetry(telemetry).build();
 
         operatorControls = OperatorControls.builder().operatorGamepad(operatorGamepad)
                 .liftMechanism(liftMechanism)
