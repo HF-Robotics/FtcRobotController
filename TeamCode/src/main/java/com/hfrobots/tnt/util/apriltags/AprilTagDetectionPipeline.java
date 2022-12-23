@@ -40,6 +40,8 @@ import org.openftc.apriltag.AprilTagDetectorJNI;
 import org.openftc.easyopencv.OpenCvPipeline;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 class AprilTagDetectionPipeline extends OpenCvPipeline
@@ -91,7 +93,7 @@ class AprilTagDetectionPipeline extends OpenCvPipeline
         constructMatrix();
 
         // Allocate a native context object. See the corresponding deletion in the finalizer
-        nativeApriltagPtr = AprilTagDetectorJNI.createApriltagDetector(AprilTagDetectorJNI.TagFamily.TAG_36h11.string, 3, 3);
+        nativeApriltagPtr = AprilTagDetectorJNI.createApriltagDetector(AprilTagDetectorJNI.TagFamily.TAG_16h5.string, 1, 3);
     }
 
     @Override
@@ -113,6 +115,8 @@ class AprilTagDetectionPipeline extends OpenCvPipeline
     @Override
     public Mat processFrame(Mat input)
     {
+        Map<Integer, Integer> idCounts = new HashMap<>();
+
         Stopwatch timer = Stopwatch.createStarted();
 
         // Convert to greyscale
@@ -132,16 +136,17 @@ class AprilTagDetectionPipeline extends OpenCvPipeline
 
         long pipelineTimeMicros = timer.elapsed(TimeUnit.MICROSECONDS);
 
-        if(detections.size() != 0) {
-            boolean tagFound = false;
-
+        if (detections.size() != 0) {
             for (AprilTagDetection tag : detections) {
-                if (tag.id == AprilTagAutoDemo.ID_TAG_OF_INTEREST) {
+                Integer count = idCounts.get(tag.id);
 
-                    stats.addValue(pipelineTimeMicros);
-
-                    break;
+                if (count == null) {
+                    count = 1;
+                } else {
+                    count++;
                 }
+
+                idCounts.put(tag.id, count);
             }
         }
 
@@ -159,7 +164,20 @@ class AprilTagDetectionPipeline extends OpenCvPipeline
             draw3dCubeMarker(input, tagsizeX, tagsizeX, tagsizeY, 5, pose.rvec, pose.tvec, cameraMatrix);
         }
 
-        telemetry.addLine("P95 time (ms)" + stats.getPercentile(95) / 1000);
+        StringBuilder countsByTag = new StringBuilder();
+
+        for (Map.Entry<Integer, Integer> entry : idCounts.entrySet()) {
+            if (countsByTag.length() > 0) {
+                countsByTag.append(", ");
+            }
+
+            countsByTag.append(entry.getKey());
+            countsByTag.append("-> ");
+            countsByTag.append(entry.getValue());
+        }
+
+        telemetry.addData("Found", countsByTag.toString());
+        telemetry.addData("P95 time (ms)", stats.getPercentile(95) / 1000);
 
         return input;
     }
