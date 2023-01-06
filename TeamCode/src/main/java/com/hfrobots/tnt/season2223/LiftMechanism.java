@@ -60,11 +60,11 @@ public class LiftMechanism {
 
     private static final double ANTIGRAVITY_FEED_FORWARD = .24; // FIXME: needs adjusted for new lift setup
 
-    private static final int LIFT_SMALL_JUNCTION_ENCODER_POS = 473; // FIXME: Needs tuned
+    private static final int LIFT_SMALL_JUNCTION_ENCODER_POS = 707; // FIXME: Needs tuned
 
-    private static final int LIFT_MEDIUM_JUNCTION_ENCODER_POS = 857; // FIXME: Needs tuned
+    private static final int LIFT_MEDIUM_JUNCTION_ENCODER_POS = 1205; // FIXME: Needs tuned
 
-    private static final int LIFT_UPPER_LIMIT_ENCODER_POS = 1224; // FIXME: Needs tuned
+    private static final int LIFT_UPPER_LIMIT_ENCODER_POS = 1800; // FIXME: Needs tuned
 
     private static final int LIFT_LOWER_LIMIT_ENCODER_POS = 0;
 
