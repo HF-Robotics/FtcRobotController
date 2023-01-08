@@ -48,31 +48,148 @@ import lombok.Builder;
 import lombok.Setter;
 
 public class LiftMechanism {
-    private static final double LIFT_POWER_LEVEL = 1;
+    static abstract class MotorSpecificConstants {
+        double getAntigravityFeedForward() {
+            return .24;
+        }
 
-    private static final double K_P_UPPER_LIMIT = .008;
+        double getLiftPowerLevel() {
+            return 1;
+        }
 
-    private static final double K_P_LOWER_LIMIT = .0008;
+        double getKPUpperLimit() {
+            return .008;
+        }
 
-    private static final double K_P_SMALL_JUNCTION = .004;
+        double getKPLowerLimit() {
+            return .0008;
+        }
 
-    private static final double K_P_MEDIUM_JUNCTION = .004;
+        double getKPSmallJunction() {
+            return .004;
+        }
 
-    private static final double ANTIGRAVITY_FEED_FORWARD = .24; // FIXME: needs adjusted for new lift setup
+        double getKPMediumJunction() {
+            return .004;
+        }
 
-    private static final int LIFT_SMALL_JUNCTION_ENCODER_POS = 707; // FIXME: Needs tuned
+        double getOpenLoopDownPowerRatio() {
+            return .02;
+        }
 
-    private static final int LIFT_MEDIUM_JUNCTION_ENCODER_POS = 1205; // FIXME: Needs tuned
+        abstract int getLiftSmallJunctionEncoderPos();
 
-    private static final int LIFT_UPPER_LIMIT_ENCODER_POS = 1800; // FIXME: Needs tuned
+        abstract int getLiftMediumJunctionEncoderPos();
 
-    private static final int LIFT_LOWER_LIMIT_ENCODER_POS = 0;
+        abstract int getUpperLimitEncoderPos();
+
+        abstract int getLowerLimitEncoderPos();
+    }
+
+    @SuppressWarnings("unused")
+    private static class MotorConstants_19_1 extends MotorSpecificConstants {
+        private static final int LIFT_SMALL_JUNCTION_ENCODER_POS = 473;
+
+        private static final int LIFT_MEDIUM_JUNCTION_ENCODER_POS = 857;
+
+        private static final int LIFT_UPPER_LIMIT_ENCODER_POS = 1224;
+
+        private static final int LIFT_LOWER_LIMIT_ENCODER_POS = 0;
+
+        @Override
+        int getLiftSmallJunctionEncoderPos() {
+            return LIFT_SMALL_JUNCTION_ENCODER_POS;
+        }
+
+        @Override
+        int getLiftMediumJunctionEncoderPos() {
+            return LIFT_MEDIUM_JUNCTION_ENCODER_POS;
+        }
+
+        @Override
+        int getUpperLimitEncoderPos() {
+            return LIFT_UPPER_LIMIT_ENCODER_POS;
+        }
+
+        @Override
+        int getLowerLimitEncoderPos() {
+            return LIFT_LOWER_LIMIT_ENCODER_POS;
+        }
+    }
+
+    private static class MotorConstants_26_1 extends MotorSpecificConstants {
+
+        private static final int LIFT_SMALL_JUNCTION_ENCODER_POS = 850;
+
+        private static final int LIFT_MEDIUM_JUNCTION_ENCODER_POS = 1340;
+
+        private static final int LIFT_UPPER_LIMIT_ENCODER_POS = 1800;
+
+        private static final int LIFT_LOWER_LIMIT_ENCODER_POS = 0;
+
+        @Override
+        int getLiftSmallJunctionEncoderPos() {
+            return LIFT_SMALL_JUNCTION_ENCODER_POS;
+        }
+
+        @Override
+        int getLiftMediumJunctionEncoderPos() {
+            return LIFT_MEDIUM_JUNCTION_ENCODER_POS;
+        }
+
+        @Override
+        int getUpperLimitEncoderPos() {
+            return LIFT_UPPER_LIMIT_ENCODER_POS;
+        }
+
+        @Override
+        int getLowerLimitEncoderPos() {
+            return LIFT_LOWER_LIMIT_ENCODER_POS;
+        }
+    }
+
+    // Allows us to fall back to various known, working constants
+    // if we have to swap out a motor for a different type
+    private final static MotorSpecificConstants MOTOR_SPECIFIC_CONSTANTS
+            = new MotorConstants_26_1();
+
+    private static final double LIFT_POWER_LEVEL = MOTOR_SPECIFIC_CONSTANTS
+            .getLiftPowerLevel();
+
+    private static final double K_P_UPPER_LIMIT = MOTOR_SPECIFIC_CONSTANTS
+            .getKPUpperLimit();
+
+    private static final double K_P_LOWER_LIMIT = MOTOR_SPECIFIC_CONSTANTS
+            .getKPLowerLimit();
+
+    private static final double K_P_SMALL_JUNCTION = MOTOR_SPECIFIC_CONSTANTS
+            .getKPSmallJunction();
+
+    private static final double K_P_MEDIUM_JUNCTION = MOTOR_SPECIFIC_CONSTANTS
+            .getKPMediumJunction();
+
+    private static final double ANTIGRAVITY_FEED_FORWARD =
+            MOTOR_SPECIFIC_CONSTANTS.getAntigravityFeedForward();
+
+    private static final int LIFT_SMALL_JUNCTION_ENCODER_POS =
+            MOTOR_SPECIFIC_CONSTANTS.getLiftSmallJunctionEncoderPos();
+
+    private static final int LIFT_MEDIUM_JUNCTION_ENCODER_POS =
+            MOTOR_SPECIFIC_CONSTANTS.getLiftMediumJunctionEncoderPos();
+
+    private static final int LIFT_UPPER_LIMIT_ENCODER_POS =
+            MOTOR_SPECIFIC_CONSTANTS.getUpperLimitEncoderPos();
+
+    private static final int LIFT_LOWER_LIMIT_ENCODER_POS =
+            MOTOR_SPECIFIC_CONSTANTS.getLowerLimitEncoderPos();
 
     private static final int AUTO_STALL_TIMEOUT_SECONDS = 8;
 
-    private static final double OPEN_LOOP_DOWN_POWER_RATIO = .02;
+    private static final double OPEN_LOOP_DOWN_POWER_RATIO =
+            MOTOR_SPECIFIC_CONSTANTS.getOpenLoopDownPowerRatio();
 
     private static final double PID_OUTPUT_LOWER_LIMIT_MIN = -.02; // FIXME: Needs tuned - or disabled
+
     private static final double PID_OUTPUT_LOWER_LIMIT_MAX = 1;
 
     public static LiftMechanismBuilder builderFromHardwareMap(final HardwareMap hardwareMap,
