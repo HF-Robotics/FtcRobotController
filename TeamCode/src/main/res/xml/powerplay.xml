@@ -34,18 +34,26 @@ SOFTWARE.
             <Motor name="rightFrontDriveMotor" port="2" /> <!-- Yellow -->
             <Motor name="rightRearDriveMotor"  port="3" /> <!-- Green  -->
 
+            <Servo name="rightPointerServo"              port="5" />
 
         </LynxModule>
 
         <LynxModule name="Expansion Hub 3" port="2">
 
-            <Motor name="liftMotor"  port="0" /> <!-- Red    -->
+            <Motor name="liftMotor" port="0" /> <!-- Red    -->
+
             <Servo name="gripperServo"              port="0" />
+            <Servo name="leftPointerServo"          port="5" />
 
             <RevBlinkinLedDriver name="blinkin"     port="2" />
 
             <DigitalDevice name="lowLimitSwitch" port="1"/>
             <DigitalDevice name="highLimitSwitch" port="3"/>
+
+            <REV_VL53L0X_RANGE_SENSOR name="leftConeDistanceSensor" port="0" bus="3" />
+            <REV_VL53L0X_RANGE_SENSOR name="centerConeDistanceSensor" port="0" bus="2" />
+            <REV_VL53L0X_RANGE_SENSOR name="rightConeDistanceSensor" port="0" bus="1" />
+
         </LynxModule>
     </LynxUsbDevice>
 </Robot>

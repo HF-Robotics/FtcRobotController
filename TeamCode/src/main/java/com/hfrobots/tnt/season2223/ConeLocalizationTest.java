@@ -48,10 +48,10 @@ public class ConeLocalizationTest extends OpMode {
     @Override
     public void init() {
         legacyMetricsSampler = new StatsDMetricSampler(hardwareMap,
-                new NinjaGamePad(gamepad1), new NinjaGamePad(gamepad2));
+                new NinjaGamePad(gamepad1), new NinjaGamePad(gamepad2), true);
 
         coneLocalizer = new ConeLocalizer(hardwareMap);
-        alignmentIndicator = new AlignmentIndicator(hardwareMap);
+        alignmentIndicator = new AlignmentIndicator(hardwareMap, gamepad1, gamepad2);
 
         allHubs = hardwareMap.getAll(LynxModule.class);
 
@@ -69,7 +69,7 @@ public class ConeLocalizationTest extends OpMode {
 
         ConeLocalizer.ConeDistances coneDistances = coneLocalizer.getConeDistances();
 
-        alignmentIndicator.distancesToLights(coneDistances);
+        alignmentIndicator.distancesToIndicators(coneDistances);
 
         if (legacyMetricsSampler != null) {
             legacyMetricsSampler.doSamples();

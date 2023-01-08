@@ -23,25 +23,112 @@
 package com.hfrobots.tnt.season2223;
 
 import com.hfrobots.tnt.corelib.sensors.RevLedIndicator;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 class AlignmentIndicator {
-    private final RevLedIndicator leftLed;
+    private final Servo leftPointerServo;
 
-    private final RevLedIndicator centerLed;
+    private final Servo rightPointerServo;
 
-    private final RevLedIndicator rightLed;
+    private final static double LEFT_POINT_POSITION = .4;
 
-    public AlignmentIndicator(final HardwareMap hardwareMap) {
-        leftLed = new RevLedIndicator(hardwareMap, "leftConeLed");
-        centerLed = new RevLedIndicator(hardwareMap, "centerConeLed");
-        rightLed = new RevLedIndicator(hardwareMap, "rightConeLed");
+    private final static double RIGHT_POINT_POSITION = .6;
+
+    private final static double MAX_RANGE_MM = 150;
+
+    private final static double GRAB_MAX_RANGE_MM = 100;
+
+    private final static double GRAB_MIN_RANGE_MM = 40;
+
+    private final Gamepad driverGamepad;
+
+    private final Gamepad operatorGamepad;
+
+    public AlignmentIndicator(final HardwareMap hardwareMap, Gamepad driverGamepad, Gamepad operatorGameped) {
+        leftPointerServo = hardwareMap.get(Servo.class, "leftPointerServo");
+        rightPointerServo = hardwareMap.get(Servo.class, "rightPointerServo");
+
+        this.driverGamepad = driverGamepad;
+        this.operatorGamepad = operatorGameped;
+
+        pointServosCenter();
     }
 
-    public void distancesToLights(final ConeLocalizer.ConeDistances coneDistances) {
-        doIndicator(coneDistances.getLeftDistanceMm(), leftLed);
-        doIndicator(coneDistances.getCenterDistanceMm(), centerLed);
-        doIndicator(coneDistances.getRightDistanceMm(), rightLed);
+    public void pointServosCenter() {
+        leftPointerServo.setPosition(.5);
+        rightPointerServo.setPosition(.5);
+    }
+
+    public void distancesToIndicators(final ConeLocalizer.ConeDistances coneDistances) {
+        if (!coneDistances.isDistanceSensorsWorking()) {
+            indicateBrokenSensors();
+
+            return;
+        }
+
+        double leftDistanceMm = coneDistances.getLeftDistanceMm();
+        double rightDistanceMm = coneDistances.getRightDistanceMm();
+        double centerDistanceMm = coneDistances.getCenterDistanceMm();
+
+        double absoluteDifferenceMm = Math.abs(rightDistanceMm - leftDistanceMm);
+
+        if (centerDistanceMm > MAX_RANGE_MM) {
+            pointServosCenter();
+
+            return;
+        }
+
+        if (absoluteDifferenceMm > 10) {
+            if (rightDistanceMm > leftDistanceMm) {
+                // indicate right
+
+                pointRight(absoluteDifferenceMm);
+
+            } else if (rightDistanceMm < leftDistanceMm) {
+                // indicate left
+                pointLeft(absoluteDifferenceMm);
+
+            }
+        } else {
+            pointServosCenter();
+
+            if (centerDistanceMm <= GRAB_MAX_RANGE_MM && centerDistanceMm >= GRAB_MIN_RANGE_MM) {
+                driverGamepad.rumbleBlips(1);
+                operatorGamepad.rumbleBlips(2);
+            }
+        }
+    }
+
+    private void pointLeft(double absoluteDifferenceMm) {
+        double differenceFromCenter =  0.5 - LEFT_POINT_POSITION;
+        double positionRange = differenceFromCenter / 40;
+        double position = 0.5 - absoluteDifferenceMm * positionRange;
+
+        if (position < LEFT_POINT_POSITION) {
+            position = LEFT_POINT_POSITION;
+        }
+
+        rightPointerServo.setPosition(position);
+        leftPointerServo.setPosition(position);
+    }
+
+    private void pointRight(double absoluteDifferenceMm) {
+        double differenceFromCenter =  RIGHT_POINT_POSITION - .5;
+        double positionRange = differenceFromCenter / 40;
+        double position = 0.5 + absoluteDifferenceMm * positionRange;
+
+        if (position > RIGHT_POINT_POSITION) {
+            position = RIGHT_POINT_POSITION;
+        }
+
+        rightPointerServo.setPosition(position);
+        leftPointerServo.setPosition(position);
+    }
+
+    private void indicateBrokenSensors() {
+
     }
 
     private void doIndicator(final double distanceMm,
