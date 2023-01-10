@@ -27,6 +27,7 @@ import static com.ftc9929.corelib.Constants.LOG_TAG;
 import android.util.Log;
 
 import com.ftc9929.corelib.control.NinjaGamePad;
+import com.hfrobots.tnt.corelib.control.RumbleTarget;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -51,7 +52,8 @@ public class ConeLocalizationTest extends OpMode {
                 new NinjaGamePad(gamepad1), new NinjaGamePad(gamepad2), true);
 
         coneLocalizer = new ConeLocalizer(hardwareMap);
-        alignmentIndicator = new AlignmentIndicator(hardwareMap, gamepad1, gamepad2);
+        alignmentIndicator = new AlignmentIndicator(hardwareMap, new RumbleTarget(gamepad1),
+                new RumbleTarget(gamepad2));
 
         allHubs = hardwareMap.getAll(LynxModule.class);
 

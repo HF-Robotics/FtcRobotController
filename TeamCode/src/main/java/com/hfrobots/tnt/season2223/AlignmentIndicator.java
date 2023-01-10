@@ -22,8 +22,7 @@
 
 package com.hfrobots.tnt.season2223;
 
-import com.hfrobots.tnt.corelib.sensors.RevLedIndicator;
-import com.qualcomm.robotcore.hardware.Gamepad;
+import com.hfrobots.tnt.corelib.control.RumbleTarget;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -42,21 +41,26 @@ class AlignmentIndicator {
 
     private final static double GRAB_MIN_RANGE_MM = 40;
 
-    private final Gamepad driverGamepad;
+    private final RumbleTarget driverRumble;
 
-    private final Gamepad operatorGamepad;
+    private final RumbleTarget operatorRumble;
 
-    public AlignmentIndicator(final HardwareMap hardwareMap, Gamepad driverGamepad, Gamepad operatorGameped) {
+    public AlignmentIndicator(final HardwareMap hardwareMap, RumbleTarget driverRumble,
+                              RumbleTarget operatorRumble) {
         leftPointerServo = hardwareMap.get(Servo.class, "leftPointerServo");
         rightPointerServo = hardwareMap.get(Servo.class, "rightPointerServo");
 
-        this.driverGamepad = driverGamepad;
-        this.operatorGamepad = operatorGameped;
+        this.driverRumble = driverRumble;
+        this.operatorRumble = operatorRumble;
 
         pointServosCenter();
     }
 
-    public void pointServosCenter() {
+    public void indicateInactive() {
+        pointServosCenter();
+    }
+
+    private void pointServosCenter() {
         leftPointerServo.setPosition(.5);
         rightPointerServo.setPosition(.5);
     }
@@ -86,61 +90,37 @@ class AlignmentIndicator {
 
                 pointRight(absoluteDifferenceMm);
 
+                return;
+
             } else if (rightDistanceMm < leftDistanceMm) {
                 // indicate left
                 pointLeft(absoluteDifferenceMm);
 
+                return;
             }
         } else {
             pointServosCenter();
 
             if (centerDistanceMm <= GRAB_MAX_RANGE_MM && centerDistanceMm >= GRAB_MIN_RANGE_MM) {
-                driverGamepad.rumbleBlips(1);
-                operatorGamepad.rumbleBlips(2);
+                driverRumble.rumbleBlips(1);
+                operatorRumble.rumbleBlips(1);
             }
         }
     }
 
     private void pointLeft(double absoluteDifferenceMm) {
-        double differenceFromCenter =  0.5 - LEFT_POINT_POSITION;
-        double positionRange = differenceFromCenter / 40;
-        double position = 0.5 - absoluteDifferenceMm * positionRange;
 
-        if (position < LEFT_POINT_POSITION) {
-            position = LEFT_POINT_POSITION;
-        }
-
-        rightPointerServo.setPosition(position);
-        leftPointerServo.setPosition(position);
+        rightPointerServo.setPosition(LEFT_POINT_POSITION);
+        leftPointerServo.setPosition(LEFT_POINT_POSITION);
     }
 
     private void pointRight(double absoluteDifferenceMm) {
-        double differenceFromCenter =  RIGHT_POINT_POSITION - .5;
-        double positionRange = differenceFromCenter / 40;
-        double position = 0.5 + absoluteDifferenceMm * positionRange;
-
-        if (position > RIGHT_POINT_POSITION) {
-            position = RIGHT_POINT_POSITION;
-        }
-
-        rightPointerServo.setPosition(position);
-        leftPointerServo.setPosition(position);
+        rightPointerServo.setPosition(RIGHT_POINT_POSITION);
+        leftPointerServo.setPosition(RIGHT_POINT_POSITION);
     }
 
     private void indicateBrokenSensors() {
-
-    }
-
-    private void doIndicator(final double distanceMm,
-                             final RevLedIndicator indicator) {
-        if (distanceMm < 50) {
-            indicator.setColor(RevLedIndicator.LedColor.GREEN);
-        } else if (distanceMm < 100) {
-            indicator.setColor(RevLedIndicator.LedColor.AMBER);
-        } else if (distanceMm < 300) {
-            indicator.setColor(RevLedIndicator.LedColor.RED);
-        } else {
-            indicator.setColor(RevLedIndicator.LedColor.OFF);
-        }
+        rightPointerServo.setPosition(RIGHT_POINT_POSITION);
+        leftPointerServo.setPosition(LEFT_POINT_POSITION);
     }
 }

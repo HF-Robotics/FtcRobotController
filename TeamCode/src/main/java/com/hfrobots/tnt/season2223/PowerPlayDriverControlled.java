@@ -30,6 +30,7 @@ import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.metrics.RobotMetricsSampler;
 import com.ftc9929.metrics.StatsdMetricsReporter;
 import com.google.common.base.Ticker;
+import com.hfrobots.tnt.corelib.control.RumbleTarget;
 import com.hfrobots.tnt.corelib.drive.NinjaMotor;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -63,6 +64,8 @@ public class PowerPlayDriverControlled extends OpMode {
     private Gripper gripper;
 
     private PowerPlayDriveTeamSignal driveTeamSignal;
+
+    private ConeAndJunctionAlignment coneAndJunctionAlignment;
 
     @Override
     public void init() {
@@ -106,6 +109,13 @@ public class PowerPlayDriverControlled extends OpMode {
         setupMetricsSampler(driversGamepad, operatorGamepad);
 
         allHubs = hardwareMap.getAll(LynxModule.class);
+
+        coneAndJunctionAlignment = ConeAndJunctionAlignment.builder().hardwareMap(hardwareMap)
+                .doConeAlignment(driversGamepad.getLeftBumper())
+                .doJunctionAlignment(driversGamepad.getRightBumper())
+                .driverRumble(new RumbleTarget(gamepad1))
+                .operatorRumble(new RumbleTarget(gamepad2))
+                .build();
 
         for (LynxModule hub : allHubs) {
             Log.d(LOG_TAG, String.format("Setting hub %s to BulkCachingMode.MANUAL", hub));
@@ -157,6 +167,8 @@ public class PowerPlayDriverControlled extends OpMode {
 
         driverControls.periodicTask();
         operatorControls.periodicTask();
+
+        coneAndJunctionAlignment.periodicTask();
 
         if (useLegacyMetricsSampler) {
             if (legacyMetricsSampler != null) {
