@@ -412,6 +412,11 @@ public class PowerPlayAuto extends OpMode {
         SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
         sequence.addSequential(detectState);
 
+        sequence.addSequential(new RunnableState("Ensure cone gripped", telemetry,
+                gripper::close));
+
+        sequence.addWaitStep("Wait for gripper", 500, TimeUnit.MILLISECONDS);
+
         sequence.addSequential(new RunnableState("Lift cone", telemetry,
                 () -> goSmallJunctionAutoButton.setPressed(true)));
 
