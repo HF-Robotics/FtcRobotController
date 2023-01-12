@@ -27,8 +27,9 @@ import com.hfrobots.tnt.corelib.control.RumbleTarget;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import lombok.Builder;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+import lombok.Builder;
 
 public class ConeAndJunctionAlignment implements PeriodicTask {
     private final AlignmentIndicator alignmentIndicator;
@@ -44,16 +45,19 @@ public class ConeAndJunctionAlignment implements PeriodicTask {
     private final RumbleTarget operatorRumble;
 
     @Builder
-    private ConeAndJunctionAlignment(final HardwareMap hardwareMap, final OnOffButton doConeAlignment,
+    private ConeAndJunctionAlignment(final HardwareMap hardwareMap,
+                                     final OnOffButton doConeAlignment,
                                      final OnOffButton doJunctionAlignment,
                                      final RumbleTarget driverRumble,
-                                     final RumbleTarget operatorRumble) {
+                                     final RumbleTarget operatorRumble,
+                                     final Telemetry telemetry) {
         this.driverRumble = driverRumble;
         this.operatorRumble = operatorRumble;
-        alignmentIndicator = new AlignmentIndicator(hardwareMap, this.driverRumble, this.operatorRumble);
-        coneLocalizer = new ConeLocalizer(hardwareMap);
         this.doConeAlignment = doConeAlignment;
         this.doJunctionAlignment = doJunctionAlignment;
+
+        alignmentIndicator = new AlignmentIndicator(hardwareMap, this.driverRumble, this.operatorRumble, telemetry);
+        coneLocalizer = new ConeLocalizer(hardwareMap);
     }
 
     @Override

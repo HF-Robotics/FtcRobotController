@@ -23,8 +23,11 @@
 package com.hfrobots.tnt.season2223;
 
 import com.hfrobots.tnt.corelib.control.RumbleTarget;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 class AlignmentIndicator {
     private final Servo leftPointerServo;
@@ -33,7 +36,7 @@ class AlignmentIndicator {
 
     private final static double LEFT_POINT_POSITION = .4;
 
-    private final static double RIGHT_POINT_POSITION = .6;
+    private final static double RIGHT_POINT_POSITION = .62;
 
     private final static double MAX_RANGE_MM = 150;
 
@@ -45,13 +48,17 @@ class AlignmentIndicator {
 
     private final RumbleTarget operatorRumble;
 
+    private final Telemetry telemetry;
+
     public AlignmentIndicator(final HardwareMap hardwareMap, RumbleTarget driverRumble,
-                              RumbleTarget operatorRumble) {
+                              RumbleTarget operatorRumble,
+                              Telemetry telemetry) {
         leftPointerServo = hardwareMap.get(Servo.class, "leftPointerServo");
         rightPointerServo = hardwareMap.get(Servo.class, "rightPointerServo");
 
         this.driverRumble = driverRumble;
         this.operatorRumble = operatorRumble;
+        this.telemetry = telemetry;
 
         pointServosCenter();
     }
@@ -89,6 +96,7 @@ class AlignmentIndicator {
                 // indicate right
 
                 pointRight(absoluteDifferenceMm);
+
 
                 return;
 

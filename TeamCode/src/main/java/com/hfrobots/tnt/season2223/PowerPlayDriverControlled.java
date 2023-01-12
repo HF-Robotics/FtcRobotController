@@ -111,10 +111,11 @@ public class PowerPlayDriverControlled extends OpMode {
         allHubs = hardwareMap.getAll(LynxModule.class);
 
         coneAndJunctionAlignment = ConeAndJunctionAlignment.builder().hardwareMap(hardwareMap)
-                .doConeAlignment(driversGamepad.getLeftBumper())
-                .doJunctionAlignment(driversGamepad.getRightBumper())
+                .doConeAlignment(driversGamepad.getRightBumper())
+                .doJunctionAlignment(driversGamepad.getLeftBumper())
                 .driverRumble(new RumbleTarget(gamepad1))
                 .operatorRumble(new RumbleTarget(gamepad2))
+                .telemetry(telemetry)
                 .build();
 
         for (LynxModule hub : allHubs) {

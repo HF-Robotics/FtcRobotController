@@ -53,7 +53,7 @@ public class ConeLocalizationTest extends OpMode {
 
         coneLocalizer = new ConeLocalizer(hardwareMap);
         alignmentIndicator = new AlignmentIndicator(hardwareMap, new RumbleTarget(gamepad1),
-                new RumbleTarget(gamepad2));
+                new RumbleTarget(gamepad2), telemetry);
 
         allHubs = hardwareMap.getAll(LynxModule.class);
 
