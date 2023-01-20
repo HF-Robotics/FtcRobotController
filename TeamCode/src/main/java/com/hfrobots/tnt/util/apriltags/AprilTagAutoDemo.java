@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 @TeleOp
+@Disabled
 public class AprilTagAutoDemo extends LinearOpMode
 {
     OpenCvCamera camera;

@@ -35,7 +35,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import java.util.List;
 
-@TeleOp
+@TeleOp(group="Utilities")
 public class ConeLocalizationTest extends OpMode {
 
     private AlignmentIndicator alignmentIndicator;
