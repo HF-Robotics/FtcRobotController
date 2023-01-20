@@ -84,6 +84,10 @@ public class DriverControls implements PeriodicTask {
 
     protected OnOffButton strafePriorityButton;
 
+    protected OnOffButton fineStrafeLeft;
+
+    protected OnOffButton fineStrafeRight;
+
     private NinjaGamePad driversGamepad;
 
     private OpenLoopMecanumKinematics kinematics;
@@ -191,6 +195,8 @@ public class DriverControls implements PeriodicTask {
         driveFastButton = new RangeInputButton(leftTrigger, 0.65f);
         driveInvertedButton = new RangeInputButton(rightTrigger, 0.65f);
         strafePriorityButton = driversGamepad.getYButton();
+        fineStrafeLeft = driversGamepad.getDpadLeft();
+        fineStrafeRight = driversGamepad.getDpadRight();
     }
 
     private boolean gripUpFirstTime = false;
@@ -219,8 +225,17 @@ public class DriverControls implements PeriodicTask {
         }
 
         if (strafePriorityButton.isPressed()) {
+            ((Drivebase)kinematics).useEncoders();
             y = 0;
             rot = 0;
+        } else if (fineStrafeLeft.isPressed()) {
+            ((Drivebase)kinematics).useEncoders();
+            x = -.1;
+        } else if (fineStrafeRight.isPressed()) {
+            ((Drivebase)kinematics).useEncoders();
+            x = .1;
+        } else {
+            ((Drivebase) kinematics).dontUseEncoders();
         }
 
         double xScaled = x;

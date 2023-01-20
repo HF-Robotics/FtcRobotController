@@ -58,4 +58,18 @@ public class Drivebase extends OpenLoopMecanumKinematics {
         leftFrontDriveMotor.setPower(wheelSpeeds.getLeftFront());
         leftRearDriveMotor.setPower(wheelSpeeds.getLeftRear());
     }
+
+    protected void useEncoders() {
+        leftFrontDriveMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftRearDriveMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightFrontDriveMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightRearDriveMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+    protected void dontUseEncoders() {
+        leftFrontDriveMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftRearDriveMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightFrontDriveMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightRearDriveMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
 }
