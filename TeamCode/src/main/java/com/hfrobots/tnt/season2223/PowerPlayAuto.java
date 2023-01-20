@@ -26,6 +26,8 @@ import static com.ftc9929.corelib.Constants.LOG_TAG;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.control.RangeInput;
@@ -50,10 +52,12 @@ import com.hfrobots.tnt.season2223.pipelines.ColorSignalDetectorPipeline;
 import com.hfrobots.tnt.season2223.pipelines.CyanGripPipeline;
 import com.hfrobots.tnt.season2223.pipelines.GreenGripPipeline;
 import com.hfrobots.tnt.season2223.pipelines.PinkGripPipeline;
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
 
 import java.util.Set;
@@ -92,7 +96,8 @@ public class PowerPlayAuto extends OpMode {
 
     // The routes our robot knows how to do - rename these to something meaningful for the season!
     private enum Routes {
-        DETECT_SIGNAL("Detect Signal");
+        DETECT_SIGNAL("Detect Signal"),
+        SCORE_PRELOAD("Score Preload");
 
         final String description;
 
@@ -117,6 +122,10 @@ public class PowerPlayAuto extends OpMode {
     private int initialDelaySeconds = 0;
 
     private PowerPlayDriveTeamSignal driveTeamSignal;
+
+    private Rev2mDistanceSensor leftSideDistanceSensor = null;
+
+    private Rev2mDistanceSensor rightSideDistanceSensor = null;
 
     @Override
     public void init() {
@@ -307,6 +316,9 @@ public class PowerPlayAuto extends OpMode {
                     case DETECT_SIGNAL:
                         setupRouteChoiceDetected();
                         break;
+                    case SCORE_PRELOAD:
+                        setupRouteChoiceDetectAndScorePreload();
+                        break;
                     default:
                         stateMachine.addSequential(newDoneState("Default done"));
                         break;
@@ -343,6 +355,64 @@ public class PowerPlayAuto extends OpMode {
 
     protected void setupRouteChoiceDetected() {
 
+        final State detectState = createSignalDetectorState();
+
+        final State moveRobot = new MultipleTrajectoriesFollowerState("Move robot",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected void createTrajectoryProviders() {
+                switch (detectedLocation) {
+                    case LOCATION_ONE: {
+                        addTrajectoryProvider("Off wall", (t) -> t.forward(3));
+                        addTrajectoryProvider("Align with location", (t) -> t.strafeLeft(29 - 3));
+                        addTrajectoryProvider("Into location", (t) -> t.forward(24 + 15));
+                        break;
+                    }
+                    case LOCATION_TWO: {
+                        // needs to be even further!!!
+                        addTrajectoryProvider("Off wall 1", (t) -> t.forward(12));
+                        addTrajectoryProvider("Off wall 2", (t) -> t.forward(12 + 4));
+                        addTrajectoryProvider("Push signal", (t) -> t.forward(4 + 4));
+                        addTrajectoryProvider("Retreat from signal", (t) -> t.back(8));
+                        break;
+                    }
+                    case LOCATION_THREE: {
+                        addTrajectoryProvider("Off wall", (t) -> t.forward(3));
+                        addTrajectoryProvider("Align with location", (t) -> t.strafeRight(29 - 3));
+                        addTrajectoryProvider("Into location", (t) -> t.forward(24 + 15));
+                        break;
+                    }
+                }
+            }
+        };
+
+        final SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
+        sequence.addSequential(detectState);
+
+        sequence.addSequential(new RunnableState("Ensure cone gripped", telemetry,
+                gripper::close));
+
+        sequence.addWaitStep("Wait for gripper", 500, TimeUnit.MILLISECONDS);
+
+        sequence.addSequential(new RunnableState("Lift cone", telemetry,
+                () -> goSmallJunctionAutoButton.setPressed(true)));
+
+        sequence.addWaitStep("wait on cone", 1, TimeUnit.SECONDS);
+
+        sequence.addSequential(new RunnableState("Clear lift cone", telemetry,
+                () -> goSmallJunctionAutoButton.setPressed(false)));
+
+        sequence.addSequential(moveRobot);
+
+        sequence.addSequential(new RunnableState("Move cone down", telemetry,
+                () -> liftToBottom.setPressed(true)));
+
+        sequence.addSequential(newDoneState("Done!"));
+        stateMachine.addSequence(sequence);
+    }
+
+    @NonNull
+    private State createSignalDetectorState() {
         State detectState = new StopwatchTimeoutSafetyState("Detect Signal",
                 telemetry, ticker, 5000) {
             @Override
@@ -379,37 +449,60 @@ public class PowerPlayAuto extends OpMode {
                 return this;
             }
         };
+        return detectState;
+    }
 
-        State moveRobot = new MultipleTrajectoriesFollowerState("Move robot",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected void createTrajectoryProviders() {
-                switch (detectedLocation) {
-                    case LOCATION_ONE: {
-                        addTrajectoryProvider("Off wall", (t) -> t.forward(3));
-                        addTrajectoryProvider("Align with location", (t) -> t.strafeLeft(29 - 3));
-                        addTrajectoryProvider("Into location", (t) -> t.forward(24 + 15));
-                        break;
-                    }
-                    case LOCATION_TWO: {
-                        // needs to be even further!!!
-                        addTrajectoryProvider("Off wall 1", (t) -> t.forward(12));
-                        addTrajectoryProvider("Off wall 2", (t) -> t.forward(12 + 4));
-                        addTrajectoryProvider("Push signal", (t) -> t.forward(4 + 4));
-                        addTrajectoryProvider("Retreat from signal", (t) -> t.back(8));
-                        break;
-                    }
-                    case LOCATION_THREE: {
-                        addTrajectoryProvider("Off wall", (t) -> t.forward(3));
-                        addTrajectoryProvider("Align with location", (t) -> t.strafeRight(29 - 3));
-                        addTrajectoryProvider("Into location", (t) -> t.forward(24 + 15));
-                        break;
-                    }
+    enum Side {
+        LEFT, RIGHT, UNKNOWN;
+    }
+
+    protected void setupRouteChoiceDetectAndScorePreload() {
+        // Failsafe - run auto that doesn't require distance sensors
+        if (false) {
+            if (leftSideDistanceSensor == null || rightSideDistanceSensor == null) {
+                Log.e(LOG_TAG, "Missing or broken distance sensor, running navigation only auto");
+
+                setupRouteChoiceDetected();
+
+                return;
+            }
+
+            Side sideOfField = Side.UNKNOWN;
+
+            double distanceLeftIn = leftSideDistanceSensor.getDistance(DistanceUnit.INCH);
+            double distanceRightIn = rightSideDistanceSensor.getDistance(DistanceUnit.INCH);
+
+            if (distanceLeftIn < distanceRightIn) {
+                if (distanceLeftIn > 32 || distanceLeftIn < 21) {
+                    sideOfField = Side.UNKNOWN;
+                } else {
+                    sideOfField = Side.LEFT;
+                }
+            } else if (distanceLeftIn > distanceRightIn) {
+                if (distanceRightIn > 32 || distanceRightIn < 21) {
+                    sideOfField = Side.UNKNOWN;
+                } else {
+                    sideOfField = Side.RIGHT;
                 }
             }
-        };
 
-        SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
+            if (sideOfField == Side.UNKNOWN) {
+                Log.e(LOG_TAG, "Bad distances, sensor failure or bad setup, (L): "
+                        + distanceLeftIn + ", (R): " + distanceRightIn);
+                setupRouteChoiceDetected();
+
+                return;
+            }
+        }
+
+        // This is the same as navigation-only auto, later improvement
+        // to extract common method?
+
+        final State detectState = createSignalDetectorState();
+
+        final Side detectedSideOfField = Side.RIGHT /* sideOfField */;
+
+        final SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
         sequence.addSequential(detectState);
 
         sequence.addSequential(new RunnableState("Ensure cone gripped", telemetry,
@@ -425,9 +518,88 @@ public class PowerPlayAuto extends OpMode {
         sequence.addSequential(new RunnableState("Clear lift cone", telemetry,
                 () -> goSmallJunctionAutoButton.setPressed(false)));
 
-        sequence.addSequential(moveRobot);
+        // States to program:
+        //
+        // (1) Move the robot to the junction
+        //
+        // (2) Drop the cone
+        //
+        // (3) Wait a bit before moving again
+        //
+        // (4) Move the robot to the detected signal parking zone
 
-        sequence.addSequential(new RunnableState("Move cone down", telemetry,
+        // Example of how to move the robot
+        // (1) Move Robot to Junction
+        final State moveRobotToJunction = new MultipleTrajectoriesFollowerState("Move robot to junction",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected void createTrajectoryProviders() {
+                addTrajectoryProvider("Off wall", t -> t.forward(3));
+
+                if (detectedSideOfField == Side.LEFT) {
+                    addTrajectoryProvider("Align with location", t -> t.strafeRight(14.5));
+                } else { addTrajectoryProvider("Align with location", t -> t.strafeLeft(12.875));
+                    // Right side
+                }
+                addTrajectoryProvider( "Forward to Junction", t -> t.forward(8.75-3-2));
+            }
+        };
+
+        sequence.addSequential(moveRobotToJunction);
+        sequence.addSequential(new RunnableState("mic drop", telemetry,
+                gripper::open));
+
+        sequence.addWaitStep("Wait for gripper", 500, TimeUnit.MILLISECONDS);
+
+        final State moveRobotBackFromJunction = new MultipleTrajectoriesFollowerState(
+                "Move robot back from junction",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected void createTrajectoryProviders() {
+                addTrajectoryProvider("back it up", (t) -> t.back(2));
+            }
+        };
+
+        sequence.addSequential(moveRobotBackFromJunction);
+
+        final State moveRobotToCorrectZone = new MultipleTrajectoriesFollowerState(
+                "Move robot to detected zone",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected void createTrajectoryProviders() {
+                switch (detectedLocation) {
+                    case LOCATION_ONE: {
+                        addTrajectoryProvider("Align with location", (t) -> t.strafeLeft(26));
+                        addTrajectoryProvider("Into location", (t) -> t.forward(24 + 15));
+                        break;
+                    }
+                    case LOCATION_TWO: {
+                        // needs to be even further!!!
+                        if (detectedSideOfField == Side.LEFT) {
+                            addTrajectoryProvider("Align with Location", (t) -> t.strafeLeft(6.5));
+                        } else {
+                            addTrajectoryProvider("Align with location", (t) -> t.strafeRight(6.5));
+                        }
+                        addTrajectoryProvider("Off wall 1", (t) -> t.forward(12));
+                        addTrajectoryProvider("Off wall 2", (t) -> t.forward(12 + 4));
+                        addTrajectoryProvider("Push signal", (t) -> t.forward(4 + 4));
+                        addTrajectoryProvider("Retreat from signal", (t) -> t.back(8));
+                        break;
+                    }
+                    case LOCATION_THREE: {
+                        addTrajectoryProvider("Align with location", (t) -> t.strafeRight(11.75));
+                        addTrajectoryProvider("Into location", (t) -> t.forward(24 + 15));
+                        break;
+                    }
+                }
+            }
+        };
+
+        sequence.addSequential(moveRobotToCorrectZone);
+
+        // This is common end to auto
+
+        sequence.addSequential(new RunnableState("Move lift down", telemetry,
                 () -> liftToBottom.setPressed(true)));
 
         sequence.addSequential(newDoneState("Done!"));
