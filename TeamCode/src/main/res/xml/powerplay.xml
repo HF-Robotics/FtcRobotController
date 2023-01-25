@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
 <!--
-Copyright (c) 2021 HF Robotics (http://www.hfrobots.com)
+Copyright (c) 2021-Present HF Robotics (http://www.hfrobots.com)
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -20,6 +20,9 @@ SOFTWARE.
 <Robot type="FirstInspires-FTC">
     <!-- C310 with mount removed -->
     <Webcam name="webcam" serialNumber="7B2F4FD0" />
+
+    <!-- C310 "spare" camera -->
+    <!-- <Webcam name="webcam" serialNumber="8DED65C0" /> -->
 
     <!-- Control Hub #1 -->
 
