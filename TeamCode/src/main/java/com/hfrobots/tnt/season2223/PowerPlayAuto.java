@@ -85,6 +85,7 @@ public class PowerPlayAuto extends OpMode {
     private FakeOnOffButton goSmallJunctionAutoButton = new FakeOnOffButton();
 
     private FakeOnOffButton liftToBottom = new FakeOnOffButton();
+    private PowerPlayDriveConstants driveConstants;
 
     private enum LOCATION {
         LOCATION_ONE,
@@ -137,14 +138,23 @@ public class PowerPlayAuto extends OpMode {
 
         setupOperatorControls();
 
+        driveConstants = new PowerPlayDriveConstants();
         driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
-                new PowerPlayDriveConstants(),
+                driveConstants,
                 Optional.of(AxisDirection.POS_X));
 
         stateMachine = new StateMachine(telemetry);
 
         driveTeamSignal = new PowerPlayDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
+        try {
+            leftSideDistanceSensor = hardwareMap.get(Rev2mDistanceSensor.class, "leftDistanceSensor");
+            rightSideDistanceSensor = hardwareMap.get(Rev2mDistanceSensor.class, "rightDistanceSensor");;
+        } catch (Exception ex) {
+            // Don't attempt to use either
+            leftSideDistanceSensor = null;
+            rightSideDistanceSensor = null;
+        }
         setupOpenCvCameraAndPipeline();
     }
 
@@ -542,25 +552,47 @@ public class PowerPlayAuto extends OpMode {
                     // Right side
                 }
                 addTrajectoryProvider( "Forward to Junction", t -> t.forward(8.75-3-2));
+                addTrajectoryProvider("Scooch 1", t -> t.forward(2));
+                addTrajectoryProvider("Scooch 2", t -> t.forward(2));
+                addTrajectoryProvider("Scooch 3", t -> t.forward(2));
+                addTrajectoryProvider("Scooch 4", t -> t.back(4));
             }
         };
 
         sequence.addSequential(moveRobotToJunction);
+
+        sequence.addSequential(new RunnableState("Cone aligns to junction", telemetry,
+                () -> liftMechanism.liftToScorePreloadPosition()));
+
+        sequence.addWaitStep("Wait for lift to move down", 750, TimeUnit.MILLISECONDS);
+
         sequence.addSequential(new RunnableState("mic drop", telemetry,
                 gripper::open));
 
         sequence.addWaitStep("Wait for gripper", 500, TimeUnit.MILLISECONDS);
+
+        // FIXME - remove and replace with code written by team - MM
+        sequence.addSequential(new RunnableState("Lift to clear junction", telemetry,
+                () -> goSmallJunctionAutoButton.setPressed(true)));
+
+        sequence.addWaitStep("wait on lift", 1, TimeUnit.SECONDS);
+
+        sequence.addSequential(new RunnableState("Unpress button", telemetry,
+                () -> goSmallJunctionAutoButton.setPressed(false)));
 
         final State moveRobotBackFromJunction = new MultipleTrajectoriesFollowerState(
                 "Move robot back from junction",
                 telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
             @Override
             protected void createTrajectoryProviders() {
-                addTrajectoryProvider("back it up", (t) -> t.back(2));
+                addTrajectoryProvider("Load up wheels", (t) -> t.forward(1));
+                addTrajectoryProvider("back it up", (t) -> t.back(3));
             }
         };
 
         sequence.addSequential(moveRobotBackFromJunction);
+
+        sequence.addWaitStep("wait for momentum to settle", 500, TimeUnit.MILLISECONDS);
 
         final State moveRobotToCorrectZone = new MultipleTrajectoriesFollowerState(
                 "Move robot to detected zone",
@@ -580,6 +612,7 @@ public class PowerPlayAuto extends OpMode {
                         } else {
                             addTrajectoryProvider("Align with location", (t) -> t.strafeRight(6.5));
                         }
+
                         addTrajectoryProvider("Off wall 1", (t) -> t.forward(12));
                         addTrajectoryProvider("Off wall 2", (t) -> t.forward(12 + 4));
                         addTrajectoryProvider("Push signal", (t) -> t.forward(4 + 4));
