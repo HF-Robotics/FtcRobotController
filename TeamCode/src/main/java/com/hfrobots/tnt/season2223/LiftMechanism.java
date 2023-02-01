@@ -77,6 +77,8 @@ public class LiftMechanism {
             return .02;
         }
 
+        abstract int getLiftPlacePreloadSmallJunctionEncoderPos();
+
         abstract int getLiftSmallJunctionEncoderPos();
 
         abstract int getLiftMediumJunctionEncoderPos();
@@ -88,6 +90,8 @@ public class LiftMechanism {
 
     @SuppressWarnings("unused")
     private static class MotorConstants_19_1 extends MotorSpecificConstants {
+        private static final int LIFT_PLACE_PRELOAD_SMALL_JUNCTION_ENCODER_POS = 400;
+
         private static final int LIFT_SMALL_JUNCTION_ENCODER_POS = 473;
 
         private static final int LIFT_MEDIUM_JUNCTION_ENCODER_POS = 857;
@@ -95,6 +99,11 @@ public class LiftMechanism {
         private static final int LIFT_UPPER_LIMIT_ENCODER_POS = 1224;
 
         private static final int LIFT_LOWER_LIMIT_ENCODER_POS = 0;
+
+        @Override
+        int getLiftPlacePreloadSmallJunctionEncoderPos() {
+            return LIFT_PLACE_PRELOAD_SMALL_JUNCTION_ENCODER_POS;
+        }
 
         @Override
         int getLiftSmallJunctionEncoderPos() {
@@ -118,6 +127,7 @@ public class LiftMechanism {
     }
 
     private static class MotorConstants_26_1 extends MotorSpecificConstants {
+        private static final int LIFT_PLACE_PRELOAD_SMALL_JUNCTION_ENCODER_POS = 580;
 
         private static final int LIFT_SMALL_JUNCTION_ENCODER_POS = 850;
 
@@ -126,6 +136,11 @@ public class LiftMechanism {
         private static final int LIFT_UPPER_LIMIT_ENCODER_POS = 1800;
 
         private static final int LIFT_LOWER_LIMIT_ENCODER_POS = 0;
+
+        @Override
+        int getLiftPlacePreloadSmallJunctionEncoderPos() {
+            return LIFT_PLACE_PRELOAD_SMALL_JUNCTION_ENCODER_POS;
+        }
 
         @Override
         int getLiftSmallJunctionEncoderPos() {
@@ -170,6 +185,9 @@ public class LiftMechanism {
 
     private static final double ANTIGRAVITY_FEED_FORWARD =
             MOTOR_SPECIFIC_CONSTANTS.getAntigravityFeedForward();
+
+    private static final int LIFT_PLACE_PRELOAD_SMALL_JUNCTION_ENCODER_POS =
+            MOTOR_SPECIFIC_CONSTANTS.getLiftPlacePreloadSmallJunctionEncoderPos();
 
     private static final int LIFT_SMALL_JUNCTION_ENCODER_POS =
             MOTOR_SPECIFIC_CONSTANTS.getLiftSmallJunctionEncoderPos();
@@ -281,10 +299,14 @@ public class LiftMechanism {
         setupStateMachine(telemetry);
     }
 
+    private LiftGoScorePreloadConeState goScorePreloadConeState;
+
     private void setupStateMachine(Telemetry telemetry) {
         LiftGoUpperLimitState goUpperLimitState = new LiftGoUpperLimitState(telemetry);
 
         LiftGoLowerLimitState goLowerLimitState = new LiftGoLowerLimitState(telemetry);
+
+        goScorePreloadConeState = new LiftGoScorePreloadConeState(telemetry);
 
         LiftGoSmallJunctionState goSmallJunctionState = new LiftGoSmallJunctionState(telemetry);
 
@@ -299,6 +321,9 @@ public class LiftMechanism {
         LiftAtLowerLimitState atLowerLimitState = new LiftAtLowerLimitState(telemetry);
 
         LiftIdleState idleState = new LiftIdleState(telemetry);
+
+        goScorePreloadConeState.setAllTransitionToStates(goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
+                upCommandState, atLowerLimitState, atUpperLimitState, idleState);
 
         goUpperLimitState.setAllTransitionToStates(goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
          upCommandState, atLowerLimitState, atUpperLimitState, idleState);
@@ -340,6 +365,10 @@ public class LiftMechanism {
 
     protected void liftDown() {
         liftMotor.setPower(OPEN_LOOP_DOWN_POWER_RATIO * (-Math.abs(liftThrottle.getPosition())));
+    }
+
+    protected void liftToScorePreloadPosition() {
+        currentState = goScorePreloadConeState;
     }
 
     public void periodicTask() {
@@ -745,6 +774,53 @@ public class LiftMechanism {
                 gripper.open();
 
                 return transitionToState(atLowerLimitState);
+            }
+
+            liftMotor.setPower(pidOutput);
+
+            return this;
+        }
+    }
+
+    class LiftGoScorePreloadConeState extends LiftClosedLoopState {
+
+        LiftGoScorePreloadConeState(Telemetry telemetry) {
+            super("Lift-auto-preload-small", telemetry, TimeUnit.SECONDS.toMillis(AUTO_STALL_TIMEOUT_SECONDS)); // FIXME
+        }
+
+        @Override
+        public State doStuffAndGetNextState() {
+            if (isTimedOut() && limitOverrideButton != null && !limitOverrideButton.isPressed()) {
+                stopLift();
+                Log.e(LOG_TAG, "Timed out while going to small junction");
+
+                return transitionToState(idleState);
+            }
+
+            if (!initialized) {
+                Log.d(LOG_TAG, "Initializing PID for state " + getName());
+
+                setupPidController(K_P_SMALL_JUNCTION);
+
+                pidController.setOutputRange(-1, 1); // fix bouncing while descending
+                pidController.setAbsoluteSetPoint(true); // MM
+
+                pidController.setTarget(LIFT_PLACE_PRELOAD_SMALL_JUNCTION_ENCODER_POS,
+                        liftMotor.getCurrentPosition());
+
+                initialized = true;
+            }
+
+            // closed loop control based on motor encoders
+
+            double pidOutput = pidController.getOutput(liftMotor.getCurrentPosition());
+
+            if (pidController.isOnTarget()) {
+                Log.d(LOG_TAG, "Lift reached small target");
+
+                stopLift();
+
+                return transitionToState(idleState);
             }
 
             liftMotor.setPower(pidOutput);

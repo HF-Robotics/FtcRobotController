@@ -468,41 +468,45 @@ public class PowerPlayAuto extends OpMode {
 
     protected void setupRouteChoiceDetectAndScorePreload() {
         // Failsafe - run auto that doesn't require distance sensors
-        if (false) {
-            if (leftSideDistanceSensor == null || rightSideDistanceSensor == null) {
-                Log.e(LOG_TAG, "Missing or broken distance sensor, running navigation only auto");
+        if (leftSideDistanceSensor == null || rightSideDistanceSensor == null) {
+            Log.e(LOG_TAG, "Missing or broken distance sensor, running navigation only auto");
 
-                setupRouteChoiceDetected();
+            setupRouteChoiceDetected();
 
-                return;
-            }
+            return;
+        }
 
-            Side sideOfField = Side.UNKNOWN;
+        Side sideOfField = Side.UNKNOWN;
+        double distanceLeftIn = 0;
+        double distanceRightIn = 0;
 
-            double distanceLeftIn = leftSideDistanceSensor.getDistance(DistanceUnit.INCH);
-            double distanceRightIn = rightSideDistanceSensor.getDistance(DistanceUnit.INCH);
+        try {
+            distanceLeftIn = leftSideDistanceSensor.getDistance(DistanceUnit.INCH);
+            distanceRightIn = rightSideDistanceSensor.getDistance(DistanceUnit.INCH);
 
             if (distanceLeftIn < distanceRightIn) {
-                if (distanceLeftIn > 32 || distanceLeftIn < 21) {
+                if (distanceLeftIn > 36 || distanceLeftIn < 21) {
                     sideOfField = Side.UNKNOWN;
                 } else {
                     sideOfField = Side.LEFT;
                 }
             } else if (distanceLeftIn > distanceRightIn) {
-                if (distanceRightIn > 32 || distanceRightIn < 21) {
+                if (distanceRightIn > 36 || distanceRightIn < 21) {
                     sideOfField = Side.UNKNOWN;
                 } else {
                     sideOfField = Side.RIGHT;
                 }
             }
+        } catch (Throwable t) {
+            Log.e(LOG_TAG, "Distance sensors failed, using UNKNOWN side for setup", t);
+        }
 
-            if (sideOfField == Side.UNKNOWN) {
-                Log.e(LOG_TAG, "Bad distances, sensor failure or bad setup, (L): "
-                        + distanceLeftIn + ", (R): " + distanceRightIn);
-                setupRouteChoiceDetected();
+        if (sideOfField == Side.UNKNOWN) {
+            Log.e(LOG_TAG, "Bad distances, sensor failure or bad setup, (L): "
+                    + distanceLeftIn + ", (R): " + distanceRightIn);
+            setupRouteChoiceDetected();
 
-                return;
-            }
+            return;
         }
 
         // This is the same as navigation-only auto, later improvement
@@ -510,7 +514,7 @@ public class PowerPlayAuto extends OpMode {
 
         final State detectState = createSignalDetectorState();
 
-        final Side detectedSideOfField = Side.RIGHT /* sideOfField */;
+        final Side detectedSideOfField = sideOfField;
 
         final SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
         sequence.addSequential(detectState);

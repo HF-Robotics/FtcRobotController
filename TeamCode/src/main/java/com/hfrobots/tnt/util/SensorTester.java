@@ -191,7 +191,7 @@ public class SensorTester extends OpMode {
         Rev2mDistanceSensor currentTofSensor = currentNamedTofSensor.getDevice();
         String sensorName = currentNamedTofSensor.getName();
         telemetry.addData("TOF ",  "%s", sensorName);
-        telemetry.addData("Range (mm)", "%f", currentTofSensor.getDistance(DistanceUnit.MM));
+        telemetry.addData("Range (in)", "%f", currentTofSensor.getDistance(DistanceUnit.INCH));
         telemetry.addData("Is Timed out?", "%s", Boolean.toString(currentTofSensor.didTimeoutOccur()));
         updateTelemetry(telemetry);
     }
