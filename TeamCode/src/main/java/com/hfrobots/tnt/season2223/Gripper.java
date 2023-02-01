@@ -32,7 +32,11 @@ public class Gripper {
 
     private static final double OPEN_POSITION = 0.586;
 
-    private static final double CLOSED_POSITION = 1;
+    private static final double CLOSED_POSITION_GOBILDA_TORQUE = .9;
+
+    private static final double CLOSED_POSITION_REV = 1.0;
+
+    private static final double CLOSED_POSITION = CLOSED_POSITION_REV;
 
     public Gripper(@NonNull Servo servo) {
         this.servo = servo;
