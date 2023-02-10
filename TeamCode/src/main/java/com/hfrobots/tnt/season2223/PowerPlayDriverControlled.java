@@ -75,26 +75,27 @@ public class PowerPlayDriverControlled extends OpMode {
 
         NinjaGamePad driversGamepad = new NinjaGamePad(gamepad1);
 
-        driverControls = DriverControls.builder()
-                .driversGamepad(driversGamepad)
-                .kinematics(drivebase).build();
+        Servo gripperServo = hardwareMap.get(Servo.class, "gripperServo");
 
-        NinjaGamePad operatorGamepad = new NinjaGamePad(gamepad2);
+        gripper = new Gripper(gripperServo);
 
         DcMotorEx liftMotor = hardwareMap.get(DcMotorEx.class, "liftMotor");
 
         DigitalChannel lowerLimit = hardwareMap.get(DigitalChannel.class, "lowLimitSwitch");
         DigitalChannel higherLimit = hardwareMap.get(DigitalChannel.class, "highLimitSwitch");
 
-        Servo gripperServo = hardwareMap.get(Servo.class, "gripperServo");
-
-        gripper = new Gripper(gripperServo);
-
         liftMechanism = LiftMechanism.builder().liftMotor(NinjaMotor.asNeverest20(liftMotor))
                 .gripper(gripper)
                 .lowerLiftLimit(lowerLimit)
                 .upperLiftLimit(higherLimit)
                 .telemetry(telemetry).build();
+
+        driverControls = DriverControls.builder()
+                .driversGamepad(driversGamepad)
+                .liftMechanism(liftMechanism)
+                .kinematics(drivebase).build();
+
+        NinjaGamePad operatorGamepad = new NinjaGamePad(gamepad2);
 
         operatorControls = OperatorControls.builder().operatorGamepad(operatorGamepad)
                 .liftMechanism(liftMechanism)
@@ -103,6 +104,7 @@ public class PowerPlayDriverControlled extends OpMode {
 
         // Cone is usually right there, this saves time
         gripper.close();
+        liftMechanism.grabAndLiftCone();
 
         driveTeamSignal = new PowerPlayDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 

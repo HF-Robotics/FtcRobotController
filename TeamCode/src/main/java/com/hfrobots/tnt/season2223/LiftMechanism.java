@@ -29,6 +29,7 @@ import android.util.Log;
 import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.OnOffButton;
 import com.ftc9929.corelib.control.RangeInput;
+import com.ftc9929.corelib.state.RunnableState;
 import com.ftc9929.corelib.state.State;
 import com.google.common.annotations.VisibleForTesting;
 import com.hfrobots.tnt.corelib.drive.ExtendedDcMotor;
@@ -45,9 +46,14 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import java.util.concurrent.TimeUnit;
 
 import lombok.Builder;
+import lombok.NonNull;
 import lombok.Setter;
 
 public class LiftMechanism {
+
+    private LiftIdleState idleState;
+    private AutoGrabConeCloseServoState grabConeCloseServoState;
+
     static abstract class MotorSpecificConstants {
         double getAntigravityFeedForward() {
             return .24;
@@ -239,6 +245,9 @@ public class LiftMechanism {
     private DebouncedButton liftGoMediumButton;
 
     @Setter
+    private DebouncedButton autoGrabConeButton;
+
+    @Setter
     private DebouncedButton liftEmergencyStopButton;
 
     @Setter
@@ -302,6 +311,10 @@ public class LiftMechanism {
     private LiftGoScorePreloadConeState goScorePreloadConeState;
 
     private void setupStateMachine(Telemetry telemetry) {
+        // TODO - Go through this with team
+        LiftUpLittleBitState liftUpLittleBitState = new LiftUpLittleBitState(telemetry);
+        grabConeCloseServoState = new AutoGrabConeCloseServoState(liftUpLittleBitState, telemetry);
+
         LiftGoUpperLimitState goUpperLimitState = new LiftGoUpperLimitState(telemetry);
 
         LiftGoLowerLimitState goLowerLimitState = new LiftGoLowerLimitState(telemetry);
@@ -320,36 +333,42 @@ public class LiftMechanism {
 
         LiftAtLowerLimitState atLowerLimitState = new LiftAtLowerLimitState(telemetry);
 
-        LiftIdleState idleState = new LiftIdleState(telemetry);
+        idleState = new LiftIdleState(telemetry);
 
-        goScorePreloadConeState.setAllTransitionToStates(goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
+        grabConeCloseServoState.setAllTransitionToStates(grabConeCloseServoState, goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
                 upCommandState, atLowerLimitState, atUpperLimitState, idleState);
 
-        goUpperLimitState.setAllTransitionToStates(goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
+        liftUpLittleBitState.setAllTransitionToStates(grabConeCloseServoState, goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
+                upCommandState, atLowerLimitState, atUpperLimitState, idleState);
+
+        goScorePreloadConeState.setAllTransitionToStates(grabConeCloseServoState, goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
+                upCommandState, atLowerLimitState, atUpperLimitState, idleState);
+
+        goUpperLimitState.setAllTransitionToStates(grabConeCloseServoState, goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
          upCommandState, atLowerLimitState, atUpperLimitState, idleState);
 
-        goSmallJunctionState.setAllTransitionToStates(goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
+        goSmallJunctionState.setAllTransitionToStates(grabConeCloseServoState, goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
                 upCommandState, atLowerLimitState, atUpperLimitState, idleState);
 
-        goMediumJunctionState.setAllTransitionToStates(goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
+        goMediumJunctionState.setAllTransitionToStates(grabConeCloseServoState, goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
                 upCommandState, atLowerLimitState, atUpperLimitState, idleState);
 
-        goLowerLimitState.setAllTransitionToStates(goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
+        goLowerLimitState.setAllTransitionToStates(grabConeCloseServoState, goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
                 upCommandState, atLowerLimitState, atUpperLimitState, idleState);
 
-        downCommandState.setAllTransitionToStates(goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
+        downCommandState.setAllTransitionToStates(grabConeCloseServoState, goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
                 upCommandState, atLowerLimitState, atUpperLimitState, idleState);
 
-        upCommandState.setAllTransitionToStates(goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
+        upCommandState.setAllTransitionToStates (grabConeCloseServoState, goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
                 upCommandState, atLowerLimitState, atUpperLimitState, idleState);
 
-        atUpperLimitState.setAllTransitionToStates(goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
+        atUpperLimitState.setAllTransitionToStates(grabConeCloseServoState, goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
                 upCommandState, atLowerLimitState, atUpperLimitState, idleState);
 
-        atLowerLimitState.setAllTransitionToStates(goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
+        atLowerLimitState.setAllTransitionToStates(grabConeCloseServoState, goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
                 upCommandState, atLowerLimitState, atUpperLimitState, idleState);
 
-        idleState.setAllTransitionToStates(goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
+        idleState.setAllTransitionToStates(grabConeCloseServoState, goUpperLimitState, goSmallJunctionState, goMediumJunctionState, goLowerLimitState, downCommandState,
                 upCommandState, atLowerLimitState, atUpperLimitState, idleState);
 
         currentState = atLowerLimitState;
@@ -371,6 +390,20 @@ public class LiftMechanism {
         currentState = goScorePreloadConeState;
     }
 
+    protected void grabAndLiftCone() {
+        currentState = grabConeCloseServoState;
+    }
+
+    protected boolean isLiftAboveSlowHeight() {
+        int currentPos = liftMotor.getCurrentPosition();
+
+        if (currentPos >= LIFT_MEDIUM_JUNCTION_ENCODER_POS - 120) {
+           return true;
+        } else {
+            return false;
+        }
+    }
+
     public void periodicTask() {
         String currentStateName = currentState.getName();
 
@@ -384,6 +417,10 @@ public class LiftMechanism {
                 (limitOverrideButton.isPressed() ? "!" : ""));
 
         State nextState = currentState.doStuffAndGetNextState();
+
+        if (nextState == null) {
+            nextState = idleState;
+        }
 
         if (nextState != currentState) {
             // We've changed states alert the driving team, log for post-match analysis
@@ -500,11 +537,15 @@ public class LiftMechanism {
 
         LiftIdleState idleState;
 
+        AutoGrabConeCloseServoState autoGrabConeCloseServoState;
+
         LiftBaseState(String name, Telemetry telemetry, long timeoutMillis) {
             super(name, telemetry, timeoutMillis);
         }
 
-        protected void setAllTransitionToStates(final LiftGoUpperLimitState goUpperLimitState,
+        protected void setAllTransitionToStates(
+                final AutoGrabConeCloseServoState autoGrabConeCloseServoState,
+                final LiftGoUpperLimitState goUpperLimitState,
                 final LiftGoSmallJunctionState goSmallJunctionState,
                 final LiftGoMediumJunctionState goMediumJunctionState,
                 final LiftGoLowerLimitState goLowerLimitState,
@@ -530,6 +571,8 @@ public class LiftMechanism {
             this.atUpperLimitState = atUpperLimitState;
 
             this.idleState = idleState;
+
+            this.autoGrabConeCloseServoState = autoGrabConeCloseServoState;
 
             // FIXME: Assert that everything that is required, has been set! (there was a bug hiding in this code!)
 
@@ -560,6 +603,8 @@ public class LiftMechanism {
                 stopLift();
 
                 return idleState;
+            } else if (autoGrabConeButton != null && autoGrabConeButton.getRise()) {
+                return autoGrabConeCloseServoState;
             }
 
             return null;
@@ -759,7 +804,7 @@ public class LiftMechanism {
             if (pidController.isOnTarget()) {
                 Log.d(LOG_TAG, "Lift reached lower target");
 
-                liftMotor.setPower(ANTIGRAVITY_FEED_FORWARD);
+                stopLift();
 
                 gripper.open();
 
@@ -817,6 +862,104 @@ public class LiftMechanism {
 
             if (pidController.isOnTarget()) {
                 Log.d(LOG_TAG, "Lift reached small target");
+
+                stopLift();
+
+                return transitionToState(idleState);
+            }
+
+            liftMotor.setPower(pidOutput);
+
+            return this;
+        }
+    }
+
+    class AutoGrabConeCloseServoState extends LiftClosedLoopState {
+        long servoClosedAtMillis;
+
+        final long WAIT_SERVO_CLOSE_MS = 500;
+
+        final LiftUpLittleBitState liftUpLittleBitState;
+
+        AutoGrabConeCloseServoState(LiftUpLittleBitState liftUpLittleBitState, Telemetry telemetry) {
+            super("Lift-auto-grab-closeServo", telemetry, TimeUnit.SECONDS.toMillis(AUTO_STALL_TIMEOUT_SECONDS)); // FIXME
+            this.liftUpLittleBitState = liftUpLittleBitState;
+        }
+
+        @Override
+        public State doStuffAndGetNextState() {
+            State fromButtonState = handleButtons();
+
+            if (fromButtonState != null) {
+                return transitionToState(fromButtonState);
+            }
+
+            if (!initialized) {
+                servoClosedAtMillis = System.currentTimeMillis();
+                initialized = true;
+            }
+
+
+            gripper.close();
+            // (2) Check if timer has expired - move to next state
+
+            if (timerHasExpired()) {
+                return transitionToState(liftUpLittleBitState);
+            }
+
+            return this;
+        }
+
+        private boolean timerHasExpired() {
+            return System.currentTimeMillis() - servoClosedAtMillis > WAIT_SERVO_CLOSE_MS;
+        }
+    }
+
+    class LiftUpLittleBitState extends LiftClosedLoopState {
+
+        LiftUpLittleBitState(Telemetry telemetry) {
+            super("Lift-up-a-bit", telemetry, TimeUnit.SECONDS.toMillis(AUTO_STALL_TIMEOUT_SECONDS)); // FIXME
+        }
+
+        @Override
+        public State doStuffAndGetNextState() {
+            if (isTimedOut() && limitOverrideButton != null && !limitOverrideButton.isPressed()) {
+                stopLift();
+                Log.e(LOG_TAG, "Timed out while lifting up a little bit");
+
+                return transitionToState(idleState);
+            }
+
+            State fromButtonState = handleButtons();
+
+            // Handle possible transitions back to open loop
+            if (fromButtonState != null && fromButtonState != this) {
+                Log.d(LOG_TAG, "Leaving closed loop for " + fromButtonState.getName());
+
+                return transitionToState(fromButtonState);
+            }
+
+            if (!initialized) {
+                Log.d(LOG_TAG, "Initializing PID for state " + getName());
+
+                setupPidController(.01);
+
+                pidController.setOutputRange(-1, 1); // fix bouncing while descending
+                pidController.setAbsoluteSetPoint(false);
+
+                int upALittleBitPos = liftMotor.getCurrentPosition() + 120;
+                pidController.setTarget(upALittleBitPos,
+                        liftMotor.getCurrentPosition());
+
+                initialized = true;
+            }
+
+            // closed loop control based on motor encoders
+
+            double pidOutput = pidController.getOutput(liftMotor.getCurrentPosition());
+
+            if (pidController.isOnTarget()) {
+                Log.d(LOG_TAG, "Lift reached up a little bit target");
 
                 stopLift();
 

@@ -70,6 +70,8 @@ public class OperatorControls implements PeriodicTask {
 
     private OnOffButton unsafe;
 
+    private DebouncedButton coneGrabAutomation;
+
     // Add all of the mechanisms controlled by the operator here, and add them to
     // the constructor.
 
@@ -187,6 +189,7 @@ public class OperatorControls implements PeriodicTask {
         liftEmergencyStopButton = bRedButton;
         gripperOpenButton = aGreenButton;
         gripperCloseButton = yYellowButton;
+        coneGrabAutomation = rightBumper.debounced();
 
         wireControlsToScoringMechanism();
     }
@@ -200,6 +203,7 @@ public class OperatorControls implements PeriodicTask {
             liftMechanism.setLiftLowerLimitButton(liftLowerLimitButton);
             liftMechanism.setLiftUpperLimitButton(liftUpperLimitButton);
             liftMechanism.setLiftEmergencyStopButton(liftEmergencyStopButton);
+            liftMechanism.setAutoGrabConeButton(coneGrabAutomation);
         }
     }
 

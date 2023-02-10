@@ -92,9 +92,11 @@ public class DriverControls implements PeriodicTask {
 
     private OpenLoopMecanumKinematics kinematics;
 
-    private final float throttleGain = 0.4F;
+    private LiftMechanism liftMechanism;
 
-    private final float throttleExponent = 5; // MUST BE AN ODD NUMBER!
+    private final float throttleGain = 0.7F;
+
+    private final float throttleExponent = 11; // MUST BE AN ODD NUMBER!
 
     private final float throttleDeadband = 0;
 
@@ -122,7 +124,8 @@ public class DriverControls implements PeriodicTask {
                            RangeInput leftTrigger,
                            RangeInput rightTrigger,
                            NinjaGamePad driversGamepad,
-                           OpenLoopMecanumKinematics kinematics) {
+                           OpenLoopMecanumKinematics kinematics,
+                           LiftMechanism liftMechanism) {
         if (driversGamepad != null) {
             this.driversGamepad = driversGamepad;
             setupFromGamepad();
@@ -148,6 +151,7 @@ public class DriverControls implements PeriodicTask {
         setupDerivedControls();
         setupCurvesAndFilters();
 
+        this.liftMechanism = liftMechanism;
         this.kinematics = kinematics;
     }
 
@@ -208,11 +212,17 @@ public class DriverControls implements PeriodicTask {
         double rot = driveRotate.getPosition(); // positive robot z rotation (human-normal) is negative joystick x axis
         boolean useEncoders = false;
 
+        double topEndFactor = 1.6;
+
+        if (liftMechanism != null && liftMechanism.isLiftAboveSlowHeight()) {
+            topEndFactor = 2;
+        }
+
         // do this first, it will be cancelled out by bump-strafe
         if (!(driveFastButton.isPressed())) {
-            y /= 2.0;
+            y /= topEndFactor;
             x /= 1.25;
-            rot /= 1.5;
+            rot /= 1.3;
             useEncoders = false;
         }
 
