@@ -405,13 +405,7 @@ public class LiftMechanism {
     }
 
     public void periodicTask() {
-        String currentStateName = currentState.getName();
-
-        if (currentStateName != null) {
-            currentStateName = currentStateName.replace("Lift-", "");
-        } else {
-            currentStateName = "Unk";
-        }
+        String currentStateName = getCurrentStateName();
 
         telemetry.addData("SM: ", "e: " + currentStateName + " b: " +
                 (limitOverrideButton.isPressed() ? "!" : ""));
@@ -431,7 +425,18 @@ public class LiftMechanism {
 
         currentState = nextState;
     }
-    
+
+    protected String getCurrentStateName() {
+        String currentStateName = currentState.getName();
+
+        if (currentStateName != null) {
+            currentStateName = currentStateName.replace("Lift-", "");
+        } else {
+            currentStateName = "Unk";
+        }
+        return currentStateName;
+    }
+
     @VisibleForTesting
     @SuppressWarnings("unused")
     public boolean currentStateIsOpenLoopUpOrDown() {
@@ -942,10 +947,11 @@ public class LiftMechanism {
             if (!initialized) {
                 Log.d(LOG_TAG, "Initializing PID for state " + getName());
 
-                setupPidController(.01);
+                setupPidController(.04);
 
+                pidController.setTargetTolerance(45);
                 pidController.setOutputRange(-1, 1); // fix bouncing while descending
-                pidController.setAbsoluteSetPoint(false);
+                pidController.setAbsoluteSetPoint(true);
 
                 int upALittleBitPos = liftMotor.getCurrentPosition() + 120;
                 pidController.setTarget(upALittleBitPos,
