@@ -23,5 +23,6 @@ import com.ftc9929.testing.fakes.util.FakeHardwareMapFactory;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class UltimateGoalTestConstants {
-    static final HardwareMap HARDWARE_MAP = FakeHardwareMapFactory.getFakeHardwareMap("ultimategoal.xml");
+    static final HardwareMap HARDWARE_MAP =
+            FakeHardwareMapFactory.getFakeHardwareMap("ultimategoal.xml");
 }
