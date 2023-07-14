@@ -43,7 +43,7 @@ public class PowerPlayLiftController extends LinearLiftController {
 
         DcMotorEx liftMotor = hardwareMap.get(DcMotorEx.class, "liftMotor");
 
-        return PowerPlayLiftController.builder().tunables(goBilda26_1)
+        return PowerPlayLiftController.powerPlayLiftBuilder().tunables(goBilda26_1)
                 .liftMotor(NinjaMotor.asNeverest20(liftMotor))
                 .lowerLiftLimit(lowerLimit)
                 .upperLiftLimit(higherLimit)
@@ -58,7 +58,7 @@ public class PowerPlayLiftController extends LinearLiftController {
         goLowerLimitState = new LiftCloseGripperAndGoLowerLimitState(telemetry);
     }
 
-    @Builder
+    @Builder(builderMethodName = "powerPlayLiftBuilder")
     protected PowerPlayLiftController(Tunables tunables,
                                       RangeInput liftThrottle,
                                       DebouncedButton liftUpperLimitButton,
