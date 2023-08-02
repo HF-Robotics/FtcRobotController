@@ -34,8 +34,8 @@ dependencies {
     testImplementation 'com.google.guava:guava-testlib:27.1-android'
     api 'com.google.guava:guava:27.1-android'
 
-    implementation 'com.ftc9929.TntFtcCore:corelib:624767d011'
-    implementation 'com.ftc9929.TntFtcCore:fakeHardware:624767d011'
-    implementation 'com.ftc9929.TntFtcCore:metrics:624767d011'
-    testImplementation 'com.ftc9929.TntFtcCore:fakeHardware:624767d011'
+    implementation 'com.ftc9929.TntFtcCore:corelib:05482df'
+    implementation 'com.ftc9929.TntFtcCore:fakeHardware:05482df'
+    implementation 'com.ftc9929.TntFtcCore:metrics:05482df'
+    testImplementation 'com.ftc9929.TntFtcCore:fakeHardware:05482df'
 }

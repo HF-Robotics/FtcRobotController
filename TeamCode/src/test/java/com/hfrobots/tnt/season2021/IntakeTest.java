@@ -19,22 +19,80 @@
 
 package com.hfrobots.tnt.season2021;
 
+import static org.powermock.api.mockito.PowerMockito.when;
+
+import android.os.Environment;
+
+import androidx.annotation.Nullable;
+
 import com.ftc9929.testing.fakes.drive.FakeDcMotorEx;
 import com.google.common.testing.FakeTicker;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerNotifier;
+import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.IOException;
+import java.util.List;
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(Environment.class)
 public class IntakeTest {
     private HardwareMap hwMap;
 
     private FakeDcMotorEx intakeMotor;
 
+    @Rule
+    TemporaryFolder tempFolder = new TemporaryFolder();
+
     @Before
-    public void setup() {
-        hwMap = new HardwareMap(null);
+    public void setup() throws IOException {
+        PowerMockito.mockStatic(Environment.class);
+
+        when(Environment.getExternalStorageDirectory()).thenReturn(tempFolder.newFolder());
+
+        hwMap = new HardwareMap(null, new OpModeManagerNotifier() {
+            @Override
+            public OpMode registerListener(Notifications listener) {
+                return null;
+            }
+
+            @Override
+            public void unregisterListener(Notifications listener) {
+
+            }
+        }) {
+            @Nullable
+            @Override
+            public <T> T tryGet(Class<? extends T> classOrInterface, String deviceName) {
+                synchronized (lock) {
+                    deviceName = deviceName.trim();
+                    List<HardwareDevice> list = allDevicesMap.get(deviceName);
+                    @Nullable T result = null;
+
+                    if (list != null) {
+                        for (HardwareDevice device : list) {
+                            if (classOrInterface.isInstance(device)) {
+                                result = classOrInterface.cast(device);
+                                break;
+                            }
+                        }
+                    }
+
+                    return result;
+                }
+            }
+        };
 
         intakeMotor = new FakeDcMotorEx();
 
