@@ -1,23 +1,18 @@
 package com.hfrobots.tnt.season1819;
 
+import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
+
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
-import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
-
-import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
 
 public class TensorflowThread extends Thread {
     public enum GOLD_MINERAL_POSITION {
@@ -41,27 +36,6 @@ public class TensorflowThread extends Thread {
     private static final String TFOD_MODEL_ASSET = "RoverRuckus.tflite";
     private static final String LABEL_GOLD_MINERAL = "Gold Mineral";
     private static final String LABEL_SILVER_MINERAL = "Silver Mineral";
-
-    /*
-     * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
-     * 'parameters.vuforiaLicenseKey' is initialized is for illustration only, and will not function.
-     * A Vuforia 'Development' license key, can be obtained free of charge from the Vuforia developer
-     * web site at https://developer.vuforia.com/license-manager.
-     *
-     * Vuforia license keys are always 380 characters long, and look as if they contain mostly
-     * random data. As an example, here is a example of a fragment of a valid key:
-     *      ... yIgIzTqZ4mWjk9wd3cZO9T1axEqzuhxoGlfOOI2dRzKS4T0hQ8kT ...
-     * Once you've obtained a license key, copy the string from the Vuforia web site
-     * and paste it in to your code on the next line, between the double quotes.
-     */
-    private static final String VUFORIA_KEY = "AdD5Ysf/////AAABmZcK/df7dUf0k4rDpBhNTldjBolKypT1w5SexGrFThbu+AGLdJMYnHfmjyS6s8jkuXXbJQK0FOywlbOJKqKtpz046IE5sPjPyMpsOQ0BXEaU6digujkChlecDRd8VTMrICSNrVfU8EViUzqiB1PSpHxsMXkRUkBbWua0SYDUYU3ZZrxjZC2T9FfrTcsFW1EpQOpda7+LVIeF1DjOm6y5yPqrzrOD5XB/3ZC0s+zcDxRxzFFSxO8ziEYlhNWkMge7spSKmVeDeTRx0Fozgj0x/seiCxKWx/mrgoNJMtDAqTabMRpP8PE+IDQlr9jheiDlTgCuYktpyFHbrhLrjAh5gLyz/S5oeyfwm/Fg2zSMZqgb";
-
-
-    /**
-     * {@link #vuforia} is the variable we will use to store our instance of the Vuforia
-     * localization engine.
-     */
-    private VuforiaLocalizer vuforia;
 
     /**
      * {@link #tfod} is the variable we will use to store our instance of the Tensor Flow Object
@@ -279,18 +253,7 @@ public class TensorflowThread extends Thread {
      * Initialize the Vuforia localization engine.
      */
     private void initVuforia() {
-        /*
-         * Configure Vuforia by creating a Parameter object, and passing it to the Vuforia engine.
-         */
-        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
 
-        parameters.vuforiaLicenseKey = VUFORIA_KEY;
-        parameters.cameraDirection = BuiltinCameraDirection.BACK;
-
-        //  Instantiate the Vuforia engine
-        vuforia = ClassFactory.getInstance().createVuforia(parameters);
-
-        // Loading trackables is not necessary for the Tensor Flow Object Detection engine.
     }
 
     /**
