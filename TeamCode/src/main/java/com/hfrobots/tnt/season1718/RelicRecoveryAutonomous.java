@@ -27,7 +27,6 @@ import com.hfrobots.tnt.corelib.drive.Turn;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 
-import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
 
 import java.util.Queue;
@@ -64,7 +63,7 @@ public class RelicRecoveryAutonomous extends RelicRecoveryHardware {
 
     private Routes[] possibleRoutes = Routes.values();
 
-    private final Queue<RelicRecoveryVuMark> vuMarkQueue = new ConcurrentLinkedQueue<>();
+    //private final Queue<RelicRecoveryVuMark> vuMarkQueue = new ConcurrentLinkedQueue<>();
 
     // Which alliance are we? (the robot is programmed from the point-of-view of the red alliance
     // but we can also have it run the blue one if selected
@@ -256,10 +255,12 @@ public class RelicRecoveryAutonomous extends RelicRecoveryHardware {
 
     // This is the left stone only when on the blue alliance
     private State stoneFarFromRelicZoneStateMachine() {
-        VuMarkDetectionState vuMarkDetectionState = new VuMarkDetectionState("Detect VuMark",
-                telemetry,
-                hardwareMap, vuMarkQueue, TimeUnit.SECONDS.toMillis(5));
-        State firstState = vuMarkDetectionState;
+//        VuMarkDetectionState vuMarkDetectionState = new VuMarkDetectionState("Detect VuMark",
+//                telemetry,
+//                hardwareMap, vuMarkQueue, TimeUnit.SECONDS.toMillis(5));
+//        State firstState = vuMarkDetectionState;
+
+        State firstState = null;
 
         // Pick up glyph now so setup of robot doesn't change before jewel detection
         // Order close gripper, wait(1s), lift
@@ -300,18 +301,18 @@ public class RelicRecoveryAutonomous extends RelicRecoveryHardware {
         // CENTER: 11
         // LEFT:    3
 
-        StrafeVuMarkDistanceState strafeInwardState = new StrafeVuMarkDistanceState("STRAFE!!!!!!",
-                telemetry, mecanumDrive, currentAlliance, vuMarkQueue, TimeUnit.SECONDS.toMillis(8));
+        /* StrafeVuMarkDistanceState strafeInwardState = new StrafeVuMarkDistanceState("STRAFE!!!!!!",
+                telemetry, mecanumDrive, currentAlliance, vuMarkQueue, TimeUnit.SECONDS.toMillis(8)); */
 
         /*MecanumStrafeDistanceState strafeInwardState = new MecanumStrafeDistanceState("STRAFE!!!!!!",
                 telemetry, mecanumDrive, 18, TimeUnit.SECONDS.toMillis(8));*/
 
-        driveOffStoneState.setNextState(strafeInwardState);
+        //driveOffStoneState.setNextState(strafeInwardState);
 
         MecanumDriveDistanceState driveForwardFourState = new MecanumDriveDistanceState("Drive to cryptobox",
                 telemetry, mecanumDrive, 10, TimeUnit.SECONDS.toMillis(5));
 
-        strafeInwardState.setNextState(driveForwardFourState);
+        // strafeInwardState.setNextState(driveForwardFourState);
 
         GlyphMechanism.GripperOpenState gripperOpenState = glyphMechanism.getGripperOpenState(telemetry);
         driveForwardFourState.setNextState(gripperOpenState);
@@ -331,10 +332,12 @@ public class RelicRecoveryAutonomous extends RelicRecoveryHardware {
     }
 
     private State stoneCloseToRelicZoneStateMachine() {
-        VuMarkDetectionState vuMarkDetectionState = new VuMarkDetectionState("Detect VuMark",
-                telemetry,
-                hardwareMap, vuMarkQueue, TimeUnit.SECONDS.toMillis(5));
-        State firstState = vuMarkDetectionState;
+        //VuMarkDetectionState vuMarkDetectionState = new VuMarkDetectionState("Detect VuMark",
+        //        telemetry,
+        //        hardwareMap, vuMarkQueue, TimeUnit.SECONDS.toMillis(5));
+        // State firstState = vuMarkDetectionState;
+
+        State firstState = null;
 
         // Pick up glyph now so setup of robot doesn't change before jewel detection
         // Order close gripper, wait(1s), lift
@@ -379,10 +382,10 @@ public class RelicRecoveryAutonomous extends RelicRecoveryHardware {
         // Center value: 34.0
         // Right value: 40.0
 
-        DriveVuMarkDistanceState driveForwardState = new DriveVuMarkDistanceState("Drive off stone",
-                telemetry, mecanumDrive, currentAlliance,vuMarkQueue, TimeUnit.SECONDS.toMillis(8));
+        //DriveVuMarkDistanceState driveForwardState = new DriveVuMarkDistanceState("Drive off stone",
+        //        telemetry, mecanumDrive, currentAlliance,vuMarkQueue, TimeUnit.SECONDS.toMillis(8));
 
-        detectAndTurnState.setNextState(driveForwardState);
+        //detectAndTurnState.setNextState(driveForwardState);
 
         //turn conterclockwise 90 and align w/cryptobox
 
@@ -397,7 +400,7 @@ public class RelicRecoveryAutonomous extends RelicRecoveryHardware {
                 .setSafetyTimeoutMillis(TimeUnit.SECONDS.toMillis(15));
 
         MecanumGyroTurnState turnTowardsCryptoBox = turnBuilder.build();
-        driveForwardState.setNextState(turnTowardsCryptoBox);
+        //driveForwardState.setNextState(turnTowardsCryptoBox);
 
         // move foward
         MecanumDriveDistanceState driveForwardFourState = new MecanumDriveDistanceState("Drive towards cryptobox",
@@ -416,7 +419,7 @@ public class RelicRecoveryAutonomous extends RelicRecoveryHardware {
 
         driveBackwardsTwoState.setNextState(newDoneState("done"));
 
-        return firstState;
+        return null;
     }
 
     private State jewelOnlyStateMachine() {
