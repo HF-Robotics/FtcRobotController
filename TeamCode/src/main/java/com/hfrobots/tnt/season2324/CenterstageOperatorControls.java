@@ -70,8 +70,6 @@ public class CenterstageOperatorControls implements PeriodicTask {
 
     private OnOffButton unsafe;
 
-    private DebouncedButton coneGrabAutomation;
-
     // Add all of the mechanisms controlled by the operator here, and add them to
     // the constructor.
 
@@ -147,22 +145,6 @@ public class CenterstageOperatorControls implements PeriodicTask {
         rightTrigger = operatorGamepad.getRightTrigger();
     }
 
-    RangeInput liftThrottle;
-
-    DebouncedButton liftGoSmallButton;
-
-    DebouncedButton liftGoMediumButton;
-
-    DebouncedButton liftLowerLimitButton;
-
-    DebouncedButton liftUpperLimitButton;
-
-    DebouncedButton liftEmergencyStopButton;
-
-    DebouncedButton gripperOpenButton;
-
-    DebouncedButton gripperCloseButton;
-
     // To make things easier to re-map we have inputs that are named based on what they do
     // and assign them from the gamepad buttons with names that describe physically what they are
     // (bRedButton, etc).
@@ -171,16 +153,7 @@ public class CenterstageOperatorControls implements PeriodicTask {
     // names.
     private void setupDerivedControls() {
         unsafe = new RangeInputButton( leftTrigger, 0.65f);
-        liftThrottle = leftStickY;
-        liftGoSmallButton = dpadLeft;
-        liftGoMediumButton = dpadRight;
-        liftLowerLimitButton = dpadDown;
-        liftUpperLimitButton = dpadUp;
-        liftEmergencyStopButton = bRedButton;
-        gripperOpenButton = aGreenButton;
-        gripperCloseButton = yYellowButton;
-        coneGrabAutomation = rightBumper.debounced();
-
+        
         wireControlsToScoringMechanism();
     }
 
