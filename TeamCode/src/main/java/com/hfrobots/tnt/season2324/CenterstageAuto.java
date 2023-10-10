@@ -25,6 +25,7 @@ package com.hfrobots.tnt.season2324;
 import static com.ftc9929.corelib.Constants.LOG_TAG;
 
 import android.util.Log;
+import android.util.Size;
 
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.ftc9929.corelib.control.NinjaGamePad;
@@ -39,6 +40,10 @@ import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
 import com.hfrobots.tnt.corelib.drive.mecanum.util.AxisDirection;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.vision.VisionPortal;
 
 @Autonomous(name="00 CS Auto")
 public class CenterstageAuto extends OpMode {
@@ -72,9 +77,14 @@ public class CenterstageAuto extends OpMode {
 
     private CenterstageDriveConstants driveConstants;
 
+    private VisionPortal visionPortal;
+
+    private final SpikeStripDetector spikeStripDetector = new SpikeStripDetector();
+
     // The tasks our robot knows how to do - rename these to something meaningful for the season!
     private enum TaskChoice {
-        SIT_THERE_MOTIONLESS("Sit and do nothing");
+        WING_SIDE("Start from wing side"),
+        BACKSTAGE_SIDE("Start from backstage side");
 
         final String description;
 
@@ -104,6 +114,7 @@ public class CenterstageAuto extends OpMode {
 
         setupDriverControls();
         setupOperatorControls();
+        setupVisionPortal(hardwareMap);
 
         driveConstants = new CenterstageDriveConstants();
         driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
@@ -195,14 +206,33 @@ public class CenterstageAuto extends OpMode {
                 .operatorGamepad(operatorsGamepad).build();
     }
 
+    private void setupVisionPortal(final HardwareMap hardwareMap) {
+        VisionPortal.Builder builder = new VisionPortal.Builder();
+
+        builder.setCamera(hardwareMap.get(WebcamName.class, "webcam"));
+
+        builder.setCameraResolution(new Size(640, 480));
+
+        builder.enableLiveView(true);
+
+        builder.addProcessor(spikeStripDetector);
+
+        // Build the Vision Portal, using the above settings.
+        visionPortal = builder.build();
+    }
+
     @Override
     public void start() {
         super.start();
+
+        visionPortal.stopLiveView();
     }
 
     @Override
     public void stop() {
         super.stop();
+        visionPortal.stopStreaming();
+        visionPortal.stopLiveView();
     }
 
     private boolean configLocked = false;
@@ -247,17 +277,17 @@ public class CenterstageAuto extends OpMode {
     public void loop() {
         try {
             if (!stateMachineSetup) {
-                // FIXME: MM - There's a refactoring here that we should show the team!
-
                 /* We have not configured the state machine yet, do so from the options
                  selected during init_loop() */
 
                 TaskChoice selectedTaskChoice = possibleTaskChoices[selectedTaskIndex];
 
                 switch (selectedTaskChoice) {
-                    case SIT_THERE_MOTIONLESS:
-                        setupSitMotionlessStateMachine();
+                    case WING_SIDE:
+                        setupStartWingSideStateMachine();
                         break;
+                    case BACKSTAGE_SIDE:
+                        setupStartBackstageSideStateMachine();
                     default:
                         stateMachine.addSequential(newDoneState("Default done"));
                         break;
@@ -288,7 +318,17 @@ public class CenterstageAuto extends OpMode {
         }
     }
 
-    protected void setupSitMotionlessStateMachine() {
+    protected void setupStartWingSideStateMachine() {
+
+        final SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
+
+        // Add a bunch of steps here!
+
+        sequence.addSequential(newDoneState("Done!"));
+        stateMachine.addSequence(sequence);
+    }
+
+    protected void setupStartBackstageSideStateMachine() {
 
         final SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
 

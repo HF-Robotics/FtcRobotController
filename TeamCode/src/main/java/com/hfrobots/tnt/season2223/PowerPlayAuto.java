@@ -54,6 +54,7 @@ import com.hfrobots.tnt.season2223.pipelines.GreenGripPipeline;
 import com.hfrobots.tnt.season2223.pipelines.PinkGripPipeline;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -64,6 +65,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Autonomous(name="00 PP Auto")
+@Disabled
 public class PowerPlayAuto extends OpMode {
     private Ticker ticker;
 

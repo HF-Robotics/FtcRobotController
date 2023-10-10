@@ -153,7 +153,7 @@ public class CenterstageOperatorControls implements PeriodicTask {
     // names.
     private void setupDerivedControls() {
         unsafe = new RangeInputButton( leftTrigger, 0.65f);
-        
+
         wireControlsToScoringMechanism();
     }
 

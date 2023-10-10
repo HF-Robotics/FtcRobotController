@@ -195,30 +195,12 @@ public class OperatorControls implements PeriodicTask {
     }
 
     public void wireControlsToScoringMechanism() {
-        if (liftMechanism != null) {
-            liftMechanism.setLimitOverrideButton(unsafe);
-            liftMechanism.setLiftThrottle(liftThrottle);
-            liftMechanism.setLiftGoSmallButton(liftGoSmallButton);
-            liftMechanism.setLiftGoMediumButton(liftGoMediumButton);
-            liftMechanism.setLiftLowerLimitButton(liftLowerLimitButton);
-            liftMechanism.setLiftUpperLimitButton(liftUpperLimitButton);
-            liftMechanism.setLiftEmergencyStopButton(liftEmergencyStopButton);
-            liftMechanism.setAutoGrabConeButton(coneGrabAutomation);
-        }
+
     }
 
     @Override
     public void periodicTask() {
         // Here is where we ask the various mechanisms to respond to operator input
 
-        if (liftMechanism != null) {
-            liftMechanism.periodicTask();
-        }
-
-        if (gripperOpenButton.getRise()) {
-            gripper.open();
-        } else if (gripperCloseButton.getRise()) {
-            gripper.close();
-        }
     }
 }

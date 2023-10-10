@@ -30,26 +30,21 @@ import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.metrics.RobotMetricsSampler;
 import com.ftc9929.metrics.StatsdMetricsReporter;
 import com.google.common.base.Ticker;
-import com.hfrobots.tnt.corelib.control.RumbleTarget;
-import com.hfrobots.tnt.corelib.drive.NinjaMotor;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import java.util.List;
 
 @TeleOp(name = "00 PP TeleOp")
+@Disabled
 public class PowerPlayDriverControlled extends OpMode {
 
     private Drivebase drivebase;
 
     private DriverControls driverControls;
-
-    private OperatorControls operatorControls;
 
     private StatsDMetricSampler legacyMetricsSampler;
 
@@ -59,13 +54,7 @@ public class PowerPlayDriverControlled extends OpMode {
 
     private List<LynxModule> allHubs;
 
-    private LiftMechanism liftMechanism;
-
-    private Gripper gripper;
-
     private PowerPlayDriveTeamSignal driveTeamSignal;
-
-    private ConeAndJunctionAlignment coneAndJunctionAlignment;
 
     @Override
     public void init() {
@@ -75,50 +64,17 @@ public class PowerPlayDriverControlled extends OpMode {
 
         NinjaGamePad driversGamepad = new NinjaGamePad(gamepad1);
 
-        Servo gripperServo = hardwareMap.get(Servo.class, "gripperServo");
-
-        gripper = new Gripper(gripperServo);
-
-        DcMotorEx liftMotor = hardwareMap.get(DcMotorEx.class, "liftMotor");
-
-        DigitalChannel lowerLimit = hardwareMap.get(DigitalChannel.class, "lowLimitSwitch");
-        DigitalChannel higherLimit = hardwareMap.get(DigitalChannel.class, "highLimitSwitch");
-
-        liftMechanism = LiftMechanism.builder().liftMotor(NinjaMotor.asNeverest20(liftMotor))
-                .gripper(gripper)
-                .lowerLiftLimit(lowerLimit)
-                .upperLiftLimit(higherLimit)
-                .telemetry(telemetry).build();
-
         driverControls = DriverControls.builder()
                 .driversGamepad(driversGamepad)
-                .liftMechanism(liftMechanism)
                 .kinematics(drivebase).build();
 
         NinjaGamePad operatorGamepad = new NinjaGamePad(gamepad2);
-
-        operatorControls = OperatorControls.builder().operatorGamepad(operatorGamepad)
-                .liftMechanism(liftMechanism)
-                .gripper(gripper)
-                .build();
-
-        // Cone is usually right there, this saves time
-        gripper.close();
-        liftMechanism.grabAndLiftCone();
 
         driveTeamSignal = new PowerPlayDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
         setupMetricsSampler(driversGamepad, operatorGamepad);
 
         allHubs = hardwareMap.getAll(LynxModule.class);
-
-        coneAndJunctionAlignment = ConeAndJunctionAlignment.builder().hardwareMap(hardwareMap)
-                .doConeAlignment(driversGamepad.getRightBumper())
-                .doJunctionAlignment(driversGamepad.getLeftBumper())
-                .driverRumble(new RumbleTarget(gamepad1))
-                .operatorRumble(new RumbleTarget(gamepad2))
-                .telemetry(telemetry)
-                .build();
 
         for (LynxModule hub : allHubs) {
             Log.d(LOG_TAG, String.format("Setting hub %s to BulkCachingMode.MANUAL", hub));
@@ -169,9 +125,6 @@ public class PowerPlayDriverControlled extends OpMode {
         clearHubsBulkCaches(); // important, do not remove this line, or reads from robot break!
 
         driverControls.periodicTask();
-        operatorControls.periodicTask();
-
-        coneAndJunctionAlignment.periodicTask();
 
         if (useLegacyMetricsSampler) {
             if (legacyMetricsSampler != null) {
