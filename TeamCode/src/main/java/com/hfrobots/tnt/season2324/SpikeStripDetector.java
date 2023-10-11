@@ -27,6 +27,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 
+import com.google.common.collect.Lists;
+
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
 import org.firstinspires.ftc.vision.VisionProcessor;
 import org.opencv.core.Mat;
@@ -38,17 +40,24 @@ import org.opencv.imgproc.Imgproc;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
+import lombok.Builder;
+import lombok.Value;
+
 public class SpikeStripDetector implements VisionProcessor {
 
     private final double xResolutionPx = 640;
 
     private final int zoneWidthPx = (int)(xResolutionPx / 3);
 
-    private final Rect leftZone = new Rect(0, 0, zoneWidthPx, 480);
+    private final int zoneStartY = 130;
 
-    private final  Rect centerZone = new Rect(zoneWidthPx + 1, 0, zoneWidthPx, 480);
+    private final int zoneHeight = 300 - zoneStartY;
 
-    public final Rect rightZone = new Rect(2 * zoneWidthPx + 1, 0, zoneWidthPx, 480);
+    private final Rect leftZone = new Rect(0, zoneStartY, zoneWidthPx, zoneHeight);
+
+    private final  Rect centerZone = new Rect(zoneWidthPx + 1, zoneStartY, zoneWidthPx, zoneHeight);
+
+    public final Rect rightZone = new Rect(2 * zoneWidthPx + 1, zoneStartY, zoneWidthPx, zoneHeight);
 
     enum DetectedSpikeStrip { LEFT, CENTER, RIGHT, UNKNOWN }
 
@@ -61,6 +70,8 @@ public class SpikeStripDetector implements VisionProcessor {
 
     private final Mat bgrMat = new Mat();
 
+    private final GripRedPropPipeline redPropPipeline = new GripRedPropPipeline();
+
     @Override
     public void init(int width, int height, CameraCalibration calibration) {
 
@@ -72,7 +83,43 @@ public class SpikeStripDetector implements VisionProcessor {
         // EasyOpenCV sends in RGBA, must convert them before doing anything else
         Imgproc.cvtColor(frame, bgrMat, Imgproc.COLOR_RGBA2BGR);
 
-        return getDetectedSpikeStrip();
+        // This problem seems an awful lot like the barcode detector from FreightFrenzy?
+        redPropPipeline.process(bgrMat);
+
+        ArrayList<MatOfPoint> filteredContours = redPropPipeline.filterContoursOutput();
+        ArrayList<Rect> boundingBoxes = Lists.newArrayList();
+
+        for (MatOfPoint contour : filteredContours) {
+            final Rect boundingRect = Imgproc.boundingRect(contour);
+            boundingBoxes.add(boundingRect);
+
+            final Point propCenterPoint = centerPoint(boundingRect);
+
+            // How do we deal with contours outside of the detection zone
+            // "erasing" knowledge of ones that were detected inside?
+            if (leftZone.contains(propCenterPoint)) {
+                detectedSpikeStripRef.set(DetectedSpikeStrip.LEFT);
+            } else if (centerZone.contains(propCenterPoint)) {
+                detectedSpikeStripRef.set(DetectedSpikeStrip.CENTER);
+            } else if (rightZone.contains(propCenterPoint)) {
+                detectedSpikeStripRef.set(DetectedSpikeStrip.RIGHT);
+            }
+        }
+
+        return DetectionData.builder().detectedSpikeStrip(getDetectedSpikeStrip())
+                .filteredBoundingBoxes(boundingBoxes).build();
+    }
+
+    @Value
+    @Builder
+    static class DetectionData {
+        private ArrayList<MatOfPoint> contours;
+
+        private ArrayList<MatOfPoint> filteredContours;
+
+        private ArrayList<Rect> filteredBoundingBoxes;
+
+        private DetectedSpikeStrip detectedSpikeStrip;
     }
 
     private Point centerPoint(final Rect boundingRect) {
@@ -93,24 +140,30 @@ public class SpikeStripDetector implements VisionProcessor {
         final Paint selectedPaint = new Paint();
         selectedPaint.setColor(Color.GREEN);
         selectedPaint.setStyle(Paint.Style.STROKE);
-        selectedPaint.setStrokeWidth(scaleCanvasDensity * 4);
+        selectedPaint.setStrokeWidth(scaleCanvasDensity * 8);
 
         final Paint nonSelectedPaint = new Paint(selectedPaint); nonSelectedPaint.setColor(Color.YELLOW);
-
-        final Paint leftPaint = new Paint(selectedPaint);
-        leftPaint.setColor(Color.RED);
-        final Paint rightPaint = new Paint(selectedPaint);
-        rightPaint.setColor(Color.CYAN);
+        nonSelectedPaint.setStrokeWidth(scaleCanvasDensity * 4);
 
         final android.graphics.Rect leftZoneRect = convertToAndroidRect(leftZone, scaleBmpPxToCanvasPx);
         final android.graphics.Rect centerZoneRect = convertToAndroidRect(centerZone, scaleBmpPxToCanvasPx);
         final android.graphics.Rect rightZoneRect = convertToAndroidRect(rightZone, scaleBmpPxToCanvasPx);
 
-        canvas.drawRect(leftZoneRect, leftPaint);
+        canvas.drawRect(leftZoneRect, nonSelectedPaint);
         canvas.drawRect(centerZoneRect, nonSelectedPaint);
-        canvas.drawRect(rightZoneRect, rightPaint);
+        canvas.drawRect(rightZoneRect, nonSelectedPaint);
 
-        DetectedSpikeStrip detected = getDetectedSpikeStrip();
+        DetectionData detectionData = (DetectionData)userContext;
+        ArrayList<Rect> boundingBoxes = detectionData.getFilteredBoundingBoxes();
+
+        if (boundingBoxes != null) {
+            for (Rect boundingBox : boundingBoxes) {
+                final android.graphics.Rect boundingBoxRect = convertToAndroidRect(boundingBox, scaleBmpPxToCanvasPx);
+                canvas.drawRect(boundingBoxRect, nonSelectedPaint);
+            }
+        }
+
+        DetectedSpikeStrip detected = detectionData.getDetectedSpikeStrip();
 
         switch (detected) {
             case LEFT:
@@ -123,7 +176,6 @@ public class SpikeStripDetector implements VisionProcessor {
                 canvas.drawRect(rightZoneRect, selectedPaint);
                 break;
         }
-
     }
 
     void recordDetections() {
