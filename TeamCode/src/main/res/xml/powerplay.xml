@@ -18,6 +18,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 -->
 <Robot type="FirstInspires-FTC">
+    <!-- C310 with mount removed -->
+    <Webcam name="webcam" serialNumber="7B2F4FD0" />
+
+    <!-- C310 "spare" camera -->
+    <!-- <Webcam name="webcam" serialNumber="8DED65C0" /> -->
+
     <!-- Control Hub #1 -->
 
     <!-- 9929-Q-RC has a port#, parentModuleAddress of "2" - it will need to be changed
@@ -30,10 +36,29 @@ SOFTWARE.
             <Motor name="leftRearDriveMotor"   port="1" /> <!-- Orange -->
             <Motor name="rightFrontDriveMotor" port="2" /> <!-- Yellow -->
             <Motor name="rightRearDriveMotor"  port="3" /> <!-- Green  -->
+
+            <Servo name="rightPointerServo"              port="5" />
+
+            <!-- <REV_VL53L0X_RANGE_SENSOR name="rightDistanceSensor" port="0" bus="0" /> -->
         </LynxModule>
 
         <LynxModule name="Expansion Hub 3" port="2">
+
+            <Motor name="liftMotor" port="0" /> <!-- Red    -->
+
+            <Servo name="gripperServo"              port="0" />
+            <Servo name="leftPointerServo"          port="5" />
+
             <RevBlinkinLedDriver name="blinkin"     port="2" />
+
+            <DigitalDevice name="lowLimitSwitch" port="1"/>
+            <DigitalDevice name="highLimitSwitch" port="3"/>
+
+            <REV_VL53L0X_RANGE_SENSOR name="leftConeDistanceSensor" port="0" bus="3" />
+            <REV_VL53L0X_RANGE_SENSOR name="centerConeDistanceSensor" port="0" bus="2" />
+            <REV_VL53L0X_RANGE_SENSOR name="rightConeDistanceSensor" port="0" bus="1" />
+            <!-- <REV_VL53L0X_RANGE_SENSOR name="leftDistanceSensor" port="0" bus="0" /> -->
+
         </LynxModule>
     </LynxUsbDevice>
 </Robot>
