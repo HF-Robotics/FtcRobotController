@@ -25,16 +25,18 @@ import com.hfrobots.tnt.corelib.drive.mecanum.trajectorysequence.TrajectorySeque
 import com.hfrobots.tnt.corelib.drive.mecanum.trajectorysequence.TrajectorySequenceBuilder;
 import com.hfrobots.tnt.corelib.drive.mecanum.trajectorysequence.TrajectorySequenceRunner;
 import com.hfrobots.tnt.corelib.drive.mecanum.util.AxisDirection;
-import com.hfrobots.tnt.corelib.drive.mecanum.util.BNO055IMUUtil;
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,7 +67,7 @@ public class RoadRunnerMecanumDriveBase extends MecanumDrive {
     private DcMotorEx leftFront, leftRear, rightRear, rightFront;
     private List<DcMotorEx> motors;
 
-    private BNO055IMU imu;
+    private IMU imu;
     private VoltageSensor batteryVoltageSensor;
 
     private DriveConstants driveConstants;
@@ -104,9 +106,10 @@ public class RoadRunnerMecanumDriveBase extends MecanumDrive {
         }
 
         // TODO: adjust the names of the following hardware devices to match your configuration
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
+        imu = hardwareMap.get(IMU.class, "imu");
+        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
+                RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
         imu.initialize(parameters);
 
         // TODO: If the hub containing the IMU you are using is mounted so that the "REV" logo does
@@ -132,7 +135,7 @@ public class RoadRunnerMecanumDriveBase extends MecanumDrive {
 
         if (imuAxisDirection.isPresent()) {
             Log.i(LOG_TAG, "IMU rotation axis is: " + imuAxisDirection.get());
-            BNO055IMUUtil.remapZAxis(imu, imuAxisDirection.get());
+            throw new IllegalArgumentException("Not yet implemented for generic IMU class");
         }
 
         leftFront = hardwareMap.get(DcMotorEx.class, "leftFrontDriveMotor");
@@ -314,7 +317,7 @@ public class RoadRunnerMecanumDriveBase extends MecanumDrive {
 
     @Override
     public double getRawExternalHeading() {
-        return imu.getAngularOrientation().firstAngle;
+        return imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
     }
 
     @Override
@@ -324,7 +327,7 @@ public class RoadRunnerMecanumDriveBase extends MecanumDrive {
         // expected). This bug does NOT affect orientation. 
         //
         // See https://github.com/FIRST-Tech-Challenge/FtcRobotController/issues/251 for details.
-        return (double) -imu.getAngularVelocity().xRotationRate;
+        return (double) -imu.getRobotAngularVelocity(AngleUnit.RADIANS).xRotationRate;
     }
 
     public static TrajectoryVelocityConstraint getVelocityConstraint(double maxVel, double maxAngularVel, double trackWidth) {
