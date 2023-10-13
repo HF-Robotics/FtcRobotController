@@ -26,6 +26,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.util.Log;
 
 import com.google.common.collect.Lists;
 
@@ -70,11 +71,27 @@ public class SpikeStripDetector implements VisionProcessor {
 
     private final Mat bgrMat = new Mat();
 
+    private final GripBluePropPipeline bluePropPipeline = new GripBluePropPipeline();
+
     private final GripRedPropPipeline redPropPipeline = new GripRedPropPipeline();
+
+    private boolean useRedPipeline = true;
+
+    private boolean useBluePipeline = !useRedPipeline;
 
     @Override
     public void init(int width, int height, CameraCalibration calibration) {
 
+    }
+
+    public void useRedPipeline() {
+        useRedPipeline = true;
+        useBluePipeline = false;
+    }
+
+    public void useBluePipeline() {
+        useBluePipeline = true;
+        useRedPipeline = false;
     }
 
     @Override
@@ -83,10 +100,20 @@ public class SpikeStripDetector implements VisionProcessor {
         // EasyOpenCV sends in RGBA, must convert them before doing anything else
         Imgproc.cvtColor(frame, bgrMat, Imgproc.COLOR_RGBA2BGR);
 
-        // This problem seems an awful lot like the barcode detector from FreightFrenzy?
-        redPropPipeline.process(bgrMat);
+        final ArrayList<MatOfPoint> filteredContours;
 
-        ArrayList<MatOfPoint> filteredContours = redPropPipeline.filterContoursOutput();
+        if (useBluePipeline) {
+            bluePropPipeline.process(bgrMat);
+            filteredContours = bluePropPipeline.filterContoursOutput();
+            Log.d("TNT", "Used blue pipeline, found " + filteredContours.size());
+        } else {
+            // FIXME: We have two pipelines: bluePropPipeline and redPropPipeline, fix this
+            // to choose the red one when that one is chosen?
+            redPropPipeline.process(bgrMat);
+            filteredContours = redPropPipeline.filterContoursOutput();
+            Log.d("TNT", "Used red pipeline, found " + filteredContours.size());
+        }
+
         ArrayList<Rect> boundingBoxes = Lists.newArrayList();
 
         for (MatOfPoint contour : filteredContours) {
@@ -103,6 +130,8 @@ public class SpikeStripDetector implements VisionProcessor {
                 detectedSpikeStripRef.set(DetectedSpikeStrip.CENTER);
             } else if (rightZone.contains(propCenterPoint)) {
                 detectedSpikeStripRef.set(DetectedSpikeStrip.RIGHT);
+            } else {
+                detectedSpikeStripRef.set(DetectedSpikeStrip.UNKNOWN);
             }
         }
 
@@ -149,9 +178,7 @@ public class SpikeStripDetector implements VisionProcessor {
         final android.graphics.Rect centerZoneRect = convertToAndroidRect(centerZone, scaleBmpPxToCanvasPx);
         final android.graphics.Rect rightZoneRect = convertToAndroidRect(rightZone, scaleBmpPxToCanvasPx);
 
-        canvas.drawRect(leftZoneRect, nonSelectedPaint);
-        canvas.drawRect(centerZoneRect, nonSelectedPaint);
-        canvas.drawRect(rightZoneRect, nonSelectedPaint);
+        drawZones(canvas, nonSelectedPaint, leftZoneRect, centerZoneRect, rightZoneRect);
 
         DetectionData detectionData = (DetectionData)userContext;
         ArrayList<Rect> boundingBoxes = detectionData.getFilteredBoundingBoxes();
@@ -175,7 +202,16 @@ public class SpikeStripDetector implements VisionProcessor {
             case RIGHT:
                 canvas.drawRect(rightZoneRect, selectedPaint);
                 break;
+            case UNKNOWN:
+                drawZones(canvas, nonSelectedPaint, leftZoneRect, centerZoneRect, rightZoneRect);
+                break;
         }
+    }
+
+    private static void drawZones(Canvas canvas, Paint nonSelectedPaint, android.graphics.Rect leftZoneRect, android.graphics.Rect centerZoneRect, android.graphics.Rect rightZoneRect) {
+        canvas.drawRect(leftZoneRect, nonSelectedPaint);
+        canvas.drawRect(centerZoneRect, nonSelectedPaint);
+        canvas.drawRect(rightZoneRect, nonSelectedPaint);
     }
 
     void recordDetections() {

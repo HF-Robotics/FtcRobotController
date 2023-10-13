@@ -118,8 +118,7 @@ public class CenterstageAuto extends OpMode {
 
         driveConstants = new CenterstageDriveConstants();
         driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
-                driveConstants,
-                Optional.of(AxisDirection.POS_X));
+                driveConstants);
 
         stateMachine = new StateMachine(telemetry);
     }
@@ -259,6 +258,12 @@ public class CenterstageAuto extends OpMode {
         telemetry.addData("01", "Alliance: %s", currentAlliance);
         telemetry.addData("02", "Task: %s", possibleTaskChoices[selectedTaskIndex].getDescription());
         telemetry.addData("03", "Delay %d sec", initialDelaySeconds);
+
+        if (currentAlliance == Constants.Alliance.BLUE) {
+            spikeStripDetector.useBluePipeline();
+        } else {
+            spikeStripDetector.useRedPipeline();
+        }
 
         updateTelemetry(telemetry);
     }
