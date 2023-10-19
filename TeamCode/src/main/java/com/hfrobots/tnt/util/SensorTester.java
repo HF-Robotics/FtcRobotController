@@ -26,17 +26,21 @@ import com.qualcomm.hardware.lynx.LynxEmbeddedIMU;
 import com.qualcomm.hardware.lynx.LynxI2cColorRangeSensor;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.TouchSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 import java.util.List;
 
@@ -64,7 +68,7 @@ public class SensorTester extends OpMode {
 
     private List<NamedDeviceMap.NamedDevice<AnalogInput>> namedAnalogInputs;
 
-    private List<NamedDeviceMap.NamedDevice<LynxEmbeddedIMU>> namedImus;
+    private List<NamedDeviceMap.NamedDevice<IMU>> namedImus;
 
     private int currentListPosition;
 
@@ -83,7 +87,7 @@ public class SensorTester extends OpMode {
         namedLynxColorSensors = namedDeviceMap.getAll(LynxI2cColorRangeSensor.class);
         namedRevV3ColorSensors = namedDeviceMap.getAll(RevColorSensorV3.class);
         namedTouchDevices = namedDeviceMap.getAll(TouchSensor.class);
-        namedImus = namedDeviceMap.getAll(LynxEmbeddedIMU.class);
+        namedImus = namedDeviceMap.getAll(IMU.class);
         namedTofSensors = namedDeviceMap.getAll(Rev2mDistanceSensor.class);
         namedAnalogInputs = namedDeviceMap.getAll(AnalogInput.class);
 
@@ -96,18 +100,15 @@ public class SensorTester extends OpMode {
     }
 
     protected void initializeLynxEmbeddedImus() {
-        for (NamedDeviceMap.NamedDevice<LynxEmbeddedIMU> namedImu : namedImus) {
-            LynxEmbeddedIMU imu = namedImu.getDevice();
-            BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-            parameters.mode                = BNO055IMU.SensorMode.IMU; // yes, it's the default, but let's be sure
-            parameters.angleUnit           = BNO055IMU.AngleUnit.DEGREES;
-            parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-            //parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
-            parameters.loggingEnabled      = false;
-            parameters.loggingTag          = "IMU";
-            //parameters.accelerationIntegrationAlgorithm = new NaiveAccelerationIntegrator();
-            imu.initialize(parameters);
-            imu.startAccelerationIntegration(null, null, 50); // not started by default?
+        for (NamedDeviceMap.NamedDevice<IMU> namedImu : namedImus) {
+            namedImu.getDevice().initialize(
+                    new IMU.Parameters(
+                            new RevHubOrientationOnRobot(
+                                    RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                                    RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
+                            )
+                    )
+            );
         }
     }
 
@@ -279,7 +280,7 @@ public class SensorTester extends OpMode {
     int currentLynxImuListPosition = 0;
 
     private void doLynxImuLoop() {
-        namedImus = namedDeviceMap.getAll(LynxEmbeddedIMU.class);
+        namedImus = namedDeviceMap.getAll(IMU.class);
 
         if (namedImus.isEmpty()) {
             telemetry.addData("No lynx imus", "");
@@ -295,32 +296,19 @@ public class SensorTester extends OpMode {
             }
         }
 
-        NamedDeviceMap.NamedDevice<LynxEmbeddedIMU> currentNamedLynxImu = namedImus.get(currentLynxImuListPosition);
-        LynxEmbeddedIMU currentImu = currentNamedLynxImu.getDevice();
+        NamedDeviceMap.NamedDevice<IMU> currentNamedLynxImu = namedImus.get(currentLynxImuListPosition);
+        IMU currentImu = currentNamedLynxImu.getDevice();
         String sensorName = currentNamedLynxImu.getName();
 
-        BNO055IMU.CalibrationStatus calibrationStatus = currentImu.getCalibrationStatus();
-        AngularVelocity angularVelocity = currentImu.getAngularVelocity();
+        YawPitchRollAngles currentOrientation = currentImu.getRobotYawPitchRollAngles();
 
-        Acceleration linearAccel = currentImu.getLinearAcceleration();
-
-        Acceleration overallAccel = currentImu.getOverallAcceleration();
-
-        Velocity velocity = currentImu.getVelocity();
-
-        Orientation currentOrientation = currentImu.getAngularOrientation();
         // First angle is heading, second is roll, third is pitch
-        float heading = currentOrientation.firstAngle;
-        float roll = currentOrientation.secondAngle;
-        float pitch = currentOrientation.thirdAngle;
+        double heading = currentOrientation.getYaw(AngleUnit.DEGREES);
+        double roll = currentOrientation.getRoll(AngleUnit.DEGREES);
+        double pitch = currentOrientation.getPitch(AngleUnit.DEGREES);
 
         telemetry.addData("imu ",  "%s", sensorName);
         telemetry.addData("h/r/p ",  "%.2f %.2f %.2f", heading, roll, pitch);
-        telemetry.addData("Vr x/y/z", "%.2f %.2f %.2f", angularVelocity.xRotationRate,
-                angularVelocity.yRotationRate, angularVelocity.zRotationRate);
-        telemetry.addData("dV x/y/z", "%.2f %.2f %.2f", linearAccel.xAccel, linearAccel.yAccel, linearAccel.zAccel);
-        telemetry.addData("dVo x/y/z", "%.2f %.2f %.2f", overallAccel.xAccel, overallAccel.yAccel, overallAccel.zAccel);
-        telemetry.addData("V x/y/z", "%.2f %.2f %.2f", velocity.xVeloc, velocity.yVeloc, velocity.zVeloc);
 
         updateTelemetry(telemetry);
     }

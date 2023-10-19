@@ -212,7 +212,7 @@ public class LinearLiftController {
         }
 
         telemetry.addData("SM: ", "e: " + currentStateName + " b: " +
-                (limitOverrideButton.isPressed() ? "!" : ""));
+                (nullSafeIsPressed(limitOverrideButton) ? "!" : ""));
 
         State nextState = currentState.doStuffAndGetNextState();
 
@@ -330,15 +330,15 @@ public class LinearLiftController {
                 resultantState = upCommandState;
             } else if (liftThrottleIsDown()) {
                 return downCommandState;
-            } else if (liftUpperLimitButton.getRise()) {
+            } else if (nullSafeGetRise(liftUpperLimitButton)) {
                 Log.d(LOG_TAG, "Sensed button press for auto upper limit");
 
                 resultantState = goUpperLimitState;
-            } else if (liftLowerLimitButton.getRise()) {
+            } else if (nullSafeGetRise(liftLowerLimitButton)) {
                 Log.d(LOG_TAG, "Sensed button press for auto lower limit");
 
                 resultantState = goLowerLimitState;
-            } else if (liftEmergencyStopButton.getRise()) {
+            } else if (nullSafeGetRise(liftEmergencyStopButton)) {
                 stopLift();
 
                 resultantState = idleState;
@@ -430,7 +430,7 @@ public class LinearLiftController {
 
         @Override
         public State doStuffAndGetNextState() {
-            if (isTimedOut() && limitOverrideButton != null && !limitOverrideButton.isPressed()) {
+            if (isTimedOut() && !nullSafeIsPressed(limitOverrideButton)) {
                 stopLift();
                 Log.e(LOG_TAG, "Timed out while going to upper limit");
 
@@ -507,7 +507,7 @@ public class LinearLiftController {
 
         @Override
         public State doStuffAndGetNextState() {
-            if (isTimedOut() && limitOverrideButton != null && !limitOverrideButton.isPressed()) {
+            if (isTimedOut() && !nullSafeIsPressed(limitOverrideButton)) {
                 stopLift();
                 Log.e(LOG_TAG, "Timed out while going to low limit");
 
@@ -598,7 +598,7 @@ public class LinearLiftController {
                 liftMotor.setPower(0);
 
                 return fromButtonState;
-            } else if (fromButtonState != null && limitOverrideButton.isPressed()) {
+            } else if (fromButtonState != null && nullSafeIsPressed(limitOverrideButton)) {
                 if (fromButtonState != this) {
                     Log.d(LOG_TAG, getName() + " - limits overridden - transitioning to " + fromButtonState.getName());
 
@@ -634,7 +634,7 @@ public class LinearLiftController {
                 Log.d(LOG_TAG, getName() + " responding to buttons and transitioning to " + fromButtonState.getName());
 
                 return fromButtonState;
-            } else if (fromButtonState != null && limitOverrideButton.isPressed()) {
+            } else if (fromButtonState != null && nullSafeIsPressed(limitOverrideButton)) {
                 if (fromButtonState != this) {
                     Log.d(LOG_TAG, getName() + " - limits overridden - transitioning to " + fromButtonState.getName());
 
@@ -656,11 +656,11 @@ public class LinearLiftController {
         public State doStuffAndGetNextState() {
             if (liftThrottleIsUp()) {
                     return transitionToState(upCommandState);
-            } else if (liftUpperLimitButton.getRise()) {
+            } else if (nullSafeGetRise(liftUpperLimitButton)) {
                     return transitionToState(goUpperLimitState);
-            } else if (liftLowerLimitButton.getRise()){
+            } else if (nullSafeGetRise(liftLowerLimitButton)){
                     return transitionToState(goLowerLimitState);
-            } else if (liftEmergencyStopButton.getRise()) {
+            } else if (nullSafeGetRise(liftEmergencyStopButton)) {
                 stopLift();
 
                 return transitionToState(idleState);
@@ -703,11 +703,11 @@ public class LinearLiftController {
         public State doStuffAndGetNextState() {
             if (liftThrottleIsDown()) {
                 return transitionToState(downCommandState);
-            } else if (liftUpperLimitButton.getRise()) {
+            } else if (nullSafeGetRise(liftUpperLimitButton)) {
                 return transitionToState(goUpperLimitState);
-            } else if (liftLowerLimitButton.getRise()){
+            } else if (nullSafeGetRise(liftLowerLimitButton)){
                 return transitionToState(goLowerLimitState);
-            } else if (liftEmergencyStopButton.getRise()) {
+            } else if (nullSafeGetRise(liftEmergencyStopButton)) {
                 stopLift();
 
                 return transitionToState(idleState);
@@ -730,6 +730,14 @@ public class LinearLiftController {
 
             return this;
         }
+    }
+
+    private boolean nullSafeGetRise(final DebouncedButton debouncedButton) {
+        return debouncedButton != null && debouncedButton.getRise();
+    }
+
+    private boolean nullSafeIsPressed(final OnOffButton onOffButton) {
+        return onOffButton != null && onOffButton.isPressed();
     }
 
     private static boolean limitSwitchIsOn(final DigitalChannel limitSwitch) {

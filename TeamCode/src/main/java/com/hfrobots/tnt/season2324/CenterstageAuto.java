@@ -27,23 +27,31 @@ import static com.ftc9929.corelib.Constants.LOG_TAG;
 import android.util.Log;
 import android.util.Size;
 
+import androidx.annotation.NonNull;
+
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.state.SequenceOfStates;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
-import com.google.common.base.Optional;
+import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
+import com.hfrobots.tnt.corelib.drive.Turn;
 import com.hfrobots.tnt.corelib.drive.mecanum.DriveConstants;
+import com.hfrobots.tnt.corelib.drive.mecanum.MultipleTrajectoriesFollowerState;
 import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
-import com.hfrobots.tnt.corelib.drive.mecanum.util.AxisDirection;
+import com.hfrobots.tnt.corelib.drive.mecanum.TurnState;
+import com.hfrobots.tnt.season2122.FreightFrenzyDriveConstants;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
 import org.firstinspires.ftc.vision.VisionPortal;
+
+import java.util.concurrent.TimeUnit;
 
 @Autonomous(name="00 CS Auto")
 public class CenterstageAuto extends OpMode {
@@ -65,6 +73,14 @@ public class CenterstageAuto extends OpMode {
         void unlockConfig();
     }
 
+    private enum SpikeStripLocation {
+        LOCATION_LEFT,
+        LOCATION_CENTER,
+        LOCATION_RIGHT;
+    }
+
+    private SpikeStripLocation detectedLocation = SpikeStripLocation.LOCATION_CENTER;
+
     private Ticker ticker;
 
     private RoadRunnerMecanumDriveBase driveBase;
@@ -75,7 +91,7 @@ public class CenterstageAuto extends OpMode {
 
     private CenterstageDriverControls driverControls;
 
-    private CenterstageDriveConstants driveConstants;
+    private DriveConstants driveConstants;
 
     private VisionPortal visionPortal;
 
@@ -116,7 +132,10 @@ public class CenterstageAuto extends OpMode {
         setupOperatorControls();
         setupVisionPortal(hardwareMap);
 
-        driveConstants = new CenterstageDriveConstants();
+        // FIXME: Until we have the real drive base, use the FF drivebase
+        // driveConstants = new CenterstageDriveConstants();
+        driveConstants = new FreightFrenzyDriveConstants();
+
         driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
                 driveConstants);
 
@@ -223,7 +242,7 @@ public class CenterstageAuto extends OpMode {
     @Override
     public void start() {
         super.start();
-
+        spikeStripDetector.recordDetections();
         visionPortal.stopLiveView();
     }
 
@@ -325,9 +344,45 @@ public class CenterstageAuto extends OpMode {
 
     protected void setupStartWingSideStateMachine() {
 
-        final SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
 
-        // Add a bunch of steps here!
+        final State detectState = createSpikeStripDetectorState();
+
+        final State moveRobotToSpikeStrips = new MultipleTrajectoriesFollowerState("Move robot",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected void createTrajectoryProviders() {
+                switch (detectedLocation) {
+                    case LOCATION_LEFT: {
+                        // FIXME: We will need a series of trajectories here, like this:
+                        addTrajectoryProvider("Off wall", (t) -> t.strafeRight(12));
+
+                        break;
+                    }
+                    case LOCATION_CENTER: {
+                        // FIXME: We will need a series of trajectories here, like this:
+                        addTrajectoryProvider("Off wall", (t) -> t.strafeRight(12));
+
+                        break;
+                    }
+                    case LOCATION_RIGHT: {
+                        // FIXME: We will need a series of trajectories here, like this:
+                        addTrajectoryProvider("Off wall", (t) -> t.strafeRight(12));
+
+                        break;
+                    }
+                }
+            }
+        };
+
+        final State turnRobot = new TurnState("Spin me round baby right round",
+                telemetry, new Turn(Rotation.CW, 90), driveBase, ticker, 30_000);
+
+        final SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
+       // sequence.addSequential(detectState);
+        sequence.addSequential(moveRobotToSpikeStrips);
+        sequence.addSequential(turnRobot);
+
+        // FIXME: We will need something here to outtake the purple pixel
 
         sequence.addSequential(newDoneState("Done!"));
         stateMachine.addSequence(sequence);
@@ -428,5 +483,51 @@ public class CenterstageAuto extends OpMode {
         public double getTrackWidth() {
             return TRACK_WIDTH_IN;
         }
+    }
+
+    @NonNull
+    private State createSpikeStripDetectorState() {
+        State detectState = new StopwatchTimeoutSafetyState("Detect Spike Strip",
+                telemetry, ticker, 5000) {
+            @Override
+            public State doStuffAndGetNextState() {
+                if (isTimedOut()) {
+                    resetTimer();
+
+                    Log.e(LOG_TAG, "Timed out waiting for detection, using " +
+                            detectedLocation + " as location");
+
+                    return nextState;
+                }
+
+                SpikeStripDetector.DetectedSpikeStrip detectedSpikeStrip =
+                        spikeStripDetector.getDetectedSpikeStrip();
+
+                switch (detectedSpikeStrip) {
+                    case LEFT: {
+                        detectedLocation = SpikeStripLocation.LOCATION_LEFT;
+                        resetTimer();
+
+                        return nextState;
+                    }
+                    case CENTER: {
+                        detectedLocation = SpikeStripLocation.LOCATION_CENTER;
+                        resetTimer();
+
+                        return nextState;
+                    }
+                    case RIGHT: {
+                        detectedLocation = SpikeStripLocation.LOCATION_RIGHT;
+                        resetTimer();
+
+                        return nextState;
+                    }
+                }
+
+                return this;
+            }
+        };
+
+        return detectState;
     }
 }

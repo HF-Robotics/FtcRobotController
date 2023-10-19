@@ -30,12 +30,19 @@ SOFTWARE.
          here to swap it in as a replacement! -->
     <LynxUsbDevice name="Control Hub" serialNumber="(embedded)" parentModuleAddress="173">
         <LynxModule name="Main Hub" port="173">
-            <LynxEmbeddedIMU name="imu" port="0" bus="0" />
+            <!-- Old Control Hubs Use this IMU -->
+            <!-- <LynxEmbeddedIMU name="imu" port="0" bus="0" /> -->
+
+            <!-- New Control Hubs use this IMU -->
+            <ControlHubImuBHI260AP name="imu" port="0" bus="0" />
 
             <Motor name="leftFrontDriveMotor"  port="0" /> <!-- Red    -->
             <Motor name="leftRearDriveMotor"   port="1" /> <!-- Orange -->
             <Motor name="rightFrontDriveMotor" port="2" /> <!-- Yellow -->
             <Motor name="rightRearDriveMotor"  port="3" /> <!-- Green  -->
+
+            <ContinuousRotationServo name="leftIntakeMotor"         port="0" />
+            <ContinuousRotationServo name="rightIntakeMotor"         port="1" />
         </LynxModule>
     </LynxUsbDevice>
 </Robot>

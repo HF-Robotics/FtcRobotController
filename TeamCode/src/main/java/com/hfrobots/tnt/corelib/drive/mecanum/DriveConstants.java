@@ -100,4 +100,8 @@ public abstract class DriveConstants {
     }
 
     public abstract DriveConstraints getDriveConstraints();
+
+    public double getLateralMultiplier() {
+        return 1.0;
+    }
 }

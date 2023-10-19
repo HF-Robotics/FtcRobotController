@@ -42,8 +42,8 @@ public class CenterstageDrivebase extends OpenLoopMecanumKinematics {
         leftFrontDriveMotor = hardwareMap.get(DcMotorEx.class, "leftFrontDriveMotor");
         leftRearDriveMotor = hardwareMap.get(DcMotorEx.class, "leftRearDriveMotor");
 
-        leftFrontDriveMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftRearDriveMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightFrontDriveMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightRearDriveMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         rightFrontDriveMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightRearDriveMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

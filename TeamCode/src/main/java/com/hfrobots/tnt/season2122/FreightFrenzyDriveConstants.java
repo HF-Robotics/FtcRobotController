@@ -27,13 +27,18 @@ import com.hfrobots.tnt.corelib.drive.mecanum.DriveConstants;
 public class FreightFrenzyDriveConstants extends DriveConstants {
 
     private static DriveConstraints DRIVE_CONSTRAINTS = new DriveConstraints(80, 30.0, 0.0,
-            Math.toRadians(180.0), Math.toRadians(180.0), 0.0);
+            Math.toRadians(27), Math.toRadians(90.0), 0.0);
     private static PIDCoefficients TRANSLATIONAL_PID_COEFFICIENTS = new PIDCoefficients(4.2D, 0, 0);
     private static PIDCoefficients HEADING_PID_COEFFICIENTS = new PIDCoefficients(0.295D, 0, 0);
 
     @Override
     public DriveConstraints getBaseConstraints() {
         return DRIVE_CONSTRAINTS;
+    }
+
+    @Override
+    public double getTrackWidth() {
+        return 11;
     }
 
     @Override
@@ -49,5 +54,10 @@ public class FreightFrenzyDriveConstants extends DriveConstants {
     @Override
     public DriveConstraints getDriveConstraints() {
         return DRIVE_CONSTRAINTS;
+    }
+
+    @Override
+    public double getLateralMultiplier() {
+        return 2.18;
     }
 }

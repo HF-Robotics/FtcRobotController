@@ -116,6 +116,8 @@ public class SpikeStripDetector implements VisionProcessor {
 
         ArrayList<Rect> boundingBoxes = Lists.newArrayList();
 
+        DetectedSpikeStrip detectedSpikeStrip = DetectedSpikeStrip.UNKNOWN;
+
         for (MatOfPoint contour : filteredContours) {
             final Rect boundingRect = Imgproc.boundingRect(contour);
             boundingBoxes.add(boundingRect);
@@ -125,17 +127,21 @@ public class SpikeStripDetector implements VisionProcessor {
             // How do we deal with contours outside of the detection zone
             // "erasing" knowledge of ones that were detected inside?
             if (leftZone.contains(propCenterPoint)) {
-                detectedSpikeStripRef.set(DetectedSpikeStrip.LEFT);
+                detectedSpikeStrip = DetectedSpikeStrip.LEFT;
             } else if (centerZone.contains(propCenterPoint)) {
-                detectedSpikeStripRef.set(DetectedSpikeStrip.CENTER);
+                detectedSpikeStrip = DetectedSpikeStrip.CENTER;
             } else if (rightZone.contains(propCenterPoint)) {
-                detectedSpikeStripRef.set(DetectedSpikeStrip.RIGHT);
+                detectedSpikeStrip = DetectedSpikeStrip.RIGHT;
             } else {
-                detectedSpikeStripRef.set(DetectedSpikeStrip.UNKNOWN);
+                detectedSpikeStrip = DetectedSpikeStrip.UNKNOWN;
             }
         }
 
-        return DetectionData.builder().detectedSpikeStrip(getDetectedSpikeStrip())
+        if (recordDetection) {
+            detectedSpikeStripRef.set(detectedSpikeStrip);
+        }
+
+        return DetectionData.builder().detectedSpikeStrip(detectedSpikeStrip)
                 .filteredBoundingBoxes(boundingBoxes).build();
     }
 

@@ -47,8 +47,6 @@ import java.util.List;
  */
 @Config
 public class RoadRunnerMecanumDriveBase extends MecanumDrive {
-    public static double LATERAL_MULTIPLIER = 1;
-
     private static final boolean RUN_USING_ENCODER = true;
 
     public static double VX_WEIGHT = 1;
@@ -78,11 +76,11 @@ public class RoadRunnerMecanumDriveBase extends MecanumDrive {
 
     public RoadRunnerMecanumDriveBase(HardwareMap hardwareMap,
                                       DriveConstants driveConstants,
-                                      Optional<AxisDirection> imuAxisDirection) {
+                                      Optional<IMU.Parameters> imuParameters) {
         super(driveConstants.getKv(),
                 driveConstants.getKa(),
                 driveConstants.getKstatic(),
-                driveConstants.getTrackWidth(), driveConstants.getTrackWidth(), LATERAL_MULTIPLIER);
+                driveConstants.getTrackWidth(), driveConstants.getTrackWidth(), driveConstants.getLateralMultiplier());
 
         this.driveConstants = driveConstants;
         DriveConstants.DriveConstraints driveConstraints = driveConstants.getDriveConstraints();
@@ -107,35 +105,16 @@ public class RoadRunnerMecanumDriveBase extends MecanumDrive {
 
         // TODO: adjust the names of the following hardware devices to match your configuration
         imu = hardwareMap.get(IMU.class, "imu");
-        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                RevHubOrientationOnRobot.LogoFacingDirection.UP,
-                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
-        imu.initialize(parameters);
 
-        // TODO: If the hub containing the IMU you are using is mounted so that the "REV" logo does
-        // not face up, remap the IMU axes so that the z-axis points upward (normal to the floor.)
-        //
-        //             | +Z axis
-        //             |
-        //             |
-        //             |
-        //      _______|_____________     +Y axis
-        //     /       |_____________/|__________
-        //    /   REV / EXPANSION   //
-        //   /       / HUB         //
-        //  /_______/_____________//
-        // |_______/_____________|/
-        //        /
-        //       / +X axis
-        //
-        // This diagram is derived from the axes in section 3.4 https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bno055-ds000.pdf
-        // and the placement of the dot/orientation from https://docs.revrobotics.com/rev-control-system/control-system-overview/dimensions#imu-location
-        //
-        // For example, if +Y in this diagram faces downwards, you would use AxisDirection.NEG_Y.
+        if (imuParameters.isPresent()) {
+            imu.initialize(imuParameters.get());
+        } else {
+            IMU.Parameters parameters = new IMU.Parameters(
+                    new RevHubOrientationOnRobot(
+                        RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                        RevHubOrientationOnRobot.UsbFacingDirection.FORWARD));
 
-        if (imuAxisDirection.isPresent()) {
-            Log.i(LOG_TAG, "IMU rotation axis is: " + imuAxisDirection.get());
-            throw new IllegalArgumentException("Not yet implemented for generic IMU class");
+            imu.initialize(parameters);
         }
 
         leftFront = hardwareMap.get(DcMotorEx.class, "leftFrontDriveMotor");
@@ -162,8 +141,8 @@ public class RoadRunnerMecanumDriveBase extends MecanumDrive {
         }
 
         // TODO: reverse any motors using DcMotor.setDirection()
-        leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
-        leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightRear.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // TODO: if desired, use setLocalizer() to change the localization method
         // for instance, setLocalizer(new ThreeTrackingWheelLocalizer(...));

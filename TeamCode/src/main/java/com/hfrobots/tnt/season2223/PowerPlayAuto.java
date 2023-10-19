@@ -142,8 +142,7 @@ public class PowerPlayAuto extends OpMode {
 
         driveConstants = new PowerPlayDriveConstants();
         driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
-                driveConstants,
-                Optional.of(AxisDirection.POS_X));
+                driveConstants);
 
         stateMachine = new StateMachine(telemetry);
 
