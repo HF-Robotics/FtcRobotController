@@ -30,11 +30,13 @@ import android.util.Size;
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.state.SequenceOfStates;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
 import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
+import com.google.common.base.Supplier;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.corelib.drive.Turn;
@@ -347,26 +349,38 @@ public class CenterstageAuto extends OpMode {
 
         final State detectState = createSpikeStripDetectorState();
 
+        // FIXME - Remove this once detector is working
+        detectedLocation = SpikeStripLocation.LOCATION_CENTER;
+
         final State moveRobotToSpikeStrips = new MultipleTrajectoriesFollowerState("Move robot",
                 telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
             @Override
             protected void createTrajectoryProviders() {
                 switch (detectedLocation) {
                     case LOCATION_LEFT: {
-                        // FIXME: We will need a series of trajectories here, like this:
-                        addTrajectoryProvider("Off wall", (t) -> t.strafeRight(12));
+                        addTrajectoryProvider("Off wall", (t) -> t.forward(27));
 
                         break;
                     }
                     case LOCATION_CENTER: {
-                        // FIXME: We will need a series of trajectories here, like this:
-                        addTrajectoryProvider("Off wall", (t) -> t.strafeRight(12));
+                        //addTrajectoryProvider("Off wall", (t) -> t.forward(27));
+                        //addTrajectoryProvider("To pixel drop", (t) -> t.strafeLeft(3));
+
+                        // Backstage
+                        // RED -> Right
+                        // BLUE -> LEFT
+
+                        // Wing
+                        // RED -> Left
+                        // BLUE -> RIGHT
+
+                        // If not in the wing, go *right* on the strafe and or spline
+                        addTrajectoryProvider("Off wall", (t) -> t.splineToLinearHeading(new Pose2d(27D, -3D, 0),0));
 
                         break;
                     }
                     case LOCATION_RIGHT: {
-                        // FIXME: We will need a series of trajectories here, like this:
-                        addTrajectoryProvider("Off wall", (t) -> t.strafeRight(12));
+                        addTrajectoryProvider("Off wall", (t) -> t.forward(27));
 
                         break;
                     }
@@ -375,10 +389,26 @@ public class CenterstageAuto extends OpMode {
         };
 
         final State turnRobot = new TurnState("Spin me round baby right round",
-                telemetry, new Turn(Rotation.CW, 90), driveBase, ticker, 30_000);
+                telemetry,
+                (Supplier<Turn>) () -> {
+                    switch (detectedLocation) {
+                        case LOCATION_LEFT: {
+                            return new Turn(Rotation.CCW, 90);
+                        }
+                        case LOCATION_CENTER: {
+                            return null;
+                        }
+                        case LOCATION_RIGHT: {
+                            return new Turn(Rotation.CW, 90);
+                        }
+                    }
+
+                    return null;
+                }, driveBase,ticker,30_000);
 
         final SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
        // sequence.addSequential(detectState);
+
         sequence.addSequential(moveRobotToSpikeStrips);
         sequence.addSequential(turnRobot);
 
