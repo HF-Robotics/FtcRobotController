@@ -40,21 +40,21 @@ public class CenterstageOperatorControls implements PeriodicTask {
 
     protected RangeInput rightStickY;
 
-    protected DebouncedButton dpadUp;
+    protected OnOffButton dpadUp;
 
-    protected DebouncedButton dpadDown;
+    protected OnOffButton dpadDown;
 
-    protected DebouncedButton dpadLeft;
+    protected OnOffButton dpadLeft;
 
-    protected DebouncedButton dpadRight;
+    protected OnOffButton dpadRight;
 
     protected OnOffButton xBlueButton;
 
-    protected DebouncedButton bRedButton;
+    protected OnOffButton bRedButton;
 
-    protected DebouncedButton yYellowButton;
+    protected OnOffButton yYellowButton;
 
-    protected DebouncedButton aGreenButton;
+    protected OnOffButton aGreenButton;
 
     protected OnOffButton rightBumper;
 
@@ -73,29 +73,58 @@ public class CenterstageOperatorControls implements PeriodicTask {
     // Add all of the mechanisms controlled by the operator here, and add them to
     // the constructor.
 
+    protected RangeInput liftThrottle;
+
+    protected DebouncedButton pixelSelector1;
+
+    protected DebouncedButton pixelSelector2;
+
+    protected OnOffButton pixelReleaseButton1;
+
+    protected OnOffButton pixelReleaseButton2;
+
+    protected OnOffButton droneRelease1;
+
+    protected OnOffButton droneRelease2;
+
+    protected RangeInput intakeOutakeThrottle;
+
+    protected OnOffButton hangExtend;
+
+    protected OnOffButton hangRetract;
+
+    protected ScoringMechanism scoringMechanism;
+
+    protected Hanger hanger;
+
+    protected Intake intake;
+
     @Builder
     private CenterstageOperatorControls(RangeInput leftStickX,
                                         RangeInput leftStickY,
                                         RangeInput rightStickX,
                                         RangeInput rightStickY,
-                                        DebouncedButton dpadUp,
-                                        DebouncedButton dpadDown,
-                                        DebouncedButton dpadLeft,
-                                        DebouncedButton dpadRight,
+                                        OnOffButton dpadUp,
+                                        OnOffButton dpadDown,
+                                        OnOffButton dpadLeft,
+                                        OnOffButton dpadRight,
                                         OnOffButton dpadUpRaw,
                                         OnOffButton dpadDownRaw,
                                         OnOffButton dpadLeftRaw,
                                         OnOffButton dpadRightRaw,
                                         OnOffButton xBlueButton,
-                                        DebouncedButton bRedButton,
-                                        DebouncedButton yYellowButton,
-                                        DebouncedButton aGreenButton,
+                                        OnOffButton bRedButton,
+                                        OnOffButton yYellowButton,
+                                        OnOffButton aGreenButton,
                                         OnOffButton rightBumper,
                                         OnOffButton leftBumper,
                                         RangeInput leftTrigger,
                                         RangeInput rightTrigger,
                                         NinjaGamePad operatorGamepad,
-                                        NinjaGamePad driverGamepad) {
+                                        NinjaGamePad driverGamepad,
+                                        ScoringMechanism scoringMechanism,
+                                        Hanger hanger,
+                                        Intake intake) {
         if (operatorGamepad != null) {
             this.operatorGamepad = operatorGamepad;
             this.driverGamepad = driverGamepad;
@@ -121,6 +150,12 @@ public class CenterstageOperatorControls implements PeriodicTask {
         }
 
         setupDerivedControls();
+
+        this.scoringMechanism = scoringMechanism;
+        this.hanger = hanger;
+        this.intake = intake;
+
+        wireControlsToScoringMechanism();
     }
 
 
@@ -130,15 +165,15 @@ public class CenterstageOperatorControls implements PeriodicTask {
         rightStickX = operatorGamepad.getRightStickX();
         rightStickY = operatorGamepad.getRightStickY();
 
-        dpadDown = new DebouncedButton(operatorGamepad.getDpadDown());
-        dpadUp = new DebouncedButton(operatorGamepad.getDpadUp());
-        dpadLeft = new DebouncedButton(operatorGamepad.getDpadLeft());
-        dpadRight = new DebouncedButton(operatorGamepad.getDpadRight());
+        dpadDown = operatorGamepad.getDpadDown();
+        dpadUp = operatorGamepad.getDpadUp();
+        dpadLeft = operatorGamepad.getDpadLeft();
+        dpadRight = operatorGamepad.getDpadRight();
 
-        aGreenButton = new DebouncedButton(operatorGamepad.getAButton());
-        bRedButton = new DebouncedButton(operatorGamepad.getBButton());
+        aGreenButton = operatorGamepad.getAButton();
+        bRedButton = operatorGamepad.getBButton();
         xBlueButton = operatorGamepad.getXButton();
-        yYellowButton = new DebouncedButton(operatorGamepad.getYButton());
+        yYellowButton = operatorGamepad.getYButton();
         leftBumper = operatorGamepad.getLeftBumper();
         rightBumper = operatorGamepad.getRightBumper();
         leftTrigger = operatorGamepad.getLeftTrigger();
@@ -154,15 +189,71 @@ public class CenterstageOperatorControls implements PeriodicTask {
     private void setupDerivedControls() {
         unsafe = new RangeInputButton( leftTrigger, 0.65f);
 
+        liftThrottle = leftStickY;
+
+        pixelSelector1 = leftBumper.debounced();
+
+        pixelSelector2 = rightBumper.debounced();
+
+        pixelReleaseButton1 = xBlueButton;
+
+        pixelReleaseButton2 = bRedButton;
+
+        droneRelease1 = yYellowButton;
+
+        droneRelease2 = new RangeInputButton(rightTrigger, 0.65F);
+
+        intakeOutakeThrottle = rightStickY;
+
+        hangExtend = dpadUp;
+
+        hangRetract = dpadDown;
+
         wireControlsToScoringMechanism();
     }
 
     public void wireControlsToScoringMechanism() {
-
+        if (scoringMechanism != null) {
+            scoringMechanism.setLiftThrottle(liftThrottle);
+            scoringMechanism.setUnsafe(unsafe);
+        }
     }
 
     @Override
     public void periodicTask() {
         // Here is where we ask the various mechanisms to respond to operator input
+        if (scoringMechanism != null) {
+            scoringMechanism.periodicTask();
+        }
+
+        handleHanger();
+
+        handleIntake();
+    }
+
+    private void handleIntake() {
+        if (intake != null) {
+            float throttlePosition = intakeOutakeThrottle.getPosition();
+
+            if (throttlePosition > 0) {
+                intake.in(throttlePosition);
+            } else if (throttlePosition < 0) {
+                intake.out(throttlePosition);
+            } else {
+                intake.stop();
+            }
+        }
+    }
+
+    private void handleHanger() {
+        if (hanger != null) {
+            if (hangExtend.isPressed()) {
+                hanger.up(1);
+            } else if (hangRetract.isPressed()) {
+                hanger.down(1);
+            } else {
+                hanger.stop();
+            }
+        }
     }
 }
