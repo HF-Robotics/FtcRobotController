@@ -61,7 +61,7 @@ public class ChaosHardwareMapSwapper {
      * automatically by the SDK as it is scanning all the classes in the app
      * (for @Teleop, etc.) while it is "starting" the robot.
      */
-    @OpModeRegistrar
+    //@OpModeRegistrar
     public static void setupOpModeListenerOnStartRobot(Context context, AnnotatedOpModeManager manager) {
         /*
          * Because this is called every time the robot is "restarted", one

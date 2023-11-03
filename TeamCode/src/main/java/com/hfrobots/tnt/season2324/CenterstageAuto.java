@@ -31,10 +31,13 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.acmerobotics.roadrunner.trajectory.Trajectory;
+import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.state.SequenceOfStates;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
+import com.ftc9929.corelib.state.StopwatchDelayState;
 import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.google.common.base.Supplier;
 import com.google.common.base.Ticker;
@@ -43,6 +46,7 @@ import com.hfrobots.tnt.corelib.drive.Turn;
 import com.hfrobots.tnt.corelib.drive.mecanum.DriveConstants;
 import com.hfrobots.tnt.corelib.drive.mecanum.MultipleTrajectoriesFollowerState;
 import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
+import com.hfrobots.tnt.corelib.drive.mecanum.TrajectoryFollowerState;
 import com.hfrobots.tnt.corelib.drive.mecanum.TurnState;
 import com.hfrobots.tnt.season2122.FreightFrenzyDriveConstants;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -57,6 +61,10 @@ import java.util.concurrent.TimeUnit;
 
 @Autonomous(name="00 CS Auto")
 public class CenterstageAuto extends OpMode {
+
+    public static final int SPLINE_RIGHT_SIGN = -1;
+    public static final int SPLINE_LEFT_SIGN = 1;
+
     interface InitLoopConfigTask {
         void chooseBlueAlliance();
 
@@ -101,8 +109,8 @@ public class CenterstageAuto extends OpMode {
 
     // The tasks our robot knows how to do - rename these to something meaningful for the season!
     private enum TaskChoice {
-        WING_SIDE("Start from wing side"),
-        BACKSTAGE_SIDE("Start from backstage side");
+        BACKSTAGE_SIDE("Start from backstage side"),
+        WING_SIDE("Start from wing side");
 
         final String description;
 
@@ -134,9 +142,7 @@ public class CenterstageAuto extends OpMode {
         setupOperatorControls();
         setupVisionPortal(hardwareMap);
 
-        // FIXME: Until we have the real drive base, use the FF drivebase
-        // driveConstants = new CenterstageDriveConstants();
-        driveConstants = new FreightFrenzyDriveConstants();
+        driveConstants = new CenterstageDriveConstants();
 
         driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
                 driveConstants);
@@ -345,12 +351,26 @@ public class CenterstageAuto extends OpMode {
     }
 
     protected void setupStartWingSideStateMachine() {
+        sharedStateMachineSetup(false);
+    }
 
+    protected void setupStartBackstageSideStateMachine() {
+        sharedStateMachineSetup(true);
+    }
+
+    protected void sharedStateMachineSetup(final boolean isBackstage) {
 
         final State detectState = createSpikeStripDetectorState();
 
         // FIXME - Remove this once detector is working
-        detectedLocation = SpikeStripLocation.LOCATION_CENTER;
+        //
+
+        detectedLocation = SpikeStripLocation.LOCATION_LEFT;
+        currentAlliance = Constants.Alliance.BLUE;
+
+        //
+        // End test code before detector working
+        //
 
         final State moveRobotToSpikeStrips = new MultipleTrajectoriesFollowerState("Move robot",
                 telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
@@ -363,19 +383,32 @@ public class CenterstageAuto extends OpMode {
                         break;
                     }
                     case LOCATION_CENTER: {
-                        //addTrajectoryProvider("Off wall", (t) -> t.forward(27));
-                        //addTrajectoryProvider("To pixel drop", (t) -> t.strafeLeft(3));
+                        // It's quicker to spline, but remember x is fwd/back, y is left/right
 
-                        // Backstage
-                        // RED -> Right
-                        // BLUE -> LEFT
+                        final double yScale = 3;
+                        double ySign = SPLINE_RIGHT_SIGN;
 
-                        // Wing
-                        // RED -> Left
-                        // BLUE -> RIGHT
+                        if (isBackstage) {
+                            if (currentAlliance == Constants.Alliance.RED) {
+                                // RED -> Right (-y)
+                                ySign = SPLINE_RIGHT_SIGN;
+                            } else {
+                                // BLUE -> LEFT (+y)
+                                ySign = SPLINE_LEFT_SIGN;
+                            }
+                        } else {
+                            if (currentAlliance == Constants.Alliance.RED) {
+                                // RED -> Left (+y)
+                                ySign = SPLINE_LEFT_SIGN;
+                            } else {
+                                // BLUE -> RIGHT (-y)
+                                ySign = SPLINE_RIGHT_SIGN;
+                            }
+                        }
 
-                        // If not in the wing, go *right* on the strafe and or spline
-                        addTrajectoryProvider("Off wall", (t) -> t.splineToLinearHeading(new Pose2d(27D, -3D, 0),0));
+                        final double yDelta = yScale * ySign;
+
+                        addTrajectoryProvider("Off wall", (t) -> t.splineToLinearHeading(new Pose2d(27D, yDelta, 0),0));
 
                         break;
                     }
@@ -388,17 +421,20 @@ public class CenterstageAuto extends OpMode {
             }
         };
 
-        final State turnRobot = new TurnState("Spin me round baby right round",
+        final State turnRobot = new TurnState("Turn towards spike strip",
                 telemetry,
                 (Supplier<Turn>) () -> {
                     switch (detectedLocation) {
                         case LOCATION_LEFT: {
+                            // this turn does not depend on starting location or alliance
                             return new Turn(Rotation.CCW, 90);
                         }
                         case LOCATION_CENTER: {
+                            // We don't need to turn
                             return null;
                         }
                         case LOCATION_RIGHT: {
+                            // this turn does not depend on starting location or alliance
                             return new Turn(Rotation.CW, 90);
                         }
                     }
@@ -406,23 +442,48 @@ public class CenterstageAuto extends OpMode {
                     return null;
                 }, driveBase,ticker,30_000);
 
-        final SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
-       // sequence.addSequential(detectState);
+        final State moveRobotToBackstage = new MultipleTrajectoriesFollowerState("Move robot to backstage",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected void createTrajectoryProviders() {
+                switch (detectedLocation) {
+                    case LOCATION_LEFT: {
+                        addTrajectoryProvider("Fwd a bit", (t) ->t.forward(1));
+                        addTrajectoryProvider("Away from spike strip", (t) ->t.strafeLeft(22));
+                        addTrajectoryProvider("Fwd a bit", (t) ->t.forward(1));
+                        addTrajectoryProvider("To backstage", (t) -> t.forward(47));
 
+                        break;
+                    }
+                    case LOCATION_CENTER: {
+                        addTrajectoryProvider("Fwd a bit", (t) -> t.forward(3));
+                        addTrajectoryProvider("Away from spike strip", (t) -> t.back(26));
+                        addTrajectoryProvider("To backstage", (t) -> t.strafeLeft(47));
+
+                        break;
+                    }
+                    case LOCATION_RIGHT: {
+                        //addTrajectoryProvider("Direct to backstage", (t) -> t.forward(1).back(50));
+                        addTrajectoryProvider("Off wall", (t) -> t.splineToLinearHeading(new Pose2d(-50, -3D, 0),0));
+
+                        break;
+                    }
+                }
+            }
+        };
+
+        final SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
+
+        // sequence.addSequential(detectState);
         sequence.addSequential(moveRobotToSpikeStrips);
         sequence.addSequential(turnRobot);
 
         // FIXME: We will need something here to outtake the purple pixel
+        sequence.addSequential(newDelayState("Place pixel", 1, TimeUnit.SECONDS));
 
-        sequence.addSequential(newDoneState("Done!"));
-        stateMachine.addSequence(sequence);
-    }
-
-    protected void setupStartBackstageSideStateMachine() {
-
-        final SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
-
-        // Add a bunch of steps here!
+        if (isBackstage) {
+            sequence.addSequential(moveRobotToBackstage);
+        }
 
         sequence.addSequential(newDoneState("Done!"));
         stateMachine.addSequence(sequence);
@@ -458,7 +519,7 @@ public class CenterstageAuto extends OpMode {
     public static class CenterstageDriveConstants extends DriveConstants {
 
         private static DriveConstraints DRIVE_CONSTRAINTS = new DriveConstraints(80, 30.0, 0.0,
-                Math.toRadians(180.0), Math.toRadians(180.0), 0.0);
+                Math.toRadians(46.5), Math.toRadians(46.5), 0.0);
 
         private static PIDCoefficients TRANSLATIONAL_PID_COEFFICIENTS = new PIDCoefficients(4.2D, 0, 0);
 
@@ -468,7 +529,7 @@ public class CenterstageAuto extends OpMode {
 
         private static double WHEEL_RADIUS_IN = 1.89;
 
-        private static double TRACK_WIDTH_IN = 8.5;
+        private static double TRACK_WIDTH_IN = 9.0;
 
         private static double MAX_MOTOR_RPM = 435;
 
@@ -559,5 +620,9 @@ public class CenterstageAuto extends OpMode {
         };
 
         return detectState;
+    }
+
+    private State newDelayState(final String name, long amount, TimeUnit units) {
+        return new StopwatchDelayState(name, telemetry, ticker, amount, units);
     }
 }
