@@ -34,15 +34,22 @@ SOFTWARE.
             <!-- <LynxEmbeddedIMU name="imu" port="0" bus="0" /> -->
 
             <!-- New Control Hubs use this IMU -->
-            <ControlHubImuBHI260AP name="imu" port="0" bus="0" />
+            <ControlHubImuBHI260AP name="imu"   port="0" bus="0" />
 
-            <Motor name="leftFrontDriveMotor"  port="0" /> <!-- Red    -->
-            <Motor name="leftRearDriveMotor"   port="1" /> <!-- Orange -->
-            <Motor name="rightFrontDriveMotor" port="2" /> <!-- Yellow -->
-            <Motor name="rightRearDriveMotor"  port="3" /> <!-- Green  -->
+            <Motor name="leftFrontDriveMotor"   port="0" /> <!-- Red    -->
+            <Motor name="leftRearDriveMotor"    port="1" /> <!-- Orange -->
+            <Motor name="rightFrontDriveMotor"  port="2" /> <!-- Yellow -->
+            <Motor name="rightRearDriveMotor"   port="3" /> <!-- Green  -->
+        </LynxModule>
 
-            <ContinuousRotationServo name="leftIntakeMotor"         port="0" />
-            <ContinuousRotationServo name="rightIntakeMotor"         port="1" />
+        <LynxModule name="Expansion Hub 3" port="2">
+
+            <Motor name="liftMotor"             port="0" /> <!-- Red    -->
+            <Motor name="leftIntakeMotor"       port="1" /> <!-- Orange -->
+            <Motor name="rightIntakeMotor"      port="2" /> <!-- Yellow -->
+            <Motor name="leadScrewMotor"        port="3" /> <!-- Green  -->
+
+            <RevBlinkinLedDriver name="blinkin" port="0" />  <!-- Red    -->
         </LynxModule>
     </LynxUsbDevice>
 </Robot>
