@@ -99,6 +99,8 @@ public class CenterstageOperatorControls implements PeriodicTask {
 
     protected Intake intake;
 
+    protected CenterstageDriveTeamSignal driveTeamSignal;
+
     @Builder
     private CenterstageOperatorControls(RangeInput leftStickX,
                                         RangeInput leftStickY,
@@ -124,7 +126,8 @@ public class CenterstageOperatorControls implements PeriodicTask {
                                         NinjaGamePad driverGamepad,
                                         ScoringMechanism scoringMechanism,
                                         Hanger hanger,
-                                        Intake intake) {
+                                        Intake intake,
+                                        CenterstageDriveTeamSignal driveTeamSignal) {
         if (operatorGamepad != null) {
             this.operatorGamepad = operatorGamepad;
             this.driverGamepad = driverGamepad;
@@ -154,6 +157,7 @@ public class CenterstageOperatorControls implements PeriodicTask {
         this.scoringMechanism = scoringMechanism;
         this.hanger = hanger;
         this.intake = intake;
+        this.driveTeamSignal = driveTeamSignal;
 
         wireControlsToScoringMechanism();
     }
@@ -247,9 +251,20 @@ public class CenterstageOperatorControls implements PeriodicTask {
 
     private void handleHanger() {
         if (hanger != null) {
-            if (hangExtend.isPressed()) {
-                hanger.up(1);
-            } else if (hangRetract.isPressed()) {
+            if ((driveTeamSignal != null && driveTeamSignal.isEndGame() ||
+                    (unsafe != null && unsafe.isPressed()))) {
+                if (hangExtend.isPressed()) {
+                    hanger.up(1);
+                }
+            } else {
+                // Drive team signal not present, just let things happen
+                if (hangExtend.isPressed()) {
+                    hanger.up(1);
+                }
+            }
+
+            // Always allow retract and stop
+            if (hangRetract.isPressed()) {
                 hanger.down(1);
             } else {
                 hanger.stop();

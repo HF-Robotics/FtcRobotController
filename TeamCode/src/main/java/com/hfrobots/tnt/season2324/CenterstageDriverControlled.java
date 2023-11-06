@@ -48,11 +48,20 @@ public class CenterstageDriverControlled extends OpMode {
 
     private StatsDMetricSampler legacyMetricsSampler;
 
-    private RobotMetricsSampler newMetricsSampler;;
+    private RobotMetricsSampler newMetricsSampler;
+
+    private boolean emitMetrics = false;
 
     private final boolean useLegacyMetricsSampler = true;
 
     private List<LynxModule> allHubs;
+
+    private Intake intake;
+
+    private Hanger hanger;
+
+    private ScoringMechanism scoringMechanism;
+    private CenterstageDriveTeamSignal driveTeamSignal;
 
     @Override
     public void init() {
@@ -68,10 +77,22 @@ public class CenterstageDriverControlled extends OpMode {
 
         NinjaGamePad operatorGamepad = new NinjaGamePad(gamepad2);
 
+        intake = new Intake(hardwareMap);
+
+        hanger = new Hanger(hardwareMap);
+
+        scoringMechanism = new ScoringMechanism(hardwareMap);
+
+        driveTeamSignal = new CenterstageDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
+
         operatorControls = CenterstageOperatorControls.builder().operatorGamepad(operatorGamepad)
+                .intake(intake)
+                .hanger(hanger)
+                .scoringMechanism(scoringMechanism)
+                .driveTeamSignal(driveTeamSignal)
                 .build();
 
-        setupMetricsSampler(driversGamepad, operatorGamepad);
+        maybeSetupMetricsSampler(driversGamepad, operatorGamepad);
 
         allHubs = hardwareMap.getAll(LynxModule.class);
 
@@ -81,7 +102,11 @@ public class CenterstageDriverControlled extends OpMode {
         }
     }
 
-    private void setupMetricsSampler(NinjaGamePad driversGamepad, NinjaGamePad operatorGamepad) {
+    private void maybeSetupMetricsSampler(NinjaGamePad driversGamepad, NinjaGamePad operatorGamepad) {
+        if (!emitMetrics) {
+            return;
+        }
+
         try {
             if (useLegacyMetricsSampler) {
                 legacyMetricsSampler = new StatsDMetricSampler(hardwareMap, driversGamepad, operatorGamepad);
@@ -116,6 +141,8 @@ public class CenterstageDriverControlled extends OpMode {
     @Override
     public void start() {
         super.start();
+
+        driveTeamSignal.startMatch();
     }
 
     @Override
@@ -125,15 +152,19 @@ public class CenterstageDriverControlled extends OpMode {
         driverControls.periodicTask();
         operatorControls.periodicTask();
 
-        if (useLegacyMetricsSampler) {
-            if (legacyMetricsSampler != null) {
-                legacyMetricsSampler.doSamples();
-            }
-        } else {
-            if (newMetricsSampler != null) {
-                newMetricsSampler.doSamples();
+        if (emitMetrics) {
+            if (useLegacyMetricsSampler) {
+                if (legacyMetricsSampler != null) {
+                    legacyMetricsSampler.doSamples();
+                }
+            } else {
+                if (newMetricsSampler != null) {
+                    newMetricsSampler.doSamples();
+                }
             }
         }
+
+        driveTeamSignal.periodicTask();
 
         telemetry.update();
     }

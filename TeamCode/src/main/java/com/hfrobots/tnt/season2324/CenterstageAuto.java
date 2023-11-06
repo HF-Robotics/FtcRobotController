@@ -31,9 +31,8 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
 import com.ftc9929.corelib.control.NinjaGamePad;
+import com.ftc9929.corelib.state.RunnableState;
 import com.ftc9929.corelib.state.SequenceOfStates;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
@@ -46,9 +45,7 @@ import com.hfrobots.tnt.corelib.drive.Turn;
 import com.hfrobots.tnt.corelib.drive.mecanum.DriveConstants;
 import com.hfrobots.tnt.corelib.drive.mecanum.MultipleTrajectoriesFollowerState;
 import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
-import com.hfrobots.tnt.corelib.drive.mecanum.TrajectoryFollowerState;
 import com.hfrobots.tnt.corelib.drive.mecanum.TurnState;
-import com.hfrobots.tnt.season2122.FreightFrenzyDriveConstants;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -63,7 +60,14 @@ import java.util.concurrent.TimeUnit;
 public class CenterstageAuto extends OpMode {
 
     public static final int SPLINE_RIGHT_SIGN = -1;
+
     public static final int SPLINE_LEFT_SIGN = 1;
+
+    private CenterstageDriveTeamSignal driveTeamSignal;
+
+    private Hanger hanger;
+
+    private ScoringMechanism scoringMechanism;
 
     interface InitLoopConfigTask {
         void chooseBlueAlliance();
@@ -107,6 +111,8 @@ public class CenterstageAuto extends OpMode {
 
     private final SpikeStripDetector spikeStripDetector = new SpikeStripDetector();
 
+    private Intake intake;
+
     // The tasks our robot knows how to do - rename these to something meaningful for the season!
     private enum TaskChoice {
         BACKSTAGE_SIDE("Start from backstage side"),
@@ -138,9 +144,24 @@ public class CenterstageAuto extends OpMode {
     public void init() {
         ticker = createAndroidTicker();
 
+        intake = new Intake(hardwareMap);
+
+        hanger = new Hanger(hardwareMap);
+
+        scoringMechanism = new ScoringMechanism(hardwareMap);
+
+        driveTeamSignal = new CenterstageDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
+
         setupDriverControls();
         setupOperatorControls();
         setupVisionPortal(hardwareMap);
+
+        // Safety, in case we change the defaults
+        if (currentAlliance == Constants.Alliance.RED) {
+            spikeStripDetector.useRedPipeline();
+        } else {
+            spikeStripDetector.useBluePipeline();
+        }
 
         driveConstants = new CenterstageDriveConstants();
 
@@ -169,6 +190,7 @@ public class CenterstageAuto extends OpMode {
                     public void chooseBlueAlliance() {
                         if (!configLocked) {
                             currentAlliance = Constants.Alliance.BLUE;
+                            spikeStripDetector.useBluePipeline();
                         }
                     }
 
@@ -176,6 +198,7 @@ public class CenterstageAuto extends OpMode {
                     public void chooseRedAlliance() {
                         if (!configLocked) {
                             currentAlliance = Constants.Alliance.RED;
+                            spikeStripDetector.useRedPipeline();
                         }
                     }
 
@@ -229,7 +252,11 @@ public class CenterstageAuto extends OpMode {
         NinjaGamePad operatorsGamepad = new NinjaGamePad(gamepad2);
 
         operatorControls = CenterstageOperatorControls.builder()
-                .operatorGamepad(operatorsGamepad).build();
+                .operatorGamepad(operatorsGamepad)
+                .intake(intake)
+                .scoringMechanism(scoringMechanism)
+                .hanger(hanger)
+                .driveTeamSignal(driveTeamSignal).build();
     }
 
     private void setupVisionPortal(final HardwareMap hardwareMap) {
@@ -291,6 +318,9 @@ public class CenterstageAuto extends OpMode {
         } else {
             spikeStripDetector.useRedPipeline();
         }
+
+        driveTeamSignal.setAlliance(currentAlliance);
+        driveTeamSignal.periodicTask();
 
         updateTelemetry(telemetry);
     }
@@ -362,6 +392,7 @@ public class CenterstageAuto extends OpMode {
 
         final State detectState = createSpikeStripDetectorState();
 
+        //
         // FIXME - Remove this once detector is working
         //
 
@@ -474,15 +505,29 @@ public class CenterstageAuto extends OpMode {
 
         final SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
 
-        // sequence.addSequential(detectState);
+        sequence.addSequential(detectState);
         sequence.addSequential(moveRobotToSpikeStrips);
         sequence.addSequential(turnRobot);
 
-        // FIXME: We will need something here to outtake the purple pixel
+        // Outtake the pixel
+        sequence.addSequential(new RunnableState("start outtake", telemetry, () -> {
+            if (intake != null) {
+                intake.out(1);
+            }
+        }));
+
         sequence.addSequential(newDelayState("Place pixel", 1, TimeUnit.SECONDS));
 
+        // Outtake the pixel
+        sequence.addSequential(new RunnableState("stop outtake", telemetry, () -> {
+            if (intake != null) {
+                intake.stop();
+            }
+        }));
+
         if (isBackstage) {
-            sequence.addSequential(moveRobotToBackstage);
+            // FIXME: Simplify for now, some of these trajectories are busted
+            //sequence.addSequential(moveRobotToBackstage);
         }
 
         sequence.addSequential(newDoneState("Done!"));
@@ -583,12 +628,10 @@ public class CenterstageAuto extends OpMode {
             @Override
             public State doStuffAndGetNextState() {
                 if (isTimedOut()) {
-                    resetTimer();
-
                     Log.e(LOG_TAG, "Timed out waiting for detection, using " +
                             detectedLocation + " as location");
 
-                    return nextState;
+                    return transitionToNextState();
                 }
 
                 SpikeStripDetector.DetectedSpikeStrip detectedSpikeStrip =
@@ -599,23 +642,41 @@ public class CenterstageAuto extends OpMode {
                         detectedLocation = SpikeStripLocation.LOCATION_LEFT;
                         resetTimer();
 
-                        return nextState;
+                        Log.i(LOG_TAG, "Detected LEFT location");
+
+                        return transitionToNextState();
                     }
                     case CENTER: {
                         detectedLocation = SpikeStripLocation.LOCATION_CENTER;
                         resetTimer();
 
-                        return nextState;
+                        Log.i(LOG_TAG, "Detected CENTER location");
+
+                        return transitionToNextState();
                     }
                     case RIGHT: {
                         detectedLocation = SpikeStripLocation.LOCATION_RIGHT;
                         resetTimer();
 
-                        return nextState;
+                        Log.i(LOG_TAG, "Detected RIGHT location");
+
+                        return transitionToNextState();
                     }
                 }
 
                 return this;
+            }
+
+            private State transitionToNextState() {
+                resetTimer();
+
+                try {
+                    visionPortal.stopStreaming();
+                } catch (Throwable t) {
+                    Log.e(LOG_TAG, "Caught exception while stopping vision portal, ignoring...", t);
+                }
+
+                return nextState;
             }
         };
 
