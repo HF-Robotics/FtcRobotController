@@ -137,6 +137,8 @@ public class SpikeStripDetector implements VisionProcessor {
             }
         }
 
+        // Don't record where the spike strip is until we're actually
+        // told to (when starting auto)
         if (recordDetection) {
             detectedSpikeStripRef.set(detectedSpikeStrip);
         }
