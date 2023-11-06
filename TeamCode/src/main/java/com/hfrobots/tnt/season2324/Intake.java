@@ -28,24 +28,39 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
 
 public class Intake {
-    private DcMotorEx intakeMotor;
+    private DcMotorEx leftIntakeMotor;
+
+    private DcMotorEx rightIntakeMotor;
+
 
     public Intake(final HardwareMap hardwareMap) {
-        intakeMotor = hardwareMap.get(DcMotorEx.class, "intakeMotor");
-        intakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftIntakeMotor = hardwareMap.get(DcMotorEx.class, "leftIntakeMotor");
+        rightIntakeMotor = hardwareMap.get(DcMotorEx.class, "rightIntakeMotor");
+
+        // GoBilda 6000 RPM motor rotates CCW when viewed from above
+        //
+        // Left intake wheel needs to rotate CW when viewed from above
+        //
+        // Right intake wheel needs to rotate CCW when viewed from above
+        leftIntakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     public void in(double speed) {
+        speed = Math.abs(speed);
         speed = Range.clip(speed, 0, 1);
-        intakeMotor.setPower(speed);
+        leftIntakeMotor.setPower(speed);
+        rightIntakeMotor.setPower(speed);
     }
 
     public void stop() {
-        intakeMotor.setPower(0);
+        leftIntakeMotor.setPower(0);
+        rightIntakeMotor.setPower(0);
     }
 
     public void out(double speed) {
+        speed = Math.abs(speed);
         speed = Range.clip(speed, 0, 1);
-        intakeMotor.setPower(-speed);
+        leftIntakeMotor.setPower(-speed);
+        rightIntakeMotor.setPower(-speed);
     }
 }
