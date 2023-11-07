@@ -28,40 +28,58 @@ import com.ftc9929.corelib.control.RangeInput;
 import com.hfrobots.tnt.corelib.controllers.LinearLiftController;
 import com.hfrobots.tnt.corelib.drive.ExtendedDcMotor;
 import com.hfrobots.tnt.corelib.drive.NinjaMotor;
-import com.hfrobots.tnt.corelib.task.PeriodicTask;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-public class ScoringMechanism implements PeriodicTask {
-    private LinearLiftController liftController;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-    public ScoringMechanism(final HardwareMap hardwareMap) {
-        // Need a motor
-        final ExtendedDcMotor liftMotor =
-                NinjaMotor.asNeverest20(
-                        hardwareMap.get(DcMotorEx.class, "liftMotor"));
+import lombok.Builder;
 
-        // need lower limit (if available)
+public class ScoringMechanism extends LinearLiftController {
+    protected static Tunables goBilda26_1 = new LinearLiftController.Tunables(){
+        @Override
+        protected int getUpperLimitEncoderPos() {
+            return 1800;
+        }
 
-        // need upper limit switch (if available)
+        @Override
+        protected int getLowerLimitEncoderPos() {
+            return 0;
+        }
 
-        liftController = LinearLiftController.builder().liftMotor(liftMotor).build();
+        @Override
+        protected int getClosedLoopStallTimeoutMillis() {
+            return 8000;
+        }
+    };
+
+    public static ScoringMechanism.ScoringMechanismBuilder builderFromHardwareMap(
+            final HardwareMap hardwareMap,
+            final Telemetry telemetry) {
+        DigitalChannel lowerLimit = hardwareMap.get(DigitalChannel.class, "lowLimitSwitch");
+        DigitalChannel higherLimit = hardwareMap.get(DigitalChannel.class, "highLimitSwitch");
+
+        DcMotorEx liftMotor = hardwareMap.get(DcMotorEx.class, "liftMotor");
+
+        return ScoringMechanism.scoringMechanismBuilder().tunables(goBilda26_1)
+                .liftMotor(NinjaMotor.asNeverest20(liftMotor))
+                .lowerLiftLimit(lowerLimit)
+                .upperLiftLimit(higherLimit)
+                .telemetry(telemetry);
     }
 
-    public void setLiftThrottle(final RangeInput throttle) {
-        liftController.setLiftThrottle(throttle);
-    }
-
-    public void setEmergencyStop(final DebouncedButton emergencyStopButton) {
-        liftController.setLiftEmergencyStopButton(emergencyStopButton);
-    }
-
-    public void setUnsafe(final OnOffButton unsafe) {
-        liftController.setLimitOverrideButton(unsafe);
-    }
-
-    @Override
-    public void periodicTask() {
-        liftController.periodicTask();
+    @Builder(builderMethodName = "scoringMechanismBuilder")
+    protected ScoringMechanism(Tunables tunables,
+                                      RangeInput liftThrottle,
+                                      DebouncedButton liftUpperLimitButton,
+                                      DebouncedButton liftLowerLimitButton,
+                                      DebouncedButton liftEmergencyStopButton,
+                                      ExtendedDcMotor liftMotor,
+                                      DigitalChannel upperLiftLimit,
+                                      DigitalChannel lowerLiftLimit,
+                                      OnOffButton limitOverrideButton,
+                                      Telemetry telemetry) {
+        super(tunables, liftThrottle, liftUpperLimitButton, liftLowerLimitButton, liftEmergencyStopButton, liftMotor, upperLiftLimit, lowerLiftLimit, telemetry, limitOverrideButton);
     }
 }

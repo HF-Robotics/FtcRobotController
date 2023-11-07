@@ -142,33 +142,35 @@ public class CenterstageAuto extends OpMode {
 
     @Override
     public void init() {
-        ticker = createAndroidTicker();
+        Shared.withBetterErrorHandling(() -> {
+            ticker = createAndroidTicker();
 
-        intake = new Intake(hardwareMap);
+            intake = new Intake(hardwareMap);
 
-        hanger = new Hanger(hardwareMap);
+            hanger = new Hanger(hardwareMap);
 
-        scoringMechanism = new ScoringMechanism(hardwareMap);
+            scoringMechanism = ScoringMechanism.builderFromHardwareMap(hardwareMap, telemetry).build();
 
-        driveTeamSignal = new CenterstageDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
+            driveTeamSignal = new CenterstageDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
-        setupDriverControls();
-        setupOperatorControls();
-        setupVisionPortal(hardwareMap);
+            setupDriverControls();
+            setupOperatorControls();
+            setupVisionPortal(hardwareMap);
 
-        // Safety, in case we change the defaults
-        if (currentAlliance == Constants.Alliance.RED) {
-            spikeStripDetector.useRedPipeline();
-        } else {
-            spikeStripDetector.useBluePipeline();
-        }
+            // Safety, in case we change the defaults
+            if (currentAlliance == Constants.Alliance.RED) {
+                spikeStripDetector.useRedPipeline();
+            } else {
+                spikeStripDetector.useBluePipeline();
+            }
 
-        driveConstants = new CenterstageDriveConstants();
+            driveConstants = new CenterstageDriveConstants();
 
-        driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
-                driveConstants);
+            driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
+                    driveConstants);
 
-        stateMachine = new StateMachine(telemetry);
+            stateMachine = new StateMachine(telemetry);
+        });
     }
 
     private void setupDriverControls() {
@@ -276,53 +278,59 @@ public class CenterstageAuto extends OpMode {
 
     @Override
     public void start() {
-        super.start();
-        spikeStripDetector.recordDetections();
-        visionPortal.stopLiveView();
+        Shared.withBetterErrorHandling(() -> {
+            super.start();
+            spikeStripDetector.recordDetections();
+            visionPortal.stopLiveView();
+        });
     }
 
     @Override
     public void stop() {
-        super.stop();
-        visionPortal.stopStreaming();
-        visionPortal.stopLiveView();
+        Shared.withBetterErrorHandling(() -> {
+            super.stop();
+            visionPortal.stopStreaming();
+            visionPortal.stopLiveView();
+        });
     }
 
     private boolean configLocked = false;
 
     @Override
     public void init_loop() {
-        if (driverControls == null) { // safety, need to double check whether we actually need this
-            // not ready yet init() hasn't been called
-            return;
-        }
+        Shared.withBetterErrorHandling(() -> {
+            if (driverControls == null) { // safety, need to double check whether we actually need this
+                // not ready yet init() hasn't been called
+                return;
+            }
 
-        driverControls.periodicTask();
+            driverControls.periodicTask();
 
-        if (configLocked) {
-            telemetry.addData("00", "LOCKED: Press Rt stick unlock");
-        } else {
-            telemetry.addData("00", "UNLOCKED: Press Lt stick lock");
-        }
+            if (configLocked) {
+                telemetry.addData("00", "LOCKED: Press Rt stick unlock");
+            } else {
+                telemetry.addData("00", "UNLOCKED: Press Lt stick lock");
+            }
 
-        if (operatorControls != null) {
-            operatorControls.periodicTask();
-        }
+            if (operatorControls != null) {
+                operatorControls.periodicTask();
+            }
 
-        telemetry.addData("01", "Alliance: %s", currentAlliance);
-        telemetry.addData("02", "Task: %s", possibleTaskChoices[selectedTaskIndex].getDescription());
-        telemetry.addData("03", "Delay %d sec", initialDelaySeconds);
+            telemetry.addData("01", "Alliance: %s", currentAlliance);
+            telemetry.addData("02", "Task: %s", possibleTaskChoices[selectedTaskIndex].getDescription());
+            telemetry.addData("03", "Delay %d sec", initialDelaySeconds);
 
-        if (currentAlliance == Constants.Alliance.BLUE) {
-            spikeStripDetector.useBluePipeline();
-        } else {
-            spikeStripDetector.useRedPipeline();
-        }
+            if (currentAlliance == Constants.Alliance.BLUE) {
+                spikeStripDetector.useBluePipeline();
+            } else {
+                spikeStripDetector.useRedPipeline();
+            }
 
-        driveTeamSignal.setAlliance(currentAlliance);
-        driveTeamSignal.periodicTask();
+            driveTeamSignal.setAlliance(currentAlliance);
+            driveTeamSignal.periodicTask();
 
-        updateTelemetry(telemetry);
+            updateTelemetry(telemetry);
+        });
     }
 
     private Ticker createAndroidTicker() {
@@ -337,7 +345,7 @@ public class CenterstageAuto extends OpMode {
 
     @Override
     public void loop() {
-        try {
+        Shared.withBetterErrorHandling(() -> {
             if (!stateMachineSetup) {
                 /* We have not configured the state machine yet, do so from the options
                  selected during init_loop() */
@@ -365,19 +373,7 @@ public class CenterstageAuto extends OpMode {
             stateMachine.doOneStateLoop();
 
             telemetry.update(); // send all telemetry to the drivers' station
-        } catch (Throwable t) {
-            // Better logging than the FTC SDK provides :(
-            Log.e(LOG_TAG, "Exception during state machine", t);
-
-            if (t instanceof RuntimeException) {
-                throw (RuntimeException)t;
-            }
-
-            RuntimeException rte = new RuntimeException();
-            rte.initCause(t);
-
-            throw rte;
-        }
+        });
     }
 
     protected void setupStartWingSideStateMachine() {

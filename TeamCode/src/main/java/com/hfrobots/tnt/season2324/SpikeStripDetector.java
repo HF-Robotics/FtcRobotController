@@ -22,6 +22,8 @@
 
 package com.hfrobots.tnt.season2324;
 
+import static com.ftc9929.corelib.Constants.LOG_TAG;
+
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -29,6 +31,7 @@ import android.graphics.Path;
 import android.util.Log;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import org.firstinspires.ftc.robotcore.internal.camera.calibration.CameraCalibration;
 import org.firstinspires.ftc.vision.VisionProcessor;
@@ -39,6 +42,7 @@ import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import lombok.Builder;
@@ -114,15 +118,43 @@ public class SpikeStripDetector implements VisionProcessor {
             Log.d("TNT", "Used red pipeline, found " + filteredContours.size());
         }
 
-        ArrayList<Rect> boundingBoxes = Lists.newArrayList();
+        ArrayList<Rect> allBoundingBoxes = Lists.newArrayList();
 
         DetectedSpikeStrip detectedSpikeStrip = DetectedSpikeStrip.UNKNOWN;
 
+        final MatOfPoint bestContour;
+
+        if (filteredContours.size() > 1) {
+            Log.w(LOG_TAG, "More than one contour detected, filtering further");
+
+            TreeMap<Double, MatOfPoint> areasToContours = Maps.newTreeMap();
+
+            for (MatOfPoint contour : filteredContours) {
+                double area = Imgproc.contourArea(contour);
+                Log.d(LOG_TAG, "Contour " + contour + " area is " + area);
+                areasToContours.put(area, contour);
+            }
+
+            bestContour = areasToContours.lastEntry().getValue();
+        } else if (filteredContours.size() == 1) {
+            Log.i(LOG_TAG, "Only one contour detected");
+
+            bestContour = filteredContours.get(0);
+        } else {
+            bestContour = null; // not found
+        }
+
         for (MatOfPoint contour : filteredContours) {
             final Rect boundingRect = Imgproc.boundingRect(contour);
-            boundingBoxes.add(boundingRect);
+            allBoundingBoxes.add(boundingRect);
+        }
 
-            final Point propCenterPoint = centerPoint(boundingRect);
+        Rect bestBoundingRect = null;
+
+        if (bestContour != null) {
+            bestBoundingRect = Imgproc.boundingRect(bestContour);
+
+            final Point propCenterPoint = centerPoint(bestBoundingRect);
 
             // How do we deal with contours outside of the detection zone
             // "erasing" knowledge of ones that were detected inside?
@@ -132,19 +164,23 @@ public class SpikeStripDetector implements VisionProcessor {
                 detectedSpikeStrip = DetectedSpikeStrip.CENTER;
             } else if (rightZone.contains(propCenterPoint)) {
                 detectedSpikeStrip = DetectedSpikeStrip.RIGHT;
-            } else {
-                detectedSpikeStrip = DetectedSpikeStrip.UNKNOWN;
             }
+        } else {
+            detectedSpikeStrip = DetectedSpikeStrip.UNKNOWN;
         }
 
         // Don't record where the spike strip is until we're actually
         // told to (when starting auto)
         if (recordDetection) {
+            Log.i(LOG_TAG, "Recording spike strip detection as " + detectedSpikeStrip.name());
+
             detectedSpikeStripRef.set(detectedSpikeStrip);
         }
 
-        return DetectionData.builder().detectedSpikeStrip(detectedSpikeStrip)
-                .filteredBoundingBoxes(boundingBoxes).build();
+        return DetectionData.builder()
+                .detectedSpikeStrip(detectedSpikeStrip)
+                .allBoundingBoxes(allBoundingBoxes)
+                .bestBoundingBox(bestBoundingRect).build();
     }
 
     @Value
@@ -154,7 +190,9 @@ public class SpikeStripDetector implements VisionProcessor {
 
         private ArrayList<MatOfPoint> filteredContours;
 
-        private ArrayList<Rect> filteredBoundingBoxes;
+        private ArrayList<Rect> allBoundingBoxes;
+
+        private Rect bestBoundingBox;
 
         private DetectedSpikeStrip detectedSpikeStrip;
     }
@@ -189,13 +227,20 @@ public class SpikeStripDetector implements VisionProcessor {
         drawZones(canvas, nonSelectedPaint, leftZoneRect, centerZoneRect, rightZoneRect);
 
         DetectionData detectionData = (DetectionData)userContext;
-        ArrayList<Rect> boundingBoxes = detectionData.getFilteredBoundingBoxes();
+        ArrayList<Rect> allBoundingBoxes = detectionData.getAllBoundingBoxes();
 
-        if (boundingBoxes != null) {
-            for (Rect boundingBox : boundingBoxes) {
+        if (allBoundingBoxes != null) {
+            for (Rect boundingBox : allBoundingBoxes) {
                 final android.graphics.Rect boundingBoxRect = convertToAndroidRect(boundingBox, scaleBmpPxToCanvasPx);
                 canvas.drawRect(boundingBoxRect, nonSelectedPaint);
             }
+        }
+
+        Rect bestBoundingBox = detectionData.getBestBoundingBox();
+
+        if (bestBoundingBox != null) {
+            final android.graphics.Rect boundingBoxRect = convertToAndroidRect(bestBoundingBox, scaleBmpPxToCanvasPx);
+            canvas.drawRect(boundingBoxRect, selectedPaint);
         }
 
         DetectedSpikeStrip detected = detectionData.getDetectedSpikeStrip();

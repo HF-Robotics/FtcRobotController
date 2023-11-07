@@ -65,41 +65,43 @@ public class CenterstageDriverControlled extends OpMode {
 
     @Override
     public void init() {
-        final Ticker ticker = Ticker.systemTicker();
+        Shared.withBetterErrorHandling(() -> {
+            final Ticker ticker = Ticker.systemTicker();
 
-        drivebase = new CenterstageDrivebase(hardwareMap);
+            drivebase = new CenterstageDrivebase(hardwareMap);
 
-        NinjaGamePad driversGamepad = new NinjaGamePad(gamepad1);
+            NinjaGamePad driversGamepad = new NinjaGamePad(gamepad1);
 
-        driverControls = CenterstageDriverControls.builder()
-                .driversGamepad(driversGamepad)
-                .kinematics(drivebase).build();
+            driverControls = CenterstageDriverControls.builder()
+                    .driversGamepad(driversGamepad)
+                    .kinematics(drivebase).build();
 
-        NinjaGamePad operatorGamepad = new NinjaGamePad(gamepad2);
+            NinjaGamePad operatorGamepad = new NinjaGamePad(gamepad2);
 
-        intake = new Intake(hardwareMap);
+            intake = new Intake(hardwareMap);
 
-        hanger = new Hanger(hardwareMap);
+            hanger = new Hanger(hardwareMap);
 
-        scoringMechanism = new ScoringMechanism(hardwareMap);
+            scoringMechanism = ScoringMechanism.builderFromHardwareMap(hardwareMap, telemetry).build();
 
-        driveTeamSignal = new CenterstageDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
+            driveTeamSignal = new CenterstageDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
-        operatorControls = CenterstageOperatorControls.builder().operatorGamepad(operatorGamepad)
-                .intake(intake)
-                .hanger(hanger)
-                .scoringMechanism(scoringMechanism)
-                .driveTeamSignal(driveTeamSignal)
-                .build();
+            operatorControls = CenterstageOperatorControls.builder().operatorGamepad(operatorGamepad)
+                    .intake(intake)
+                    .hanger(hanger)
+                    .scoringMechanism(scoringMechanism)
+                    .driveTeamSignal(driveTeamSignal)
+                    .build();
 
-        maybeSetupMetricsSampler(driversGamepad, operatorGamepad);
+            maybeSetupMetricsSampler(driversGamepad, operatorGamepad);
 
-        allHubs = hardwareMap.getAll(LynxModule.class);
+            allHubs = hardwareMap.getAll(LynxModule.class);
 
-        for (LynxModule hub : allHubs) {
-            Log.d(LOG_TAG, String.format("Setting hub %s to BulkCachingMode.MANUAL", hub));
-            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
-        }
+            for (LynxModule hub : allHubs) {
+                Log.d(LOG_TAG, String.format("Setting hub %s to BulkCachingMode.MANUAL", hub));
+                hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+            }
+        });
     }
 
     private void maybeSetupMetricsSampler(NinjaGamePad driversGamepad, NinjaGamePad operatorGamepad) {
@@ -140,32 +142,36 @@ public class CenterstageDriverControlled extends OpMode {
 
     @Override
     public void start() {
-        super.start();
+        Shared.withBetterErrorHandling(() -> {
+            super.start();
 
-        driveTeamSignal.startMatch();
+            driveTeamSignal.startMatch();
+        });
     }
 
     @Override
     public void loop() {
-        clearHubsBulkCaches(); // important, do not remove this line, or reads from robot break!
+        Shared.withBetterErrorHandling(() -> {
+            clearHubsBulkCaches(); // important, do not remove this line, or reads from robot break!
 
-        driverControls.periodicTask();
-        operatorControls.periodicTask();
+            driverControls.periodicTask();
+            operatorControls.periodicTask();
 
-        if (emitMetrics) {
-            if (useLegacyMetricsSampler) {
-                if (legacyMetricsSampler != null) {
-                    legacyMetricsSampler.doSamples();
-                }
-            } else {
-                if (newMetricsSampler != null) {
-                    newMetricsSampler.doSamples();
+            if (emitMetrics) {
+                if (useLegacyMetricsSampler) {
+                    if (legacyMetricsSampler != null) {
+                        legacyMetricsSampler.doSamples();
+                    }
+                } else {
+                    if (newMetricsSampler != null) {
+                        newMetricsSampler.doSamples();
+                    }
                 }
             }
-        }
 
-        driveTeamSignal.periodicTask();
+            driveTeamSignal.periodicTask();
 
-        telemetry.update();
+            telemetry.update();
+        });
     }
 }

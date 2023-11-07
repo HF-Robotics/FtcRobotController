@@ -219,7 +219,8 @@ public class CenterstageOperatorControls implements PeriodicTask {
     public void wireControlsToScoringMechanism() {
         if (scoringMechanism != null) {
             scoringMechanism.setLiftThrottle(liftThrottle);
-            scoringMechanism.setUnsafe(unsafe);
+            scoringMechanism.setLimitOverrideButton(unsafe);
+            // FIXME: Needs an e-stop button!
         }
     }
 
