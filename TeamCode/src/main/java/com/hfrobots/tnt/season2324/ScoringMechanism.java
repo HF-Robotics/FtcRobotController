@@ -29,6 +29,7 @@ import com.hfrobots.tnt.corelib.controllers.LinearLiftController;
 import com.hfrobots.tnt.corelib.drive.ExtendedDcMotor;
 import com.hfrobots.tnt.corelib.drive.NinjaMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -39,8 +40,18 @@ import lombok.Builder;
 public class ScoringMechanism extends LinearLiftController {
     protected static Tunables goBilda26_1 = new LinearLiftController.Tunables(){
         @Override
+        protected double getOpenLoopDownPowerRatio() {
+            return 1.0;
+        }
+
+        @Override
+        protected double getAntigravityFeedForward() {
+            return 0.0;
+        }
+
+        @Override
         protected int getUpperLimitEncoderPos() {
-            return 1800;
+            return 2700;
         }
 
         @Override
@@ -57,15 +68,14 @@ public class ScoringMechanism extends LinearLiftController {
     public static ScoringMechanism.ScoringMechanismBuilder builderFromHardwareMap(
             final HardwareMap hardwareMap,
             final Telemetry telemetry) {
-        DigitalChannel lowerLimit = hardwareMap.get(DigitalChannel.class, "lowLimitSwitch");
-        DigitalChannel higherLimit = hardwareMap.get(DigitalChannel.class, "highLimitSwitch");
+        DigitalChannel lowerLimit; // = hardwareMap.get(DigitalChannel.class, "lowLimitSwitch");
 
         DcMotorEx liftMotor = hardwareMap.get(DcMotorEx.class, "liftMotor");
+        liftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         return ScoringMechanism.scoringMechanismBuilder().tunables(goBilda26_1)
                 .liftMotor(NinjaMotor.asNeverest20(liftMotor))
-                .lowerLiftLimit(lowerLimit)
-                .upperLiftLimit(higherLimit)
+                //.lowerLiftLimit(lowerLimit)
                 .telemetry(telemetry);
     }
 
