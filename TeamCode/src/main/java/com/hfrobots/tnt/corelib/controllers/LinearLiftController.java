@@ -719,6 +719,12 @@ public class LinearLiftController {
                 return transitionToState(atUpperLimitState);
             }
 
+            if (liftMotor.getCurrentPosition() > tunables.getUpperLimitEncoderPos()) {
+                stopLift();
+
+                return transitionToState(atUpperLimitState);
+            }
+
             if (!liftThrottleIsUp()) {
                 Log.d(LOG_TAG, "Lift - up command button released");
                 stopLift();
