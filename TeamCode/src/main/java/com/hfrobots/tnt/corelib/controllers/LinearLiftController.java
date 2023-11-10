@@ -160,6 +160,10 @@ public class LinearLiftController {
         setupStateMachine(telemetry);
     }
 
+    protected int getLogicalEncoderPosition() {
+        return liftMotor.getCurrentPosition();
+    }
+
     protected State preHandleButtons() {
         return null;
     }
