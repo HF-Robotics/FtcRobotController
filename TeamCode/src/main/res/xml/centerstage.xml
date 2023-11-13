@@ -40,9 +40,11 @@ SOFTWARE.
             <Motor name="leftRearDriveMotor"    port="1" /> <!-- Orange -->
             <Motor name="rightFrontDriveMotor"  port="2" /> <!-- Yellow -->
             <Motor name="rightRearDriveMotor"   port="3" /> <!-- Green  -->
+
+            <DigitalDevice name="liftLowLimitSwitch" port="7"/>
         </LynxModule>
 
-        <LynxModule name="Expansion Hub 3" port="2">
+        <LynxModule name="Expansion Hub DQ2ATDI3" port="4">
 
             <Motor name="liftMotor"             port="0" /> <!-- Red    -->
             <Motor name="leftIntakeMotor"       port="1" /> <!-- Orange -->
@@ -50,6 +52,8 @@ SOFTWARE.
             <Motor name="leadScrewMotor"        port="3" /> <!-- Green  -->
 
             <RevBlinkinLedDriver name="blinkin" port="0" />  <!-- Red    -->
+            <Servo name="launcherTriggerServo"  port="1" />  <!-- Orange -->
+            <Servo name="bucketTipServo"        port="2" />  <!-- Yellow -->
         </LynxModule>
     </LynxUsbDevice>
 </Robot>
