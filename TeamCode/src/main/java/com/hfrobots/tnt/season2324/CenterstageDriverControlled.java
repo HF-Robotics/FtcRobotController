@@ -61,6 +61,9 @@ public class CenterstageDriverControlled extends OpMode {
     private Hanger hanger;
 
     private ScoringMechanism scoringMechanism;
+
+    private DroneLauncher droneLauncher;
+
     private CenterstageDriveTeamSignal driveTeamSignal;
 
     @Override
@@ -86,10 +89,15 @@ public class CenterstageDriverControlled extends OpMode {
 
             driveTeamSignal = new CenterstageDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
+            droneLauncher = DroneLauncher.builder().driveTeamSignal(driveTeamSignal)
+                    .hardwareMap(hardwareMap).build();
+            droneLauncher.setSafetyOn(false);
+
             operatorControls = CenterstageOperatorControls.builder().operatorGamepad(operatorGamepad)
                     .intake(intake)
                     .hanger(hanger)
                     .scoringMechanism(scoringMechanism)
+                    .droneLauncher(droneLauncher)
                     .driveTeamSignal(driveTeamSignal)
                     .build();
 
@@ -132,6 +140,7 @@ public class CenterstageDriverControlled extends OpMode {
     @Override
     public void init_loop() {
         clearHubsBulkCaches(); // important, do not remove this line, or reads from robot break!
+        operatorControls.periodicTask();
     }
 
     private void clearHubsBulkCaches() {
@@ -145,6 +154,7 @@ public class CenterstageDriverControlled extends OpMode {
         Shared.withBetterErrorHandling(() -> {
             super.start();
 
+            droneLauncher.setSafetyOn(true);
             driveTeamSignal.startMatch();
         });
     }

@@ -374,9 +374,9 @@ public class LinearLiftController {
         return liftThrottle.getPosition() > 0;
     }
 
-    class LiftIdleState extends LiftBaseState {
+    protected class LiftIdleState extends LiftBaseState {
 
-        LiftIdleState(Telemetry telemetry) {
+        protected LiftIdleState(Telemetry telemetry) {
             super("Elev-idle", telemetry, TimeUnit.SECONDS.toMillis(60)); // FIXME
         }
 

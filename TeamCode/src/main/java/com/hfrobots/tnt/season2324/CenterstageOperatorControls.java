@@ -22,11 +22,16 @@
 
 package com.hfrobots.tnt.season2324;
 
+import static com.ftc9929.corelib.Constants.LOG_TAG;
+
+import android.util.Log;
+
 import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.control.OnOffButton;
 import com.ftc9929.corelib.control.RangeInput;
 import com.ftc9929.corelib.control.RangeInputButton;
+import com.hfrobots.tnt.corelib.control.AllButton;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
 
 import lombok.Builder;
@@ -93,11 +98,15 @@ public class CenterstageOperatorControls implements PeriodicTask {
 
     protected OnOffButton hangRetract;
 
+    protected DebouncedButton autoRetractLiftButton;
+
     protected ScoringMechanism scoringMechanism;
 
     protected Hanger hanger;
 
     protected Intake intake;
+
+    protected DroneLauncher droneLauncher;
 
     protected CenterstageDriveTeamSignal driveTeamSignal;
 
@@ -127,6 +136,7 @@ public class CenterstageOperatorControls implements PeriodicTask {
                                         ScoringMechanism scoringMechanism,
                                         Hanger hanger,
                                         Intake intake,
+                                        DroneLauncher droneLauncher,
                                         CenterstageDriveTeamSignal driveTeamSignal) {
         if (operatorGamepad != null) {
             this.operatorGamepad = operatorGamepad;
@@ -157,6 +167,7 @@ public class CenterstageOperatorControls implements PeriodicTask {
         this.scoringMechanism = scoringMechanism;
         this.hanger = hanger;
         this.intake = intake;
+        this.droneLauncher = droneLauncher;
         this.driveTeamSignal = driveTeamSignal;
 
         wireControlsToScoringMechanism();
@@ -195,6 +206,8 @@ public class CenterstageOperatorControls implements PeriodicTask {
 
         liftThrottle = leftStickY;
 
+        autoRetractLiftButton = leftBumper.debounced();
+
         pixelSelector1 = leftBumper.debounced();
 
         pixelSelector2 = rightBumper.debounced();
@@ -219,8 +232,16 @@ public class CenterstageOperatorControls implements PeriodicTask {
     public void wireControlsToScoringMechanism() {
         if (scoringMechanism != null) {
             scoringMechanism.setLiftThrottle(liftThrottle);
+            scoringMechanism.setBucketTipButton(pixelReleaseButton1);
             scoringMechanism.setLimitOverrideButton(unsafe);
+            scoringMechanism.setLiftLowerLimitButton(autoRetractLiftButton);
             // FIXME: Needs an e-stop button!
+        }
+
+        if (droneLauncher != null) {
+            AllButton triggerButton = new AllButton(droneRelease1, droneRelease2);
+            droneLauncher.setTriggerButton(triggerButton);
+            droneLauncher.setUnsafeButton(unsafe);
         }
     }
 
@@ -229,6 +250,10 @@ public class CenterstageOperatorControls implements PeriodicTask {
         // Here is where we ask the various mechanisms to respond to operator input
         if (scoringMechanism != null) {
             scoringMechanism.periodicTask();
+        }
+
+        if (droneLauncher != null) {
+            droneLauncher.periodicTask();
         }
 
         handleHanger();
@@ -247,6 +272,8 @@ public class CenterstageOperatorControls implements PeriodicTask {
             } else {
                 intake.stop();
             }
+        } else {
+            Log.e(LOG_TAG, "No intake present!");
         }
     }
 

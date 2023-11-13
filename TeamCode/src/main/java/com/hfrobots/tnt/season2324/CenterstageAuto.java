@@ -69,6 +69,8 @@ public class CenterstageAuto extends OpMode {
 
     private ScoringMechanism scoringMechanism;
 
+    private DroneLauncher droneLauncher;
+
     interface InitLoopConfigTask {
         void chooseBlueAlliance();
 
@@ -152,6 +154,10 @@ public class CenterstageAuto extends OpMode {
             scoringMechanism = ScoringMechanism.builderFromHardwareMap(hardwareMap, telemetry).build();
 
             driveTeamSignal = new CenterstageDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
+
+            droneLauncher = DroneLauncher.builder().driveTeamSignal(driveTeamSignal)
+                    .hardwareMap(hardwareMap).build();
+            droneLauncher.setSafetyOn(false);
 
             setupDriverControls();
             setupOperatorControls();
@@ -280,6 +286,7 @@ public class CenterstageAuto extends OpMode {
     public void start() {
         Shared.withBetterErrorHandling(() -> {
             super.start();
+            droneLauncher.setSafetyOn(true);
             spikeStripDetector.recordDetections();
             visionPortal.stopLiveView();
         });
