@@ -38,6 +38,7 @@ import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
 import com.ftc9929.corelib.state.StopwatchDelayState;
 import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
+import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
@@ -46,9 +47,11 @@ import com.hfrobots.tnt.corelib.drive.mecanum.DriveConstants;
 import com.hfrobots.tnt.corelib.drive.mecanum.MultipleTrajectoriesFollowerState;
 import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
 import com.hfrobots.tnt.corelib.drive.mecanum.TurnState;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
@@ -172,8 +175,13 @@ public class CenterstageAuto extends OpMode {
 
             driveConstants = new CenterstageDriveConstants();
 
+            IMU.Parameters imuParameters = new IMU.Parameters(
+                    new RevHubOrientationOnRobot(
+                            RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+                            RevHubOrientationOnRobot.UsbFacingDirection.DOWN));
+
             driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
-                    driveConstants);
+                    driveConstants, Optional.of(imuParameters));
 
             stateMachine = new StateMachine(telemetry);
         });
@@ -412,7 +420,7 @@ public class CenterstageAuto extends OpMode {
             protected void createTrajectoryProviders() {
                 switch (detectedLocation) {
                     case LOCATION_LEFT: {
-                        addTrajectoryProvider("Off wall", (t) -> t.forward(27));
+                        addTrajectoryProvider("Off wall", (t) -> t.back(29));
 
                         break;
                     }
@@ -442,12 +450,12 @@ public class CenterstageAuto extends OpMode {
 
                         final double yDelta = yScale * ySign;
 
-                        addTrajectoryProvider("Off wall", (t) -> t.splineToLinearHeading(new Pose2d(27D, yDelta, 0),0));
+                        addTrajectoryProvider("Off wall", (t) -> t.splineToLinearHeading(new Pose2d(-27D, yDelta, 0),0));
 
                         break;
                     }
                     case LOCATION_RIGHT: {
-                        addTrajectoryProvider("Off wall", (t) -> t.forward(27));
+                        addTrajectoryProvider("Off wall", (t) -> t.back(30));
 
                         break;
                     }
@@ -515,7 +523,7 @@ public class CenterstageAuto extends OpMode {
         // Outtake the pixel
         sequence.addSequential(new RunnableState("start outtake", telemetry, () -> {
             if (intake != null) {
-                intake.out(1);
+                intake.out(0.40);
             }
         }));
 
