@@ -150,6 +150,11 @@ public class RoadRunnerMecanumDriveBase extends MecanumDrive {
         trajectorySequenceRunner = new TrajectorySequenceRunner(follower, driveConstants.getHeadingPid());
     }
 
+    public void resetLocalizer() {
+        setLocalizer(new MecanumLocalizer(this));
+        trajectorySequenceRunner = new TrajectorySequenceRunner(follower, driveConstants.getHeadingPid());
+    }
+
     public TrajectoryBuilder trajectoryBuilder(Pose2d startPose) {
         return new TrajectoryBuilder(startPose, velocityConstraint, accelerationConstraint);
     }
