@@ -37,9 +37,10 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import java.util.List;
 
-@TeleOp(name = "00 CS TeleOp")
+@TeleOp(name = CenterstageDriverControlled.CENTERSTAGE_TELE_OP_NAME)
 public class CenterstageDriverControlled extends OpMode {
 
+    public static final String CENTERSTAGE_TELE_OP_NAME = "00 CS TeleOp";
     private CenterstageDrivebase drivebase;
 
     private CenterstageDriverControls driverControls;

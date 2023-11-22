@@ -135,7 +135,7 @@ public class ScoringMechanism extends LinearLiftController {
     @Setter
     private OnOffButton bucketTipButton;
 
-    private final static double BUCKET_TIP_SERVO_BOTTOM_POS = 0.62777;
+    private final static double BUCKET_TIP_SERVO_BOTTOM_POS = 0.5983;
 
     private final static double BUCKET_TIP_DUMP_POS = .904;
 

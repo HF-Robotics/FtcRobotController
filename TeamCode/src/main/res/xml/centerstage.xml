@@ -54,6 +54,10 @@ SOFTWARE.
             <RevBlinkinLedDriver name="blinkin" port="0" />  <!-- Red    -->
             <Servo name="launcherTriggerServo"  port="1" />  <!-- Orange -->
             <Servo name="bucketTipServo"        port="2" />  <!-- Yellow -->
+
+            <ContinuousRotationServo name="intakeServo1"         port="3" /> <!-- Green -->
+            <ContinuousRotationServo name="intakeServo2"         port="4" /> <!-- Blue -->
+
         </LynxModule>
     </LynxUsbDevice>
 </Robot>

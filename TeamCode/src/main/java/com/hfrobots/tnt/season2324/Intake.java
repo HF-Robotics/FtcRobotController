@@ -22,6 +22,7 @@
 
 package com.hfrobots.tnt.season2324;
 
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -32,6 +33,9 @@ public class Intake {
 
     private DcMotorEx rightIntakeMotor;
 
+    private final CRServo intakeServo1;
+
+    private final CRServo intakeServo2;
 
     public Intake(final HardwareMap hardwareMap) {
         leftIntakeMotor = hardwareMap.get(DcMotorEx.class, "leftIntakeMotor");
@@ -43,6 +47,9 @@ public class Intake {
         //
         // Right intake wheel needs to rotate CCW when viewed from above
         leftIntakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        intakeServo1 = hardwareMap.get(CRServo.class, "intakeServo1");
+        intakeServo2 = hardwareMap.get(CRServo.class, "intakeServo2");
     }
 
     public void in(double speed) {
@@ -50,11 +57,15 @@ public class Intake {
         speed = Range.clip(speed, 0, 1);
         leftIntakeMotor.setPower(speed);
         rightIntakeMotor.setPower(speed);
+        intakeServo1.setPower(1);
+        intakeServo2.setPower(1);
     }
 
     public void stop() {
         leftIntakeMotor.setPower(0);
         rightIntakeMotor.setPower(0);
+        intakeServo1.setPower(0);
+        intakeServo2.setPower(0);
     }
 
     public void out(double speed) {
@@ -62,5 +73,7 @@ public class Intake {
         speed = Range.clip(speed, 0, 1);
         leftIntakeMotor.setPower(-speed);
         rightIntakeMotor.setPower(-speed);
+        intakeServo1.setPower(-1);
+        intakeServo2.setPower(-1);
     }
 }
