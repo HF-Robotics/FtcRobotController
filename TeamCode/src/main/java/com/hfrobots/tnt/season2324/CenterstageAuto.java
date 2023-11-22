@@ -59,7 +59,7 @@ import org.firstinspires.ftc.vision.VisionPortal;
 
 import java.util.concurrent.TimeUnit;
 
-@Autonomous(name="00 CS Auto")
+@Autonomous(name="00 CS Auto", preselectTeleOp = CenterstageDriverControlled.CENTERSTAGE_TELE_OP_NAME)
 public class CenterstageAuto extends OpMode {
 
     public static final int SPLINE_RIGHT_SIGN = -1;
@@ -403,17 +403,6 @@ public class CenterstageAuto extends OpMode {
 
         final State detectState = createSpikeStripDetectorState();
 
-        //
-        // FIXME - Remove this once detector is working
-        //
-
-        detectedLocation = SpikeStripLocation.LOCATION_LEFT;
-        currentAlliance = Constants.Alliance.BLUE;
-
-        //
-        // End test code before detector working
-        //
-
         final State moveRobotToSpikeStrips = new MultipleTrajectoriesFollowerState("Move robot",
                 telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
             @Override
@@ -486,27 +475,36 @@ public class CenterstageAuto extends OpMode {
 
         final State moveRobotToBackstage = new MultipleTrajectoriesFollowerState("Move robot to backstage",
                 telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+
             @Override
             protected void createTrajectoryProviders() {
+                driveBase.resetLocalizer();
+
                 switch (detectedLocation) {
                     case LOCATION_LEFT: {
-                        addTrajectoryProvider("Fwd a bit", (t) ->t.forward(1));
-                        addTrajectoryProvider("Away from spike strip", (t) ->t.strafeLeft(22));
-                        addTrajectoryProvider("Fwd a bit", (t) ->t.forward(1));
-                        addTrajectoryProvider("To backstage", (t) -> t.forward(47));
+
+                        if (currentAlliance == Constants.Alliance.BLUE) {
+                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeLeft(22));
+
+                            addTrajectoryProvider("To backstage", (t) -> t.back(37));
+
+                        } else {
+                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeLeft(22));
+
+                            addTrajectoryProvider("To backstage", (t) -> t.back(37));
+
+                        }
 
                         break;
                     }
                     case LOCATION_CENTER: {
-                        addTrajectoryProvider("Fwd a bit", (t) -> t.forward(3));
-                        addTrajectoryProvider("Away from spike strip", (t) -> t.back(26));
+                        addTrajectoryProvider("Away from spike strip", (t) -> t.forward(26));
                         addTrajectoryProvider("To backstage", (t) -> t.strafeLeft(47));
 
                         break;
                     }
                     case LOCATION_RIGHT: {
-                        //addTrajectoryProvider("Direct to backstage", (t) -> t.forward(1).back(50));
-                        addTrajectoryProvider("Off wall", (t) -> t.splineToLinearHeading(new Pose2d(-50, -3D, 0),0));
+                        addTrajectoryProvider("Direct to backstage", (t) -> t.back(50));
 
                         break;
                     }
