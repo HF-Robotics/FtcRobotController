@@ -121,6 +121,7 @@ public class CenterstageAuto extends OpMode {
     // The tasks our robot knows how to do - rename these to something meaningful for the season!
     private enum TaskChoice {
         BACKSTAGE_SIDE("Start from backstage side"),
+        BACKSTAGE_SIDE_NO_PARK("Start from backstage side, no park"),
         WING_SIDE("Start from wing side");
 
         final String description;
@@ -294,9 +295,11 @@ public class CenterstageAuto extends OpMode {
     public void start() {
         Shared.withBetterErrorHandling(() -> {
             super.start();
+            scoringMechanism.setStarted(true);
             droneLauncher.setSafetyOn(true);
             spikeStripDetector.recordDetections();
             visionPortal.stopLiveView();
+            scoringMechanism.setStarted(true);
         });
     }
 
@@ -372,7 +375,11 @@ public class CenterstageAuto extends OpMode {
                         setupStartWingSideStateMachine();
                         break;
                     case BACKSTAGE_SIDE:
-                        setupStartBackstageSideStateMachine();
+                        setupStartBackstageSideStateMachine(true);
+                        break;
+                    case BACKSTAGE_SIDE_NO_PARK:
+                        setupStartBackstageSideStateMachine(false);
+                        break;
                     default:
                         stateMachine.addSequential(newDoneState("Default done"));
                         break;
@@ -392,14 +399,14 @@ public class CenterstageAuto extends OpMode {
     }
 
     protected void setupStartWingSideStateMachine() {
-        sharedStateMachineSetup(false);
+        sharedStateMachineSetup(false, false);
     }
 
-    protected void setupStartBackstageSideStateMachine() {
-        sharedStateMachineSetup(true);
+    protected void setupStartBackstageSideStateMachine(final boolean park) {
+        sharedStateMachineSetup(true, park);
     }
 
-    protected void sharedStateMachineSetup(final boolean isBackstage) {
+    protected void sharedStateMachineSetup(final boolean isBackstage, final boolean shouldPark) {
 
         final State detectState = createSpikeStripDetectorState();
 
@@ -484,27 +491,46 @@ public class CenterstageAuto extends OpMode {
                     case LOCATION_LEFT: {
 
                         if (currentAlliance == Constants.Alliance.BLUE) {
-                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeLeft(22));
-
-                            addTrajectoryProvider("To backstage", (t) -> t.back(37));
-
+                            // Needs a bit more tuning
+                            // BLUE LEFT -> 20" left, 32" back (checked, but not tested)
+                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeLeft(30 - 8));
+                            addTrajectoryProvider("To backstage", (t) -> t.back(32 + 3));
                         } else {
-                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeLeft(22));
-
-                            addTrajectoryProvider("To backstage", (t) -> t.back(37));
-
+                            // tested and ok
+                            addTrajectoryProvider("Away from pixel", (t) -> t.forward(3));
+                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeLeft(30 - 2));
+                            addTrajectoryProvider("To backstage", (t) -> t.forward(32));
                         }
 
                         break;
                     }
                     case LOCATION_CENTER: {
-                        addTrajectoryProvider("Away from spike strip", (t) -> t.forward(26));
-                        addTrajectoryProvider("To backstage", (t) -> t.strafeLeft(47));
+                        if (currentAlliance == Constants.Alliance.BLUE) {
+                            // Tested, and ok
+                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeRight(20));
+                            addTrajectoryProvider("Align to backstage", (t) -> t.back(26 - 2.5));
+                            addTrajectoryProvider("To backstage", (t) -> t.strafeRight(20));
+                        } else {
+                            // Tested, and ok
+                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeLeft(20));
+                            addTrajectoryProvider("Align to backstage", (t) -> t.back(26 - 2.5));
+                            addTrajectoryProvider("To backstage", (t) -> t.strafeLeft(20));
+                        }
 
                         break;
                     }
                     case LOCATION_RIGHT: {
-                        addTrajectoryProvider("Direct to backstage", (t) -> t.back(50));
+                        if (currentAlliance == Constants.Alliance.BLUE) {
+                            // tested and ok
+                            addTrajectoryProvider("Avoid rigging", (t) -> t.forward(3));
+                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeRight(30));
+                            addTrajectoryProvider("To backstage", (t) -> t.forward(32));
+                        } else {
+                            // tested and ok
+                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeRight(20));
+                            addTrajectoryProvider("To backstage", (t) -> t.back(32));
+
+                        }
 
                         break;
                     }
@@ -534,9 +560,9 @@ public class CenterstageAuto extends OpMode {
             }
         }));
 
-        if (isBackstage) {
-            // FIXME: Simplify for now, some of these trajectories are busted
-            //sequence.addSequential(moveRobotToBackstage);
+        if (isBackstage && shouldPark) {
+
+            sequence.addSequential(moveRobotToBackstage);
         }
 
         sequence.addSequential(newDoneState("Done!"));

@@ -154,7 +154,7 @@ public class CenterstageDriverControlled extends OpMode {
     public void start() {
         Shared.withBetterErrorHandling(() -> {
             super.start();
-
+            scoringMechanism.setStarted(true);
             droneLauncher.setSafetyOn(true);
             driveTeamSignal.startMatch();
         });

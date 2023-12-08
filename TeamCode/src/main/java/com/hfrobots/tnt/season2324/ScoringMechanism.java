@@ -80,11 +80,31 @@ public class ScoringMechanism extends LinearLiftController {
     public void periodicTask() {
         super.periodicTask();
 
-        if (bucketTipButton != null && bucketTipButton.isPressed()) {
-            bucketTipServo.setPosition(BUCKET_TIP_DUMP_POS);
-        } else {
+        if (isUnsafePressed()) {
             bucketTipServo.setPosition(BUCKET_TIP_SERVO_BOTTOM_POS);
         }
+        
+        if (isAtLowerLimit()) {
+            if (!started) {
+                bucketTipServo.setPosition(BUCKET_TIP_SERVO_INIT_POS);
+            } else {
+                bucketTipServo.setPosition(BUCKET_TIP_SERVO_BOTTOM_POS);
+            }
+        }
+
+//        if (bucketTipButton != null && bucketTipButton.isPressed()) {
+//            bucketTipServo.setPosition(BUCKET_TIP_DUMP_POS);
+//        } else {
+//            if (traveling) {
+//                bucketTipServo.setPosition(BUCKET_TIP_SERVO_TRAVEL_POSITION);
+//            } else {
+//                if (!started) {
+//                    bucketTipServo.setPosition(BUCKET_TIP_SERVO_INIT_POS);
+//                } else {
+//                    bucketTipServo.setPosition(BUCKET_TIP_SERVO_BOTTOM_POS);
+//                }
+//            }
+//        }
     }
 
     public static ScoringMechanism.ScoringMechanismBuilder builderFromHardwareMap(
@@ -102,6 +122,15 @@ public class ScoringMechanism extends LinearLiftController {
                 .bucketTipServo(bucketTipServo)
                 .lowerLiftLimit(lowerLimit)
                 .telemetry(telemetry);
+    }
+
+    @Override
+    protected State preHandleButtons() {
+        if (liftThrottleIsUp() || liftThrottleIsDown()) {
+            this.bucketTipServo.setPosition(BUCKET_TIP_SERVO_TRAVEL_POSITION);
+        }
+
+        return null;
     }
 
     @Override
@@ -123,7 +152,11 @@ public class ScoringMechanism extends LinearLiftController {
             if (bucketTipButton != null && bucketTipButton.isPressed()) {
                 bucketTipServo.setPosition(BUCKET_TIP_DUMP_POS);
             } else {
-                bucketTipServo.setPosition(BUCKET_TIP_SERVO_BOTTOM_POS);
+                if (!started) {
+                    bucketTipServo.setPosition(BUCKET_TIP_SERVO_INIT_POS);
+                } else {
+                    bucketTipServo.setPosition(BUCKET_TIP_SERVO_TRAVEL_POSITION);
+                }
             }
 
             return super.doStuffAndGetNextState();
@@ -135,9 +168,15 @@ public class ScoringMechanism extends LinearLiftController {
     @Setter
     private OnOffButton bucketTipButton;
 
-    private final static double BUCKET_TIP_SERVO_BOTTOM_POS = 0.5983;
+    private final static double BUCKET_TIP_SERVO_BOTTOM_POS = 0.682;
 
-    private final static double BUCKET_TIP_DUMP_POS = .904;
+    private final static double BUCKET_TIP_SERVO_TRAVEL_POSITION = .497223;
+    private final static double BUCKET_TIP_DUMP_POS = .837;
+
+    private final static double BUCKET_TIP_SERVO_INIT_POS = .311;
+
+    @Setter
+    private boolean started = false;
 
     @Builder(builderMethodName = "scoringMechanismBuilder")
     protected ScoringMechanism(Tunables tunables,
@@ -154,6 +193,6 @@ public class ScoringMechanism extends LinearLiftController {
         super(tunables, liftThrottle, liftUpperLimitButton, liftLowerLimitButton, liftEmergencyStopButton, liftMotor, upperLiftLimit, lowerLiftLimit, telemetry, limitOverrideButton);
 
         this.bucketTipServo = bucketTipServo;
-        this.bucketTipServo.setPosition(BUCKET_TIP_SERVO_BOTTOM_POS);
+        this.bucketTipServo.setPosition(BUCKET_TIP_SERVO_INIT_POS);
     }
 }

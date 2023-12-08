@@ -57,8 +57,8 @@ public class Intake {
         speed = Range.clip(speed, 0, 1);
         leftIntakeMotor.setPower(speed);
         rightIntakeMotor.setPower(speed);
-        intakeServo1.setPower(1);
-        intakeServo2.setPower(1);
+        intakeServo1.setPower(-1);
+        intakeServo2.setPower(-1);
     }
 
     public void stop() {
@@ -73,7 +73,7 @@ public class Intake {
         speed = Range.clip(speed, 0, 1);
         leftIntakeMotor.setPower(-speed);
         rightIntakeMotor.setPower(-speed);
-        intakeServo1.setPower(-1);
-        intakeServo2.setPower(-1);
+        intakeServo1.setPower(1);
+        intakeServo2.setPower(1);
     }
 }

@@ -122,7 +122,9 @@ public class LinearLiftController {
     protected LiftAtLowerLimitState atLowerLimitState;
 
     protected LiftIdleState idleState;
-    
+
+    protected boolean traveling;
+
     @Builder
     protected LinearLiftController(final Tunables tunables,
                                 final RangeInput liftThrottle,
@@ -195,12 +197,16 @@ public class LinearLiftController {
     }
 
     protected void liftUp() {
+        traveling = true;
+
         if (liftThrottle != null) {
             liftMotor.setPower(Math.abs(liftThrottle.getPosition()));
         }
     }
 
     protected void liftDown() {
+        traveling = true;
+
         if (liftThrottle != null) {
             liftMotor.setPower(tunables.getOpenLoopDownPowerRatio() * (-Math.abs(liftThrottle.getPosition())));
         }
@@ -366,7 +372,7 @@ public class LinearLiftController {
         }
     }
 
-    private boolean liftThrottleIsDown() {
+    protected boolean liftThrottleIsDown() {
         if (liftThrottle == null) {
             return false;
         }
@@ -434,7 +440,7 @@ public class LinearLiftController {
 
         @Override
         public State doStuffAndGetNextState() {
-            if (isTimedOut() && !nullSafeIsPressed(limitOverrideButton)) {
+            if (isTimedOut() && ! isUnsafePressed()) {
                 stopLift();
                 Log.e(LOG_TAG, "Timed out while going to upper limit");
 
@@ -511,7 +517,7 @@ public class LinearLiftController {
 
         @Override
         public State doStuffAndGetNextState() {
-            if (isTimedOut() && !nullSafeIsPressed(limitOverrideButton)) {
+            if (isTimedOut() && ! isUnsafePressed()) {
                 stopLift();
                 Log.e(LOG_TAG, "Timed out while going to low limit");
 
@@ -602,7 +608,7 @@ public class LinearLiftController {
                 liftMotor.setPower(0);
 
                 return fromButtonState;
-            } else if (fromButtonState != null && nullSafeIsPressed(limitOverrideButton)) {
+            } else if (fromButtonState != null && isUnsafePressed()) {
                 if (fromButtonState != this) {
                     Log.d(LOG_TAG, getName() + " - limits overridden - transitioning to " + fromButtonState.getName());
 
@@ -638,7 +644,7 @@ public class LinearLiftController {
                 Log.d(LOG_TAG, getName() + " responding to buttons and transitioning to " + fromButtonState.getName());
 
                 return fromButtonState;
-            } else if (fromButtonState != null && nullSafeIsPressed(limitOverrideButton)) {
+            } else if (fromButtonState != null && isUnsafePressed()) {
                 if (fromButtonState != this) {
                     Log.d(LOG_TAG, getName() + " - limits overridden - transitioning to " + fromButtonState.getName());
 
@@ -650,10 +656,20 @@ public class LinearLiftController {
         }
     }
 
-    class LiftDownCommandState extends LiftBaseState {
+    protected boolean isUnsafePressed() {
+        return nullSafeIsPressed(limitOverrideButton);
+    }
 
-        LiftDownCommandState(Telemetry telemetry) {
+    protected class LiftDownCommandState extends LiftBaseState {
+
+        protected LiftDownCommandState(Telemetry telemetry) {
             super("Lift-cmd-dn", telemetry, TimeUnit.SECONDS.toMillis(60)); // FIXME
+        }
+
+        @Override
+        protected State transitionToState(State state) {
+            traveling = false;
+            return super.transitionToState(state);
         }
 
         @Override
@@ -689,7 +705,7 @@ public class LinearLiftController {
         }
     }
 
-    private boolean liftThrottleIsUp() {
+    protected boolean liftThrottleIsUp() {
         if (liftThrottle == null) {
             return false;
         }
@@ -697,9 +713,9 @@ public class LinearLiftController {
         return liftThrottle.getPosition() < 0;
     }
 
-    class LiftUpCommandState extends LiftBaseState {
+    protected class LiftUpCommandState extends LiftBaseState {
 
-        LiftUpCommandState(Telemetry telemetry) {
+        protected LiftUpCommandState(Telemetry telemetry) {
             super("Lift-cmd-up", telemetry, TimeUnit.SECONDS.toMillis(60)); // FIXME
         }
 
@@ -739,6 +755,11 @@ public class LinearLiftController {
             liftUp();
 
             return this;
+        }
+
+        protected State transitionToState(State state) {
+            traveling = false;
+            return super.transitionToState(state);
         }
     }
 
