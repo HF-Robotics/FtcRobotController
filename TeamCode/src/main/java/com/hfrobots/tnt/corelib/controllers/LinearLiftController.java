@@ -400,12 +400,12 @@ public class LinearLiftController {
         }
     }
 
-    abstract class LiftClosedLoopState extends LiftBaseState {
-        PidController pidController;
+    protected abstract class LiftClosedLoopState extends LiftBaseState {
+        protected PidController pidController;
 
-        boolean initialized = false;
+        protected boolean initialized = false;
 
-        LiftClosedLoopState(String name, Telemetry telemetry, long timeoutMillis) {
+        protected LiftClosedLoopState(String name, Telemetry telemetry, long timeoutMillis) {
             super(name, telemetry, timeoutMillis);
         }
 

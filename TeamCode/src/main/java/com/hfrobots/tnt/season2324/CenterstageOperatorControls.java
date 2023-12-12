@@ -100,6 +100,8 @@ public class CenterstageOperatorControls implements PeriodicTask {
 
     protected DebouncedButton autoRetractLiftButton;
 
+    protected DebouncedButton liftToFirstLineButton;
+
     protected ScoringMechanism scoringMechanism;
 
     protected Hanger hanger;
@@ -226,6 +228,8 @@ public class CenterstageOperatorControls implements PeriodicTask {
 
         hangRetract = dpadDown;
 
+        liftToFirstLineButton = aGreenButton.debounced();
+
         wireControlsToScoringMechanism();
     }
 
@@ -235,6 +239,7 @@ public class CenterstageOperatorControls implements PeriodicTask {
             scoringMechanism.setBucketTipButton(pixelReleaseButton1);
             scoringMechanism.setLimitOverrideButton(unsafe);
             scoringMechanism.setLiftLowerLimitButton(autoRetractLiftButton);
+            scoringMechanism.setToFirstLineButton(liftToFirstLineButton);
             // FIXME: Needs an e-stop button!
         }
 
@@ -266,9 +271,15 @@ public class CenterstageOperatorControls implements PeriodicTask {
             float throttlePosition = intakeOutakeThrottle.getPosition();
 
             if (throttlePosition > 0) {
-                intake.in(throttlePosition);
+                if (scoringMechanism.isAtLowerLimit() || unsafe.isPressed()){
+                    intake.in(throttlePosition);
+                }
             } else if (throttlePosition < 0) {
-                intake.out(throttlePosition);
+                if (unsafe.isPressed()) {
+                    intake.out(throttlePosition);
+                } else {
+                    intake.out(0.40);
+                }
             } else {
                 intake.stop();
             }

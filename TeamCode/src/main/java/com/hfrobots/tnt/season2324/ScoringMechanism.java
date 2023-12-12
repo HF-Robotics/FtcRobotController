@@ -22,6 +22,10 @@
 
 package com.hfrobots.tnt.season2324;
 
+import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
+
+import android.util.Log;
+
 import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.OnOffButton;
 import com.ftc9929.corelib.control.RangeInput;
@@ -29,6 +33,7 @@ import com.ftc9929.corelib.state.State;
 import com.hfrobots.tnt.corelib.controllers.LinearLiftController;
 import com.hfrobots.tnt.corelib.drive.ExtendedDcMotor;
 import com.hfrobots.tnt.corelib.drive.NinjaMotor;
+import com.hfrobots.tnt.season2223.LiftMechanism;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
@@ -37,10 +42,14 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+import java.util.concurrent.TimeUnit;
+
 import lombok.Builder;
 import lombok.Setter;
 
 public class ScoringMechanism extends LinearLiftController {
+    public static final double LIFT_FIRST_LINE_ENCODER_POS = 1632;
+    public static final double K_P_UP_TO_LINE = .008;
     protected static Tunables goBilda26_1 = new LinearLiftController.Tunables(){
         @Override
         protected double getOpenLoopDownPowerRatio() {
@@ -83,7 +92,7 @@ public class ScoringMechanism extends LinearLiftController {
         if (isUnsafePressed()) {
             bucketTipServo.setPosition(BUCKET_TIP_SERVO_BOTTOM_POS);
         }
-        
+
         if (isAtLowerLimit()) {
             if (!started) {
                 bucketTipServo.setPosition(BUCKET_TIP_SERVO_INIT_POS);
@@ -130,6 +139,10 @@ public class ScoringMechanism extends LinearLiftController {
             this.bucketTipServo.setPosition(BUCKET_TIP_SERVO_TRAVEL_POSITION);
         }
 
+        if (toFirstLineButton != null && toFirstLineButton.getRise()) {
+            return goFirstLineState;
+        }
+
         return null;
     }
 
@@ -139,6 +152,8 @@ public class ScoringMechanism extends LinearLiftController {
 
         // We want idle to be able to dump the bucket on command
         this.idleState = new CenterStageLiftIdleState(telemetry);
+
+        goFirstLineState = new LiftGoFirstLineState(telemetry);
     }
 
     class CenterStageLiftIdleState extends LiftIdleState {
@@ -152,10 +167,15 @@ public class ScoringMechanism extends LinearLiftController {
             if (bucketTipButton != null && bucketTipButton.isPressed()) {
                 bucketTipServo.setPosition(BUCKET_TIP_DUMP_POS);
             } else {
+
                 if (!started) {
                     bucketTipServo.setPosition(BUCKET_TIP_SERVO_INIT_POS);
                 } else {
-                    bucketTipServo.setPosition(BUCKET_TIP_SERVO_TRAVEL_POSITION);
+                    if (isUnsafePressed()) {
+                        bucketTipServo.setPosition(BUCKET_TIP_SERVO_BOTTOM_POS);
+                    } else {
+                        bucketTipServo.setPosition(BUCKET_TIP_SERVO_TRAVEL_POSITION);
+                    }
                 }
             }
 
@@ -168,15 +188,19 @@ public class ScoringMechanism extends LinearLiftController {
     @Setter
     private OnOffButton bucketTipButton;
 
-    private final static double BUCKET_TIP_SERVO_BOTTOM_POS = 0.682;
+    @Setter
+    private DebouncedButton toFirstLineButton;
 
-    private final static double BUCKET_TIP_SERVO_TRAVEL_POSITION = .497223;
-    private final static double BUCKET_TIP_DUMP_POS = .837;
+    private final static double BUCKET_TIP_SERVO_BOTTOM_POS = 0.7583;
 
+    private final static double BUCKET_TIP_SERVO_TRAVEL_POSITION = 0.69111; // .497223;
+    private final static double BUCKET_TIP_DUMP_POS = .9300;
     private final static double BUCKET_TIP_SERVO_INIT_POS = .311;
 
     @Setter
     private boolean started = false;
+
+    private State goFirstLineState;
 
     @Builder(builderMethodName = "scoringMechanismBuilder")
     protected ScoringMechanism(Tunables tunables,
@@ -194,5 +218,61 @@ public class ScoringMechanism extends LinearLiftController {
 
         this.bucketTipServo = bucketTipServo;
         this.bucketTipServo.setPosition(BUCKET_TIP_SERVO_INIT_POS);
+    }
+
+    class LiftGoFirstLineState extends LiftClosedLoopState {
+
+        LiftGoFirstLineState(Telemetry telemetry) {
+            super("Lift-auto-small", telemetry, TimeUnit.SECONDS.toMillis(15)); // FIXME
+        }
+
+        @Override
+        public State doStuffAndGetNextState() {
+            if (isTimedOut() && limitOverrideButton != null && !limitOverrideButton.isPressed()) {
+                stopLift();
+                Log.e(LOG_TAG, "Timed out while going to small junction");
+
+                return transitionToState(idleState);
+            }
+
+            State fromButtonState = handleButtons();
+
+            // Handle possible transitions back to open loop
+            if (fromButtonState != null && fromButtonState != this) {
+                Log.d(LOG_TAG, "Leaving closed loop for " + fromButtonState.getName());
+
+                return transitionToState(fromButtonState);
+            }
+
+            if (!initialized) {
+                Log.d(LOG_TAG, "Initializing PID for state " + getName());
+
+                setupPidController(K_P_UP_TO_LINE);
+
+                pidController.setOutputRange(-1, 1); // fix bouncing while descending
+                pidController.setAbsoluteSetPoint(true); // MM
+
+                pidController.setTarget(LIFT_FIRST_LINE_ENCODER_POS,
+                        liftMotor.getCurrentPosition());
+
+                initialized = true;
+            }
+
+            // closed loop control based on motor encoders
+
+            double pidOutput = pidController.getOutput(liftMotor.getCurrentPosition());
+
+            if (pidController.isOnTarget()) {
+                Log.d(LOG_TAG, "Lift reached small target");
+
+                stopLift();
+
+                return transitionToState(idleState);
+            }
+
+            liftMotor.setPower(pidOutput);
+
+            return this;
+        }
     }
 }
