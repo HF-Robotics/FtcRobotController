@@ -294,20 +294,27 @@ public class CenterstageOperatorControls implements PeriodicTask {
                     (unsafe != null && unsafe.isPressed()))) {
                 if (hangExtend.isPressed()) {
                     hanger.up(1);
+
+                    return;
                 }
             } else {
                 // Drive team signal not present, just let things happen
                 if (hangExtend.isPressed()) {
                     hanger.up(1);
+
+                    return;
                 }
             }
 
             // Always allow retract and stop
             if (hangRetract.isPressed()) {
                 hanger.down(1);
-            } else {
-                hanger.stop();
+
+                return;
             }
+
+            hanger.stop();
+
         }
     }
 }
