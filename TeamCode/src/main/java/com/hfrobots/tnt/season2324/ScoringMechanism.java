@@ -71,7 +71,7 @@ public class ScoringMechanism extends LinearLiftController {
 
         @Override
         protected int getUpperLimitEncoderPos() {
-            return 2700;
+            return 2632;
         }
 
         @Override
@@ -193,8 +193,8 @@ public class ScoringMechanism extends LinearLiftController {
 
     private final static double BUCKET_TIP_SERVO_BOTTOM_POS = 0.8428;
 
-    private final static double BUCKET_TIP_SERVO_TRAVEL_POSITION = 0.79666; // .497223;
-    private final static double BUCKET_TIP_DUMP_POS = 1.0;
+    private final static double BUCKET_TIP_SERVO_TRAVEL_POSITION = .721678; // 0.79666; // .497223;
+    private final static double BUCKET_TIP_DUMP_POS = .5894; // 1.0;
     private final static double BUCKET_TIP_SERVO_INIT_POS = .20389;
 
     @Setter
