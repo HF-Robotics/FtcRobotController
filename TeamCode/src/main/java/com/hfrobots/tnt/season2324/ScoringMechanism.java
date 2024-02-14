@@ -191,7 +191,7 @@ public class ScoringMechanism extends LinearLiftController {
     @Setter
     private DebouncedButton toFirstLineButton;
 
-    private final static double BUCKET_TIP_SERVO_BOTTOM_POS = 0.8428;
+    private final static double BUCKET_TIP_SERVO_BOTTOM_POS = 0.7716;
 
     private final static double BUCKET_TIP_SERVO_TRAVEL_POSITION = .721678; // 0.79666; // .497223;
     private final static double BUCKET_TIP_DUMP_POS = .5894; // 1.0;
