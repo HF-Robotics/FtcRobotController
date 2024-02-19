@@ -278,7 +278,7 @@ public class CenterstageOperatorControls implements PeriodicTask {
                 if (unsafe.isPressed()) {
                     intake.out(throttlePosition);
                 } else {
-                    intake.out(0.40);
+                    intake.out(0.20);
                 }
             } else {
                 intake.stop();
