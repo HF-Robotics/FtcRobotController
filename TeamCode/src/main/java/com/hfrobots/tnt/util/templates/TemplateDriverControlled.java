@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2022 The Tech Ninja Team (https://ftc9929.com)
+ Copyright (c) 2024 The Tech Ninja Team (https://ftc9929.com)
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,8 @@ import com.ftc9929.metrics.RobotMetricsSampler;
 import com.ftc9929.metrics.StatsdMetricsReporter;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
+import com.hfrobots.tnt.season2324.Shared;
+import com.hfrobots.tnt.util.DriveTeamSignal;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -40,13 +42,13 @@ import java.util.List;
 
 @Disabled
 @TeleOp(name = "00 [SEASON] TeleOp")
-public class DriverControlledTemplate extends OpMode {
+public class TemplateDriverControlled extends OpMode {
 
     private Drivebase drivebase;
 
-    private DriverControls driverControls;
+    private TemplateDriverControls driverControls;
 
-    // private OperatorControls operatorControls;
+    private TemplateOperatorControls operatorControls;
 
     private StatsDMetricSampler legacyMetricsSampler;
 
@@ -56,33 +58,38 @@ public class DriverControlledTemplate extends OpMode {
 
     private List<LynxModule> allHubs;
 
+    private DriveTeamSignal driveTeamSignal;
+
     @Override
     public void init() {
-        final Ticker ticker = Ticker.systemTicker();
+        Shared.withBetterErrorHandling(() -> {
+            final Ticker ticker = Ticker.systemTicker();
 
-        drivebase = new Drivebase(hardwareMap);
+            drivebase = new Drivebase(hardwareMap);
 
-        NinjaGamePad driversGamepad = new NinjaGamePad(gamepad1);
+            NinjaGamePad driversGamepad = new NinjaGamePad(gamepad1);
 
-        driverControls = DriverControls.builder()
-                .driversGamepad(driversGamepad)
-                .kinematics(drivebase).build();
+            driverControls = TemplateDriverControls.builder()
+                    .driversGamepad(driversGamepad)
+                    .kinematics(drivebase).build();
 
-        NinjaGamePad operatorGamepad = new NinjaGamePad(gamepad2);
+            NinjaGamePad operatorGamepad = new NinjaGamePad(gamepad2);
 
-        // operatorControls = OperatorControls.builder().operatorGamepad(operatorGamepad)
-        //        .freightManipulator(freightManipulator)
-        //        .carouselMechanism(carouselMechanism)
-        //        .maxMotorPowerMagnitude(maxMotorPowerMagnitude).build();
+            // FIXME: Add mechanisms when they exist
+            operatorControls = TemplateOperatorControls.builder().operatorGamepad(operatorGamepad)
+                    .build();
 
-        setupMetricsSampler(driversGamepad, operatorGamepad);
+            driveTeamSignal = new DriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
-        allHubs = hardwareMap.getAll(LynxModule.class);
+            setupMetricsSampler(driversGamepad, operatorGamepad);
 
-        for (LynxModule hub : allHubs) {
-            Log.d(LOG_TAG, String.format("Setting hub %s to BulkCachingMode.MANUAL", hub));
-            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
-        }
+            allHubs = hardwareMap.getAll(LynxModule.class);
+
+            for (LynxModule hub : allHubs) {
+                Log.d(LOG_TAG, String.format("Setting hub %s to BulkCachingMode.MANUAL", hub));
+                hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+            }
+        });
     }
 
     private void setupMetricsSampler(NinjaGamePad driversGamepad, NinjaGamePad operatorGamepad) {
@@ -119,27 +126,35 @@ public class DriverControlledTemplate extends OpMode {
 
     @Override
     public void start() {
-        super.start();
+        Shared.withBetterErrorHandling(() -> {
+            super.start();
+
+            driveTeamSignal.startMatch();
+        });
     }
 
     @Override
     public void loop() {
-        clearHubsBulkCaches(); // important, do not remove this line, or reads from robot break!
+        Shared.withBetterErrorHandling(() -> {
+            clearHubsBulkCaches(); // important, do not remove this line, or reads from robot break!
 
-        driverControls.periodicTask();
+            driverControls.periodicTask();
 
-        //operatorControls.periodicTask();
+            operatorControls.periodicTask();
 
-        if (useLegacyMetricsSampler) {
-            if (legacyMetricsSampler != null) {
-                legacyMetricsSampler.doSamples();
+            if (useLegacyMetricsSampler) {
+                if (legacyMetricsSampler != null) {
+                    legacyMetricsSampler.doSamples();
+                }
+            } else {
+                if (newMetricsSampler != null) {
+                    newMetricsSampler.doSamples();
+                }
             }
-        } else {
-            if (newMetricsSampler != null) {
-                newMetricsSampler.doSamples();
-            }
-        }
 
-        telemetry.update();
+            driveTeamSignal.periodicTask();
+
+            telemetry.update();
+        });
     }
 }

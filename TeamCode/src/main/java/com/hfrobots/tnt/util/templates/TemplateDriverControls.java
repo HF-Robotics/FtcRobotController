@@ -34,7 +34,12 @@ import com.hfrobots.tnt.corelib.task.PeriodicTask;
 
 import lombok.Builder;
 
-public class DriverControls implements PeriodicTask {
+// FIXME: Copy this class into the season package, and rename it to include the season name
+// to avoid referencing controls of prior seasons, e.e. CenterstageDriverControls,
+// PowerplayDriverControls, etc.
+public class TemplateDriverControls implements PeriodicTask {
+    protected InitLoopConfigTask autoConfigTask;
+
     protected RangeInput leftStickX;
 
     protected RangeInput leftStickY;
@@ -51,7 +56,7 @@ public class DriverControls implements PeriodicTask {
 
     protected DebouncedButton dpadRight;
 
-    protected OnOffButton xBlueButton;
+    protected DebouncedButton xBlueButton;
 
     protected DebouncedButton bRedButton;
 
@@ -62,6 +67,10 @@ public class DriverControls implements PeriodicTask {
     protected OnOffButton rightBumper;
 
     protected OnOffButton leftBumper;
+
+    protected DebouncedButton rightBumperDebounced;
+
+    protected DebouncedButton leftBumperDebounced;
 
     protected RangeInput leftTrigger;
 
@@ -95,28 +104,29 @@ public class DriverControls implements PeriodicTask {
     private final float lowPassFilterFactor = 1.0F;
 
     @Builder
-    private DriverControls(RangeInput leftStickX,
-                           RangeInput leftStickY,
-                           RangeInput rightStickX,
-                           RangeInput rightStickY,
-                           DebouncedButton dpadUp,
-                           DebouncedButton dpadDown,
-                           DebouncedButton dpadLeft,
-                           DebouncedButton dpadRight,
-                           OnOffButton dpadUpRaw,
-                           OnOffButton dpadDownRaw,
-                           OnOffButton dpadLeftRaw,
-                           OnOffButton dpadRightRaw,
-                           OnOffButton xBlueButton,
-                           DebouncedButton bRedButton,
-                           DebouncedButton yYellowButton,
-                           DebouncedButton aGreenButton,
-                           OnOffButton rightBumper,
-                           OnOffButton leftBumper,
-                           RangeInput leftTrigger,
-                           RangeInput rightTrigger,
-                           NinjaGamePad driversGamepad,
-                           OpenLoopMecanumKinematics kinematics) {
+    private TemplateDriverControls(RangeInput leftStickX,
+                                   RangeInput leftStickY,
+                                   RangeInput rightStickX,
+                                   RangeInput rightStickY,
+                                   DebouncedButton dpadUp,
+                                   DebouncedButton dpadDown,
+                                   DebouncedButton dpadLeft,
+                                   DebouncedButton dpadRight,
+                                   OnOffButton dpadUpRaw,
+                                   OnOffButton dpadDownRaw,
+                                   OnOffButton dpadLeftRaw,
+                                   OnOffButton dpadRightRaw,
+                                   DebouncedButton xBlueButton,
+                                   DebouncedButton bRedButton,
+                                   DebouncedButton yYellowButton,
+                                   DebouncedButton aGreenButton,
+                                   OnOffButton rightBumper,
+                                   OnOffButton leftBumper,
+                                   RangeInput leftTrigger,
+                                   RangeInput rightTrigger,
+                                   NinjaGamePad driversGamepad,
+                                   OpenLoopMecanumKinematics kinematics,
+                                   InitLoopConfigTask autoConfigTask)  {
         if (driversGamepad != null) {
             this.driversGamepad = driversGamepad;
             setupFromGamepad();
@@ -137,12 +147,15 @@ public class DriverControls implements PeriodicTask {
             this.leftBumper = leftBumper;
             this.leftTrigger = leftTrigger;
             this.rightTrigger = rightTrigger;
+            this.leftBumperDebounced = this.leftBumper.debounced();
+            this.rightBumperDebounced = this.rightBumper.debounced();
         }
 
         setupDerivedControls();
         setupCurvesAndFilters();
 
         this.kinematics = kinematics;
+        this.autoConfigTask = autoConfigTask;
     }
 
     private void setupCurvesAndFilters() {
@@ -165,24 +178,27 @@ public class DriverControls implements PeriodicTask {
         rightStickX = driversGamepad.getRightStickX();
         rightStickY = driversGamepad.getRightStickY();
 
-        dpadDown = new DebouncedButton(driversGamepad.getDpadDown());
-        dpadUp = new DebouncedButton(driversGamepad.getDpadUp());
-        dpadLeft = new DebouncedButton(driversGamepad.getDpadLeft());
-        dpadRight = new DebouncedButton(driversGamepad.getDpadRight());
+        dpadDown = driversGamepad.getDpadDown().debounced();
+        dpadUp = driversGamepad.getDpadUp().debounced();
+        dpadLeft = driversGamepad.getDpadLeft().debounced();
+        dpadRight = driversGamepad.getDpadRight().debounced();
 
+        aGreenButton = driversGamepad.getAButton().debounced();
+        bRedButton = driversGamepad.getBButton().debounced();
+        xBlueButton = driversGamepad.getXButton().debounced();
+        yYellowButton = driversGamepad.getYButton().debounced();
 
-        aGreenButton = new DebouncedButton(driversGamepad.getAButton());
-        bRedButton = new DebouncedButton(driversGamepad.getBButton());
-        xBlueButton = driversGamepad.getXButton();
-        yYellowButton = new DebouncedButton(driversGamepad.getYButton());
         leftBumper = driversGamepad.getLeftBumper();
         rightBumper = driversGamepad.getRightBumper();
+        leftBumperDebounced = leftBumper.debounced();
+        rightBumperDebounced = rightBumper.debounced();
+
         leftTrigger = driversGamepad.getLeftTrigger();
         rightTrigger = driversGamepad.getRightTrigger();
 
         // FIXME: Not yet mocked for tests
-        lockButton = new DebouncedButton(driversGamepad.getLeftStickButton());
-        unlockButton = new DebouncedButton(driversGamepad.getRightStickButton());
+        lockButton = driversGamepad.getLeftStickButton().debounced();
+        unlockButton = driversGamepad.getRightStickButton().debounced();
     }
 
     private void setupDerivedControls() {
@@ -194,31 +210,82 @@ public class DriverControls implements PeriodicTask {
 
     @Override
     public void periodicTask() {
-        double x = driveStrafe.getPosition() * 1.1;
-        double y = - driveForwardReverse.getPosition();
-        double rot = driveRotate.getPosition(); // positive robot z rotation (human-normal) is negative joystick x axis
-        boolean useEncoders = false;
-
-        // do this first, it will be cancelled out by bump-strafe
-        if (!(driveFastButton.isPressed())) {
-            y /= 1.5;
-            x /= 1.25;
-            rot /= 1.5;
-            useEncoders = false;
-        }
-
-        final boolean driveInverted;
-
-        if (driveInvertedButton.isPressed()) {
-            driveInverted = true;
+        if (autoConfigTask != null) {
+            handleAutoConfig();
         } else {
-            driveInverted = false;
+            double x = driveStrafe.getPosition() * 1.1;
+            double y = -driveForwardReverse.getPosition();
+            double rot = driveRotate.getPosition(); // positive robot z rotation (human-normal) is negative joystick x axis
+
+            if (!(driveFastButton.isPressed())) {
+                y /= 1.25;
+                x /= 1.25;
+                rot /= 1.25;
+            }
+
+            final boolean driveInverted;
+
+            if (driveInvertedButton.isPressed()) {
+                driveInverted = true;
+            } else {
+                driveInverted = false;
+            }
+
+            double xScaled = x;
+            double yScaled = y;
+            double rotateScaled = rot;
+
+            kinematics.driveCartesian(xScaled, yScaled, rotateScaled, driveInverted);
+        }
+    }
+
+    private void handleAutoConfig() {
+        if (lockButton.getRise()) {
+            autoConfigTask.lockConfig();
         }
 
-        double xScaled = x;
-        double yScaled = y;
-        double rotateScaled = rot;
+        if (unlockButton.getRise()) {
+            autoConfigTask.unlockConfig();
+        }
 
-        kinematics.driveCartesian(xScaled, yScaled, rotateScaled, driveInverted);
+        // Use driver dpad up/down to select which route to run
+        if (dpadDown.getRise()) {
+            autoConfigTask.previousTaskChoice();
+        } else if (dpadUp.getRise()) {
+            autoConfigTask.nextTaskChoice();
+        }
+
+        // use left/right bumper to decrease/increase delay
+
+        if (leftBumperDebounced.getRise()) {
+            autoConfigTask.decreaseDelay();
+        } else if (rightBumperDebounced.getRise()) {
+            autoConfigTask.increaseDelay();
+        }
+
+        // Alliance selection
+        if (bRedButton.getRise()) {
+            autoConfigTask.chooseRedAlliance();
+        } else if (xBlueButton.getRise()) {
+            autoConfigTask.chooseBlueAlliance();
+        }
+    }
+
+    interface InitLoopConfigTask {
+        void chooseBlueAlliance();
+
+        void chooseRedAlliance();
+
+        void nextTaskChoice();
+
+        void previousTaskChoice();
+
+        void increaseDelay();
+
+        void decreaseDelay();
+
+        void lockConfig();
+
+        void unlockConfig();
     }
 }
