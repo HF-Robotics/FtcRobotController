@@ -20,7 +20,7 @@
  SOFTWARE.
  */
 
-package com.hfrobots.tnt.util.templates;
+package com.hfrobots.tnt.season2425;
 
 import static com.ftc9929.corelib.Constants.LOG_TAG;
 
@@ -32,6 +32,7 @@ import com.ftc9929.metrics.StatsdMetricsReporter;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
 import com.hfrobots.tnt.season2324.Shared;
+import com.hfrobots.tnt.util.templates.Drivebase;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -40,14 +41,14 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import java.util.List;
 
 @Disabled
-@TeleOp(name = "00 [SEASON] TeleOp")
-public class TemplateDriverControlled extends OpMode {
+@TeleOp(name = "00 ITDeep TeleOp")
+public class IntoTheDeepDriverControlled extends OpMode {
 
     private Drivebase drivebase;
 
-    private TemplateDriverControls driverControls;
+    private IntoTheDeepDriverControls driverControls;
 
-    private TemplateOperatorControls operatorControls;
+    private IntoTheDeepOperatorControls operatorControls;
 
     private StatsDMetricSampler legacyMetricsSampler;
 
@@ -57,7 +58,7 @@ public class TemplateDriverControlled extends OpMode {
 
     private List<LynxModule> allHubs;
 
-    private TemplateDriveTeamSignal driveTeamSignal;
+    private IntoTheDeepDriveTeamSignal driveTeamSignal;
 
     @Override
     public void init() {
@@ -68,17 +69,17 @@ public class TemplateDriverControlled extends OpMode {
 
             NinjaGamePad driversGamepad = new NinjaGamePad(gamepad1);
 
-            driverControls = TemplateDriverControls.builder()
+            driverControls = IntoTheDeepDriverControls.builder()
                     .driversGamepad(driversGamepad)
                     .kinematics(drivebase).build();
 
             NinjaGamePad operatorGamepad = new NinjaGamePad(gamepad2);
 
             // FIXME: Add mechanisms when they exist
-            operatorControls = TemplateOperatorControls.builder().operatorGamepad(operatorGamepad)
+            operatorControls = IntoTheDeepOperatorControls.builder().operatorGamepad(operatorGamepad)
                     .build();
 
-            driveTeamSignal = new TemplateDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
+            driveTeamSignal = new IntoTheDeepDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
             setupMetricsSampler(driversGamepad, operatorGamepad);
 

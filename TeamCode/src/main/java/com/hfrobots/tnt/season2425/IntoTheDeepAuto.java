@@ -20,7 +20,7 @@
  SOFTWARE.
  */
 
-package com.hfrobots.tnt.util.templates;
+package com.hfrobots.tnt.season2425;
 
 import static com.ftc9929.corelib.Constants.LOG_TAG;
 
@@ -39,6 +39,7 @@ import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
 import com.hfrobots.tnt.corelib.state.ReadyCheckable;
 import com.hfrobots.tnt.season2324.Shared;
+import com.hfrobots.tnt.util.templates.ExampleDriveConstants;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -53,8 +54,8 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Disabled
-@Autonomous(name="00 [SEASON NAME] Auto")
-public class TemplateAuto extends OpMode {
+@Autonomous(name="00 ITDEEP Auto")
+public class IntoTheDeepAuto extends OpMode {
     private Ticker ticker;
 
     private RoadRunnerMecanumDriveBase driveBase;
@@ -95,13 +96,13 @@ public class TemplateAuto extends OpMode {
 
     private ExampleDriveConstants driveConstants;
 
-    private TemplateOperatorControls operatorControls;
+    private IntoTheDeepOperatorControls operatorControls;
 
-    private TemplateDriverControls driverControls;
+    private IntoTheDeepDriverControls driverControls;
 
     private VisionPortal visionPortal;
 
-    private TemplateDriveTeamSignal driveTeamSignal;
+    private IntoTheDeepDriveTeamSignal driveTeamSignal;
 
     @Override
     public void init() {
@@ -114,7 +115,7 @@ public class TemplateAuto extends OpMode {
             setupOperatorControls();
             setupVisionPortal(hardwareMap);
 
-            driveTeamSignal = new TemplateDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
+            driveTeamSignal = new IntoTheDeepDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
             driveConstants = new ExampleDriveConstants();
 
@@ -321,8 +322,8 @@ public class TemplateAuto extends OpMode {
     }
 
     private void setupDriverControls() {
-        driverControls = TemplateDriverControls.builder()
-                .driversGamepad(new NinjaGamePad(gamepad1)).autoConfigTask(new TemplateDriverControls.InitLoopConfigTask() {
+        driverControls = IntoTheDeepDriverControls.builder()
+                .driversGamepad(new NinjaGamePad(gamepad1)).autoConfigTask(new IntoTheDeepDriverControls.InitLoopConfigTask() {
                     @Override
                     public void lockConfig() {
                         configLocked = true;
@@ -394,6 +395,6 @@ public class TemplateAuto extends OpMode {
     }
 
     private void setupOperatorControls() {
-        operatorControls = TemplateOperatorControls.builder().operatorGamepad(new NinjaGamePad(gamepad2)).build();
+        operatorControls = IntoTheDeepOperatorControls.builder().operatorGamepad(new NinjaGamePad(gamepad2)).build();
     }
 }
