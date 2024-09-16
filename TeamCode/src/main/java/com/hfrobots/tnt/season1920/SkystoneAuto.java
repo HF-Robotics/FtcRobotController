@@ -21,9 +21,9 @@ package com.hfrobots.tnt.season1920;
 
 import android.util.Log;
 
-import com.acmerobotics.roadrunner.trajectory.BaseTrajectoryBuilder;
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
+// import com.acmerobotics.roadrunner.trajectory.BaseTrajectoryBuilder;
+// import com.acmerobotics.roadrunner.trajectory.Trajectory;
+// import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
 import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.control.RangeInput;
@@ -34,10 +34,10 @@ import com.ftc9929.corelib.state.StopwatchDelayState;
 import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
-import com.hfrobots.tnt.corelib.drive.Turn;
-import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
-import com.hfrobots.tnt.corelib.drive.mecanum.TrajectoryFollowerState;
-import com.hfrobots.tnt.corelib.drive.mecanum.TurnState;
+// import com.hfrobots.tnt.corelib.drive.Turn;
+// import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
+// import com.hfrobots.tnt.corelib.drive.mecanum.TrajectoryFollowerState;
+// import com.hfrobots.tnt.corelib.drive.mecanum.TurnState;
 import com.hfrobots.tnt.corelib.util.RealSimplerHardwareMap;
 import com.hfrobots.tnt.season1920.opencv.DetectionZone;
 import com.hfrobots.tnt.season1920.opencv.EasyOpenCvPipelineAndCamera;
@@ -62,7 +62,7 @@ import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
 public class SkystoneAuto extends OpMode {
     private Ticker ticker;
 
-    private RoadRunnerMecanumDriveBase driveBase;
+    // private RoadRunnerMecanumDriveBase driveBase;
 
     private StateMachine stateMachine;
 
@@ -126,8 +126,8 @@ public class SkystoneAuto extends OpMode {
         setupDriverControls();
 
         RealSimplerHardwareMap simplerHardwareMap = new RealSimplerHardwareMap(this.hardwareMap);
-        driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
-                new SkystoneDriveConstants());
+        // driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
+        //        new SkystoneDriveConstants());
 
         foundationGripper = new FoundationGripMechanism(simplerHardwareMap);
 
@@ -332,227 +332,227 @@ public class SkystoneAuto extends OpMode {
 
     protected void setupParkCommon(String stateName, final double strafeDistance, final double forwardDistance) {
         // Robot starts against wall, to left or right of tape line
-
-        State parkTrajectoryState = new TrajectoryFollowerState(stateName,
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-                if (forwardDistance > 0){
-                    trajectoryBuilder.forward(forwardDistance);
-                }
-
-                if (strafeDistance < 0) {
-                    trajectoryBuilder.strafeLeft(Math.abs(strafeDistance));
-                } else {
-                    trajectoryBuilder.strafeRight(Math.abs(strafeDistance));
-                }
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-        stateMachine.addSequential(parkTrajectoryState);
-        stateMachine.addSequential(newDoneState("Done!"));
+//
+//        State parkTrajectoryState = new TrajectoryFollowerState(stateName,
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected Trajectory createTrajectory() {
+//                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+//
+//                if (forwardDistance > 0){
+//                    trajectoryBuilder.forward(forwardDistance);
+//                }
+//
+//                if (strafeDistance < 0) {
+//                    trajectoryBuilder.strafeLeft(Math.abs(strafeDistance));
+//                } else {
+//                    trajectoryBuilder.strafeRight(Math.abs(strafeDistance));
+//                }
+//
+//                return trajectoryBuilder.build();
+//            }
+//        };
+//
+//        stateMachine.addSequential(parkTrajectoryState);
+//        stateMachine.addSequential(newDoneState("Done!"));
     }
 
     protected void setupDeliverSkytone() {
         // Robot starts against wall, depot side of tape line
 
         //1. Find the skystone
+//
+//
+//        State detectionState = new SkystoneDetectionState(pipelineAndCamera,
+//                detector, telemetry, ticker);
+//
+//        //2. Drive straight to the quarry (-3 inches)
+//
+//        State toQuarryState = createForwardTrajectory("To quarry", 27);
+//
+//        //3. strafe to the skystone (centered)
+//
+//        State toSkystoneState = new TrajectoryFollowerState("To skystone",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected Trajectory createTrajectory() {
+//                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+//                // [ inner ][ middle ][ outer ]
+//                // fixMe left vs. right is alliance specific, below is red alliance, blue is flip-flopped
+//
+//                String whichSkystone = detector.getBestScoringZone().getZoneName();
+//
+//                switch (whichSkystone) {
+//                    case TntSkystoneDetector.INNER_ZONE_NAME:
+//                        if(currentAlliance == Constants.Alliance.RED){
+//                            trajectoryBuilder.strafeLeft(20);
+//                        } else {
+//                            trajectoryBuilder.strafeLeft(22);
+//                        }
+//                        break;
+//                    case TntSkystoneDetector.MIDDLE_ZONE_NAME:
+//                        if(currentAlliance == Constants.Alliance.RED){
+//                            trajectoryBuilder.strafeLeft(10);
+//                        } else {
+//                            trajectoryBuilder.strafeLeft(12);
+//                        }
+//                        break;
+//                    case TntSkystoneDetector.OUTER_ZONE_NAME:
+//                        if(currentAlliance == Constants.Alliance.RED){
+//                            trajectoryBuilder.strafeLeft(1);
+//                        } else {
+//                            trajectoryBuilder.strafeLeft(2);
+//                        }
+//                        break;
+//                }
+//
+//                return trajectoryBuilder.build();
+//            }
+//        };
+//
+//        State servoToGrabState = new RunnableState("grab the skystone", telemetry,
+//                new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        skystoneGrabber.grab();
+//                    }
+//                });
+//
+//        // For red alliance
+//        Turn turn = new Turn(Rotation.CW, 75);
+//
+//        if (currentAlliance == Constants.Alliance.BLUE) {
+//            turn = turn.invert();
+//        }
+//
+//        // Turn 90 degrees clockwise
+//        State turnToStone = new TurnState("turnToStone",
+//                telemetry, turn, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000));
+//
+//
+//        //6. move forward (how far/)
+//        State gobbleGobble = createForwardTrajectory("Yum", 4 + 1);
+//
+//        //7. count for score (entire robot must cross line)
+//
+//        // 7a. Go backwards 7-10
+//
+//        State byeBye = createBackwardsTrajectory("bye bye", 10 + 1);
+//
+//
+//        // 7b turn 90 degrees, clockwise for red, ccw for blue
+//        // 7c. Go straight ????
+//
+//        State toDeliver = new TrajectoryFollowerState("To Deliver ",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected Trajectory createTrajectory() {
+//                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+//                // [ 1 ][ 2 ][ 3 ]
+//
+//                // fixMe distance need to be shorter for blue alliance
+//                // fixMe left vs. right is allince specific, below is red alliance, blue is flip-flopped
+//                String whichSkystone = detector.getBestScoringZone().getZoneName();
+//
+//                switch (whichSkystone) {
+//                    case TntSkystoneDetector.INNER_ZONE_NAME:
+//                        if(currentAlliance == Constants.Alliance.RED){
+//                            trajectoryBuilder.forward(72 - 5);
+//                        } else {
+//                            trajectoryBuilder.forward(56 - 17);
+//                        }
+//                        break;
+//
+//                    case TntSkystoneDetector.MIDDLE_ZONE_NAME:
+//                        if(currentAlliance == Constants.Alliance.RED) {
+//                            trajectoryBuilder.forward(64 - 5);
+//                        } else {
+//                            trajectoryBuilder.forward(64 - 17);
+//                        }
+//
+//                        break;
+//
+//                    case TntSkystoneDetector.OUTER_ZONE_NAME:
+//                        if(currentAlliance == Constants.Alliance.RED){
+//                            trajectoryBuilder.forward(56 - 5);
+//                        } else {
+//                            trajectoryBuilder.forward(72 - 17);
+//                        }
+//                        break;
+//                }
+//
+//                return trajectoryBuilder.build();
+//            }
+//        };
+//
+//
+//        State servoToNotGrabState =new RunnableState("un-grab the skystone", telemetry,
+//                new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        skystoneGrabber.stow();
+//                    }
+//                });
+//
+//
+//        State getCentered = new TrajectoryFollowerState("get centered to park ",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected Trajectory createTrajectory() {
+//                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+//
+//                if(currentAlliance == Constants.Alliance.RED){
+//                    trajectoryBuilder.strafeLeft(3);
+//                } else {
+//                    trajectoryBuilder.strafeRight(3);
+//                }
+//
+//                return trajectoryBuilder.build();
+//            }
+//        };
+//
+//        State backupToParkState = createBackwardsTrajectory("parking", 20);
+//
+//        State strafeToPark = new TrajectoryFollowerState("strafe parking ",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected Trajectory createTrajectory() {
+//                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+//
+//                if(currentAlliance == Constants.Alliance.RED){
+//                    trajectoryBuilder.strafeLeft(6);
+//                } else {
+//                    trajectoryBuilder.strafeRight(6);
+//                }
+//
+//                return trajectoryBuilder.build();
+//            }
+//        };
 
-
-        State detectionState = new SkystoneDetectionState(pipelineAndCamera,
-                detector, telemetry, ticker);
-
-        //2. Drive straight to the quarry (-3 inches)
-
-        State toQuarryState = createForwardTrajectory("To quarry", 27);
-
-        //3. strafe to the skystone (centered)
-
-        State toSkystoneState = new TrajectoryFollowerState("To skystone",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-                // [ inner ][ middle ][ outer ]
-                // fixMe left vs. right is alliance specific, below is red alliance, blue is flip-flopped
-
-                String whichSkystone = detector.getBestScoringZone().getZoneName();
-
-                switch (whichSkystone) {
-                    case TntSkystoneDetector.INNER_ZONE_NAME:
-                        if(currentAlliance == Constants.Alliance.RED){
-                            trajectoryBuilder.strafeLeft(20);
-                        } else {
-                            trajectoryBuilder.strafeLeft(22);
-                        }
-                        break;
-                    case TntSkystoneDetector.MIDDLE_ZONE_NAME:
-                        if(currentAlliance == Constants.Alliance.RED){
-                            trajectoryBuilder.strafeLeft(10);
-                        } else {
-                            trajectoryBuilder.strafeLeft(12);
-                        }
-                        break;
-                    case TntSkystoneDetector.OUTER_ZONE_NAME:
-                        if(currentAlliance == Constants.Alliance.RED){
-                            trajectoryBuilder.strafeLeft(1);
-                        } else {
-                            trajectoryBuilder.strafeLeft(2);
-                        }
-                        break;
-                }
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-        State servoToGrabState = new RunnableState("grab the skystone", telemetry,
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        skystoneGrabber.grab();
-                    }
-                });
-
-        // For red alliance
-        Turn turn = new Turn(Rotation.CW, 75);
-
-        if (currentAlliance == Constants.Alliance.BLUE) {
-            turn = turn.invert();
-        }
-
-        // Turn 90 degrees clockwise
-        State turnToStone = new TurnState("turnToStone",
-                telemetry, turn, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000));
-
-
-        //6. move forward (how far/)
-        State gobbleGobble = createForwardTrajectory("Yum", 4 + 1);
-
-        //7. count for score (entire robot must cross line)
-
-        // 7a. Go backwards 7-10
-
-        State byeBye = createBackwardsTrajectory("bye bye", 10 + 1);
-
-
-        // 7b turn 90 degrees, clockwise for red, ccw for blue
-        // 7c. Go straight ????
-
-        State toDeliver = new TrajectoryFollowerState("To Deliver ",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-                // [ 1 ][ 2 ][ 3 ]
-
-                // fixMe distance need to be shorter for blue alliance
-                // fixMe left vs. right is allince specific, below is red alliance, blue is flip-flopped
-                String whichSkystone = detector.getBestScoringZone().getZoneName();
-
-                switch (whichSkystone) {
-                    case TntSkystoneDetector.INNER_ZONE_NAME:
-                        if(currentAlliance == Constants.Alliance.RED){
-                            trajectoryBuilder.forward(72 - 5);
-                        } else {
-                            trajectoryBuilder.forward(56 - 17);
-                        }
-                        break;
-
-                    case TntSkystoneDetector.MIDDLE_ZONE_NAME:
-                        if(currentAlliance == Constants.Alliance.RED) {
-                            trajectoryBuilder.forward(64 - 5);
-                        } else {
-                            trajectoryBuilder.forward(64 - 17);
-                        }
-
-                        break;
-
-                    case TntSkystoneDetector.OUTER_ZONE_NAME:
-                        if(currentAlliance == Constants.Alliance.RED){
-                            trajectoryBuilder.forward(56 - 5);
-                        } else {
-                            trajectoryBuilder.forward(72 - 17);
-                        }
-                        break;
-                }
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-
-        State servoToNotGrabState =new RunnableState("un-grab the skystone", telemetry,
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        skystoneGrabber.stow();
-                    }
-                });
-
-
-        State getCentered = new TrajectoryFollowerState("get centered to park ",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-                if(currentAlliance == Constants.Alliance.RED){
-                    trajectoryBuilder.strafeLeft(3);
-                } else {
-                    trajectoryBuilder.strafeRight(3);
-                }
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-        State backupToParkState = createBackwardsTrajectory("parking", 20);
-
-        State strafeToPark = new TrajectoryFollowerState("strafe parking ",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-                if(currentAlliance == Constants.Alliance.RED){
-                    trajectoryBuilder.strafeLeft(6);
-                } else {
-                    trajectoryBuilder.strafeRight(6);
-                }
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-        stateMachine.addSequential(detectionState);
-        stateMachine.addSequential(toQuarryState);
-        stateMachine.addSequential(toSkystoneState);
-        stateMachine.addSequential(gobbleGobble);
-        stateMachine.addSequential(servoToGrabState);
-        stateMachine.addSequential(newDelayState("waiting for servo", 1));
+//        stateMachine.addSequential(detectionState);
+//        stateMachine.addSequential(toQuarryState);
+//        stateMachine.addSequential(toSkystoneState);
+//        stateMachine.addSequential(gobbleGobble);
+//        stateMachine.addSequential(servoToGrabState);
+//        stateMachine.addSequential(newDelayState("waiting for servo", 1));
 
         //stateMachine.addSequential(startIntakeState);
 
-        stateMachine.addSequential(byeBye);
-        stateMachine.addSequential(turnToStone);
-        stateMachine.addSequential(toDeliver);
-        stateMachine.addSequential(servoToNotGrabState);
+//        stateMachine.addSequential(byeBye);
+//        stateMachine.addSequential(turnToStone);
+//        stateMachine.addSequential(toDeliver);
+//        stateMachine.addSequential(servoToNotGrabState);
 
         stateMachine.addSequential(newDelayState("waiting for servo again", 1));
 
-        if(currentAlliance == Constants.Alliance.BLUE) {
-            stateMachine.addSequential(getCentered);
-        }
-
-        stateMachine.addSequential(backupToParkState);
-        stateMachine.addSequential(strafeToPark);
-
-        stateMachine.addSequential(newDoneState("Done!"));
+//        if(currentAlliance == Constants.Alliance.BLUE) {
+//            stateMachine.addSequential(getCentered);
+//        }
+//
+//        stateMachine.addSequential(backupToParkState);
+//        stateMachine.addSequential(strafeToPark);
+//
+//        stateMachine.addSequential(newDoneState("Done!"));
     }
 
     protected void setupBetterDeliverSkystoneWallPath() {
@@ -564,297 +564,266 @@ public class SkystoneAuto extends OpMode {
     }
 
     protected void setupBeterDeliverSkystone(double deltaStart, double deltaRowBack){
-
-        final double distanceDifferenceForward;
-
-
-        final double distanceDeltaStart = deltaStart;
-        final double distanceDeltaRowBack = deltaRowBack;
-
-        //1. Find the skystone
-        State detectionState = new SkystoneDetectionState(pipelineAndCamera,
-                detector, telemetry, ticker);
-
-        //2. Drive straight to the quarry (-3 inches)
-        State toQuarryState = createForwardTrajectory("To quarry", 27);
-
-        //3. Calculate difference from median distances
-        String whichSkystone = detector.getBestScoringZone().getZoneName();
-
-        //4. Strafe to the skystone
-        State toSkystoneState = new TrajectoryFollowerState("To skystone",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                final double distanceDifferenceStrafe;
-
-                //3. Calculate difference from median distances
-                String whichSkystone = getSkystoneZone();
-
-                switch (whichSkystone) {
-                    case TntSkystoneDetector.INNER_ZONE_NAME:
-                        if (currentAlliance == Constants.Alliance.RED) {
-                            distanceDifferenceStrafe = 19;
-                        } else {
-                            distanceDifferenceStrafe = 20;
-                        }
-                        break;
-
-                    case TntSkystoneDetector.MIDDLE_ZONE_NAME:
-                        if (currentAlliance == Constants.Alliance.RED) {
-                            distanceDifferenceStrafe = 9;
-                        } else {
-                            distanceDifferenceStrafe = 10;
-                        }
-
-                        break;
-
-                    case TntSkystoneDetector.OUTER_ZONE_NAME:
-                        if (currentAlliance == Constants.Alliance.RED) {
-                            distanceDifferenceStrafe = 0;
-                        } else {
-                            distanceDifferenceStrafe = 0;
-                        }
-                        break;
-
-                    default:
-
-                        if (currentAlliance == Constants.Alliance.RED) {
-                            distanceDifferenceStrafe = 9;
-                        } else {
-                            distanceDifferenceStrafe = 10;
-                        }
-                }
-
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-                if(currentAlliance == Constants.Alliance.RED){
-                    trajectoryBuilder.strafeLeft(1 + distanceDifferenceStrafe);
-                } else {
-                    trajectoryBuilder.strafeLeft(2 + distanceDifferenceStrafe);
-                }
-                return trajectoryBuilder.build();
-            }
-
-        };
-
-        State servoToGrabState = new RunnableState("grab the skystone", telemetry,
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        skystoneGrabber.grab();
-                    }
-                });
-
-        // For red alliance
-        Turn turn = new Turn(Rotation.CW, 75);
-
-        if (currentAlliance == Constants.Alliance.BLUE) {
-            turn = turn.invert();
-        }
-
-        // Turn 90 degrees clockwise
-        State turnToStone = new TurnState("turnToStone",
-                telemetry, turn, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000));
-
-
-        //6. move forward (how far/)
-        State gobbleGobble = createForwardTrajectory("Yum", 4 + 1);
-
-        //7. count for score (entire robot must cross line)
-
-        // 7a. Go backwards 7-10
-
-        State byeBye = createBackwardsTrajectory("bye bye", 10 + 1 +
-                distanceDeltaRowBack);
-
-
-        // 7b turn 90 degrees, clockwise for red, ccw for blue
-        // 7c. Go straight ????
-
-        State toDeliver = new TrajectoryFollowerState("To Deliver ",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                //3. Calculate difference from median distances
-                String whichSkystone = getSkystoneZone();
-
-                final double distanceDifferenceForward;
-
-                switch (whichSkystone) {
-                    case TntSkystoneDetector.INNER_ZONE_NAME:
-                        if (currentAlliance == Constants.Alliance.RED) {
-                            distanceDifferenceForward = 8;
-                        } else {
-                            distanceDifferenceForward = -8;
-                        }
-                        break;
-
-                    case TntSkystoneDetector.MIDDLE_ZONE_NAME:
-                        if (currentAlliance == Constants.Alliance.RED) {
-                            distanceDifferenceForward = 0;
-                        } else {
-                            distanceDifferenceForward = 0;
-                        }
-
-                        break;
-
-                    case TntSkystoneDetector.OUTER_ZONE_NAME:
-                        if (currentAlliance == Constants.Alliance.RED) {
-                            distanceDifferenceForward = -8;
-                        } else {
-                            distanceDifferenceForward = 8;
-                        }
-                        break;
-
-                    default:
-
-                        if (currentAlliance == Constants.Alliance.RED) {
-                            distanceDifferenceForward = 0;
-                        } else {
-                            distanceDifferenceForward = 0;
-                        }
-                }
-
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-                    if(currentAlliance == Constants.Alliance.RED) {
-                        trajectoryBuilder.forward(64 - 5 + distanceDifferenceForward +
-                                distanceDeltaStart);
-                    } else {
-                        trajectoryBuilder.forward(64 - 17 + distanceDifferenceForward +
-                                distanceDeltaStart);
-                    }
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-
-        State servoToNotGrabState =new RunnableState("un-grab the skystone", telemetry,
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        skystoneGrabber.stow();
-                    }
-                });
-
-
-        final boolean onWall = deltaRowBack > 0;
-
-        State getCentered = new TrajectoryFollowerState("get centered to park ",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-                if(currentAlliance == Constants.Alliance.RED){
-                    if (onWall) {
-                        trajectoryBuilder.strafeRight(3);
-                    }else{
-                        trajectoryBuilder.strafeLeft(3);
-                    }
-                } else {
-                    if (onWall) {
-                        trajectoryBuilder.strafeLeft(3);
-                    }else{
-                        trajectoryBuilder.strafeRight(3);
-                    }
-
-                }
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-        State backupToParkState = createBackwardsTrajectory("parking", 20);
-
-        State strafeToPark = new TrajectoryFollowerState("strafe parking ",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-                if(currentAlliance == Constants.Alliance.RED){
-                    if (onWall) {
-                        trajectoryBuilder.strafeRight(6);
-                    }else{
-                        trajectoryBuilder.strafeLeft(6);
-                    }
-                } else {
-                    if (onWall) {
-                        trajectoryBuilder.strafeLeft(6);
-                    }else{
-                        trajectoryBuilder.strafeRight(6);
-                    }
-                }
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-        stateMachine.addSequential(detectionState);
-        stateMachine.addSequential(toQuarryState);
-        stateMachine.addSequential(toSkystoneState);
-        stateMachine.addSequential(gobbleGobble);
-        stateMachine.addSequential(servoToGrabState);
-
+//
+//        final double distanceDifferenceForward;
+//
+//
+//        final double distanceDeltaStart = deltaStart;
+//        final double distanceDeltaRowBack = deltaRowBack;
+//
+//        //1. Find the skystone
+//        State detectionState = new SkystoneDetectionState(pipelineAndCamera,
+//                detector, telemetry, ticker);
+//
+//        //2. Drive straight to the quarry (-3 inches)
+//        State toQuarryState = createForwardTrajectory("To quarry", 27);
+//
+//        //3. Calculate difference from median distances
+//        String whichSkystone = detector.getBestScoringZone().getZoneName();
+//
+//        //4. Strafe to the skystone
+//        State toSkystoneState = new TrajectoryFollowerState("To skystone",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected Trajectory createTrajectory() {
+//                final double distanceDifferenceStrafe;
+//
+//                //3. Calculate difference from median distances
+//                String whichSkystone = getSkystoneZone();
+//
+//                switch (whichSkystone) {
+//                    case TntSkystoneDetector.INNER_ZONE_NAME:
+//                        if (currentAlliance == Constants.Alliance.RED) {
+//                            distanceDifferenceStrafe = 19;
+//                        } else {
+//                            distanceDifferenceStrafe = 20;
+//                        }
+//                        break;
+//
+//                    case TntSkystoneDetector.MIDDLE_ZONE_NAME:
+//                        if (currentAlliance == Constants.Alliance.RED) {
+//                            distanceDifferenceStrafe = 9;
+//                        } else {
+//                            distanceDifferenceStrafe = 10;
+//                        }
+//
+//                        break;
+//
+//                    case TntSkystoneDetector.OUTER_ZONE_NAME:
+//                        if (currentAlliance == Constants.Alliance.RED) {
+//                            distanceDifferenceStrafe = 0;
+//                        } else {
+//                            distanceDifferenceStrafe = 0;
+//                        }
+//                        break;
+//
+//                    default:
+//
+//                        if (currentAlliance == Constants.Alliance.RED) {
+//                            distanceDifferenceStrafe = 9;
+//                        } else {
+//                            distanceDifferenceStrafe = 10;
+//                        }
+//                }
+//
+//                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+//
+//                if(currentAlliance == Constants.Alliance.RED){
+//                    trajectoryBuilder.strafeLeft(1 + distanceDifferenceStrafe);
+//                } else {
+//                    trajectoryBuilder.strafeLeft(2 + distanceDifferenceStrafe);
+//                }
+//                return trajectoryBuilder.build();
+//            }
+//
+//        };
+//
+//        State servoToGrabState = new RunnableState("grab the skystone", telemetry,
+//                new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        skystoneGrabber.grab();
+//                    }
+//                });
+//
+//        // For red alliance
+//        Turn turn = new Turn(Rotation.CW, 75);
+//
+//        if (currentAlliance == Constants.Alliance.BLUE) {
+//            turn = turn.invert();
+//        }
+//
+//        // Turn 90 degrees clockwise
+//        State turnToStone = new TurnState("turnToStone",
+//                telemetry, turn, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000));
+//
+//
+//        //6. move forward (how far/)
+//        State gobbleGobble = createForwardTrajectory("Yum", 4 + 1);
+//
+//        //7. count for score (entire robot must cross line)
+//
+//        // 7a. Go backwards 7-10
+//
+//        State byeBye = createBackwardsTrajectory("bye bye", 10 + 1 +
+//                distanceDeltaRowBack);
+//
+//
+//        // 7b turn 90 degrees, clockwise for red, ccw for blue
+//        // 7c. Go straight ????
+//
+//        State toDeliver = new TrajectoryFollowerState("To Deliver ",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected Trajectory createTrajectory() {
+//                //3. Calculate difference from median distances
+//                String whichSkystone = getSkystoneZone();
+//
+//                final double distanceDifferenceForward;
+//
+//                switch (whichSkystone) {
+//                    case TntSkystoneDetector.INNER_ZONE_NAME:
+//                        if (currentAlliance == Constants.Alliance.RED) {
+//                            distanceDifferenceForward = 8;
+//                        } else {
+//                            distanceDifferenceForward = -8;
+//                        }
+//                        break;
+//
+//                    case TntSkystoneDetector.MIDDLE_ZONE_NAME:
+//                        if (currentAlliance == Constants.Alliance.RED) {
+//                            distanceDifferenceForward = 0;
+//                        } else {
+//                            distanceDifferenceForward = 0;
+//                        }
+//
+//                        break;
+//
+//                    case TntSkystoneDetector.OUTER_ZONE_NAME:
+//                        if (currentAlliance == Constants.Alliance.RED) {
+//                            distanceDifferenceForward = -8;
+//                        } else {
+//                            distanceDifferenceForward = 8;
+//                        }
+//                        break;
+//
+//                    default:
+//
+//                        if (currentAlliance == Constants.Alliance.RED) {
+//                            distanceDifferenceForward = 0;
+//                        } else {
+//                            distanceDifferenceForward = 0;
+//                        }
+//                }
+//
+//                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+//                    if(currentAlliance == Constants.Alliance.RED) {
+//                        trajectoryBuilder.forward(64 - 5 + distanceDifferenceForward +
+//                                distanceDeltaStart);
+//                    } else {
+//                        trajectoryBuilder.forward(64 - 17 + distanceDifferenceForward +
+//                                distanceDeltaStart);
+//                    }
+//
+//                return trajectoryBuilder.build();
+//            }
+//        };
+//
+//
+//        State servoToNotGrabState =new RunnableState("un-grab the skystone", telemetry,
+//                new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        skystoneGrabber.stow();
+//                    }
+//                });
+//
+//
+//        final boolean onWall = deltaRowBack > 0;
+//
+//        State getCentered = new TrajectoryFollowerState("get centered to park ",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected Trajectory createTrajectory() {
+//                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+//
+//                if(currentAlliance == Constants.Alliance.RED){
+//                    if (onWall) {
+//                        trajectoryBuilder.strafeRight(3);
+//                    }else{
+//                        trajectoryBuilder.strafeLeft(3);
+//                    }
+//                } else {
+//                    if (onWall) {
+//                        trajectoryBuilder.strafeLeft(3);
+//                    }else{
+//                        trajectoryBuilder.strafeRight(3);
+//                    }
+//
+//                }
+//
+//                return trajectoryBuilder.build();
+//            }
+//        };
+//
+//        State backupToParkState = createBackwardsTrajectory("parking", 20);
+//
+//        State strafeToPark = new TrajectoryFollowerState("strafe parking ",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected Trajectory createTrajectory() {
+//                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+//
+//                if(currentAlliance == Constants.Alliance.RED){
+//                    if (onWall) {
+//                        trajectoryBuilder.strafeRight(6);
+//                    }else{
+//                        trajectoryBuilder.strafeLeft(6);
+//                    }
+//                } else {
+//                    if (onWall) {
+//                        trajectoryBuilder.strafeLeft(6);
+//                    }else{
+//                        trajectoryBuilder.strafeRight(6);
+//                    }
+//                }
+//
+//                return trajectoryBuilder.build();
+//            }
+//        };
+//
+//        stateMachine.addSequential(detectionState);
+//        stateMachine.addSequential(toQuarryState);
+//        stateMachine.addSequential(toSkystoneState);
+//        stateMachine.addSequential(gobbleGobble);
+//        stateMachine.addSequential(servoToGrabState);
+//
         /*public StopwatchDelayState(@NonNull String name,
                                @NonNull Telemetry telemetry,
                                @NonNull Ticker ticker,
                                long val,
                                @NonNull TimeUnit unit)*/
 
-
-        stateMachine.addSequential(new StopwatchDelayState("waiting for servo", telemetry,
-                ticker, 1500, TimeUnit.MILLISECONDS));
-
-        stateMachine.addSequential(byeBye);
-        stateMachine.addSequential(turnToStone);
-        stateMachine.addSequential(toDeliver);
-        stateMachine.addSequential(servoToNotGrabState);
-
-        stateMachine.addSequential(newDelayState("waiting for servo again", 1));
-
-        if(currentAlliance == Constants.Alliance.BLUE) {
-            stateMachine.addSequential(getCentered);
-        }
-
-        stateMachine.addSequential(backupToParkState);
-        stateMachine.addSequential(strafeToPark);
-
-        stateMachine.addSequential(newDoneState("Done!"));
-
-    }
-
-    @NotNull
-    private TrajectoryFollowerState createForwardTrajectory(final String name,
-                                                            final double inchesForward) {
-        return new TrajectoryFollowerState(name,
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-                trajectoryBuilder.forward(inchesForward);
-
-                return trajectoryBuilder.build();
-            }
-        };
-    }
-
-    private TrajectoryFollowerState createBackwardsTrajectory(final String name,
-                                                            final double inchesBackwards) {
-        return new TrajectoryFollowerState(name,
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-                trajectoryBuilder.back(inchesBackwards);
-
-                return trajectoryBuilder.build();
-            }
-        };
+//
+//        stateMachine.addSequential(new StopwatchDelayState("waiting for servo", telemetry,
+//                ticker, 1500, TimeUnit.MILLISECONDS));
+//
+//        stateMachine.addSequential(byeBye);
+//        stateMachine.addSequential(turnToStone);
+//        stateMachine.addSequential(toDeliver);
+//        stateMachine.addSequential(servoToNotGrabState);
+//
+//        stateMachine.addSequential(newDelayState("waiting for servo again", 1));
+//
+//        if(currentAlliance == Constants.Alliance.BLUE) {
+//            stateMachine.addSequential(getCentered);
+//        }
+//
+//        stateMachine.addSequential(backupToParkState);
+//        stateMachine.addSequential(strafeToPark);
+//
+//        stateMachine.addSequential(newDoneState("Done!"));
+//
     }
 
     protected void setupMoveFoundation(@NonNull ParkOrLane whereToPark) {
@@ -864,201 +833,201 @@ public class SkystoneAuto extends OpMode {
         // Does alliance color change which way we turn in any of these steps?
         // YASSSS!
 
-        State splineTrajectoryState = new TrajectoryFollowerState("Spline",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                BaseTrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder().back(4);
-
-                //if (currentAlliance == Constants.Alliance.RED) {
-                //    trajectoryBuilder.strafeLeft(11.5);
-                //} else {
-                //    trajectoryBuilder.strafeRight(11.5);
-                //}
-
-                trajectoryBuilder.back(27);
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-        // GRIP!
-        State gripState = new RunnableState("grip", telemetry, new Runnable() {
-            @Override
-            public void run() {
-                foundationGripper.down();
-            }
-        });
-
-        // Pull back a bit
-        State pullBackState = new TrajectoryFollowerState("Pull",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                BaseTrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder().forward(12);
-                if(currentAlliance == Constants.Alliance.BLUE)
-                {
-                    trajectoryBuilder.strafeLeft(20);
-                }else{
-                    trajectoryBuilder.strafeRight(20);
-                }
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-        // For red alliance
-        Turn turn = new Turn(Rotation.CW, 90);
-
-        if (currentAlliance == Constants.Alliance.BLUE) {
-            turn = turn.invert();
-        }
-
-        // Turn 90 degrees clockwise
-        State turnWithBase = new TurnState("Turn with base",
-                telemetry, turn, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000));
-
-        // Forward 5-6"
-
-        State pushToWallTrajectoryState = new TrajectoryFollowerState("Push to wall",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(5 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                if (currentAlliance == Constants.Alliance.RED) {
-                    return driveBase.trajectoryBuilder().back(18)
-                            .build();
-                } else {
-                    return driveBase.trajectoryBuilder().back(24)
-                            .build();
-                }
-            }
-        };
-
-        // UNGRIP
-
-        State ungripState = new RunnableState("ungrip", telemetry, new Runnable() {
-            @Override
-            public void run() {
-                foundationGripper.up();
-            }
-        });
-
-        State getClearState = new TrajectoryFollowerState("get clear",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(5 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                return driveBase.trajectoryBuilder().forward(10)
-                        .build();
-            }
-        };
-
-        final State strafeToParkState;
-
-        if (whereToPark == ParkOrLane.NEUTRAL_SKYBRIDGE) {
-            // strafe  3-4
-            strafeToParkState = new TrajectoryFollowerState("StrafeToPark",
-                    telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-                @Override
-                protected Trajectory createTrajectory() {
-                    BaseTrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-                    if (currentAlliance == Constants.Alliance.RED) {
-                        trajectoryBuilder.strafeRight(6);
-                    } else {
-                        trajectoryBuilder.strafeLeft(6);
-                    }
-
-                    return trajectoryBuilder.build();
-                }
-            };
-        } else {
-            strafeToParkState = new TrajectoryFollowerState("StrafeToPark",
-                    telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-                @Override
-                protected Trajectory createTrajectory() {
-                    BaseTrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-                    if (currentAlliance == Constants.Alliance.RED) {
-                        trajectoryBuilder.strafeLeft(18);
-                    } else {
-                        trajectoryBuilder.strafeRight(21);
-                    }
-
-                    return trajectoryBuilder.build();
-                }
-            };
-
-        }
-
-        State backToParkState = new TrajectoryFollowerState("back to park",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                BaseTrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder().forward(33);
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-        final State snugUpState;
-
-        if (whereToPark == ParkOrLane.NEUTRAL_SKYBRIDGE) {
-            snugUpState = new TrajectoryFollowerState("snug up bridge",
-                    telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-                @Override
-                protected Trajectory createTrajectory() {
-                    BaseTrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-                    if (currentAlliance == Constants.Alliance.RED) {
-                        trajectoryBuilder.strafeRight(6);
-                    } else {
-                        trajectoryBuilder.strafeLeft(6);
-                    }
-
-                    return trajectoryBuilder.build();
-                }
-            };
-        } else {
-            snugUpState = new TrajectoryFollowerState("snug up wall",
-                    telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-                @Override
-                protected Trajectory createTrajectory() {
-                    BaseTrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-                    if (currentAlliance == Constants.Alliance.RED) {
-                        trajectoryBuilder.strafeLeft(6);
-                    } else {
-                        trajectoryBuilder.strafeRight(6);
-                    }
-
-                    return trajectoryBuilder.build();
-                }
-            };
-
-        }
-
-        // Win!
-
-        stateMachine.addSequential(splineTrajectoryState);
-        stateMachine.addSequential(gripState);
-        stateMachine.addSequential(newDelayState("wait for grip", 1));
-        stateMachine.addSequential(pullBackState);
-        stateMachine.addSequential(turnWithBase);
-        stateMachine.addSequential(pushToWallTrajectoryState);
-        stateMachine.addSequential(ungripState);
-        stateMachine.addSequential(newDelayState("wait for un-grip", 1));
-        stateMachine.addSequential(getClearState);
-        stateMachine.addSequential(strafeToParkState);
-        stateMachine.addSequential(backToParkState);
-        stateMachine.addSequential(snugUpState);
-
-        stateMachine.addSequential(newDoneState("Done!"));
+//        State splineTrajectoryState = new TrajectoryFollowerState("Spline",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected Trajectory createTrajectory() {
+//                BaseTrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder().back(4);
+//
+//                //if (currentAlliance == Constants.Alliance.RED) {
+//                //    trajectoryBuilder.strafeLeft(11.5);
+//                //} else {
+//                //    trajectoryBuilder.strafeRight(11.5);
+//                //}
+//
+//                trajectoryBuilder.back(27);
+//
+//                return trajectoryBuilder.build();
+//            }
+//        };
+//
+//        // GRIP!
+//        State gripState = new RunnableState("grip", telemetry, new Runnable() {
+//            @Override
+//            public void run() {
+//                foundationGripper.down();
+//            }
+//        });
+//
+//        // Pull back a bit
+//        State pullBackState = new TrajectoryFollowerState("Pull",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected Trajectory createTrajectory() {
+//                BaseTrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder().forward(12);
+//                if(currentAlliance == Constants.Alliance.BLUE)
+//                {
+//                    trajectoryBuilder.strafeLeft(20);
+//                }else{
+//                    trajectoryBuilder.strafeRight(20);
+//                }
+//
+//                return trajectoryBuilder.build();
+//            }
+//        };
+//
+//        // For red alliance
+//        Turn turn = new Turn(Rotation.CW, 90);
+//
+//        if (currentAlliance == Constants.Alliance.BLUE) {
+//            turn = turn.invert();
+//        }
+//
+//        // Turn 90 degrees clockwise
+//        State turnWithBase = new TurnState("Turn with base",
+//                telemetry, turn, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000));
+//
+//        // Forward 5-6"
+//
+//        State pushToWallTrajectoryState = new TrajectoryFollowerState("Push to wall",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(5 * 1000)) {
+//            @Override
+//            protected Trajectory createTrajectory() {
+//                if (currentAlliance == Constants.Alliance.RED) {
+//                    return driveBase.trajectoryBuilder().back(18)
+//                            .build();
+//                } else {
+//                    return driveBase.trajectoryBuilder().back(24)
+//                            .build();
+//                }
+//            }
+//        };
+//
+//        // UNGRIP
+//
+//        State ungripState = new RunnableState("ungrip", telemetry, new Runnable() {
+//            @Override
+//            public void run() {
+//                foundationGripper.up();
+//            }
+//        });
+//
+//        State getClearState = new TrajectoryFollowerState("get clear",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(5 * 1000)) {
+//            @Override
+//            protected Trajectory createTrajectory() {
+//                return driveBase.trajectoryBuilder().forward(10)
+//                        .build();
+//            }
+//        };
+//
+//        final State strafeToParkState;
+//
+//        if (whereToPark == ParkOrLane.NEUTRAL_SKYBRIDGE) {
+//            // strafe  3-4
+//            strafeToParkState = new TrajectoryFollowerState("StrafeToPark",
+//                    telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//                @Override
+//                protected Trajectory createTrajectory() {
+//                    BaseTrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+//
+//                    if (currentAlliance == Constants.Alliance.RED) {
+//                        trajectoryBuilder.strafeRight(6);
+//                    } else {
+//                        trajectoryBuilder.strafeLeft(6);
+//                    }
+//
+//                    return trajectoryBuilder.build();
+//                }
+//            };
+//        } else {
+//            strafeToParkState = new TrajectoryFollowerState("StrafeToPark",
+//                    telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//                @Override
+//                protected Trajectory createTrajectory() {
+//                    BaseTrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+//
+//                    if (currentAlliance == Constants.Alliance.RED) {
+//                        trajectoryBuilder.strafeLeft(18);
+//                    } else {
+//                        trajectoryBuilder.strafeRight(21);
+//                    }
+//
+//                    return trajectoryBuilder.build();
+//                }
+//            };
+//
+//        }
+//
+//        State backToParkState = new TrajectoryFollowerState("back to park",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected Trajectory createTrajectory() {
+//                BaseTrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder().forward(33);
+//
+//                return trajectoryBuilder.build();
+//            }
+//        };
+//
+//        final State snugUpState;
+//
+//        if (whereToPark == ParkOrLane.NEUTRAL_SKYBRIDGE) {
+//            snugUpState = new TrajectoryFollowerState("snug up bridge",
+//                    telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//                @Override
+//                protected Trajectory createTrajectory() {
+//                    BaseTrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+//
+//                    if (currentAlliance == Constants.Alliance.RED) {
+//                        trajectoryBuilder.strafeRight(6);
+//                    } else {
+//                        trajectoryBuilder.strafeLeft(6);
+//                    }
+//
+//                    return trajectoryBuilder.build();
+//                }
+//            };
+//        } else {
+//            snugUpState = new TrajectoryFollowerState("snug up wall",
+//                    telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//                @Override
+//                protected Trajectory createTrajectory() {
+//                    BaseTrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+//
+//                    if (currentAlliance == Constants.Alliance.RED) {
+//                        trajectoryBuilder.strafeLeft(6);
+//                    } else {
+//                        trajectoryBuilder.strafeRight(6);
+//                    }
+//
+//                    return trajectoryBuilder.build();
+//                }
+//            };
+//
+//        }
+//
+//        // Win!
+//
+//        stateMachine.addSequential(splineTrajectoryState);
+//        stateMachine.addSequential(gripState);
+//        stateMachine.addSequential(newDelayState("wait for grip", 1));
+//        stateMachine.addSequential(pullBackState);
+//        stateMachine.addSequential(turnWithBase);
+//        stateMachine.addSequential(pushToWallTrajectoryState);
+//        stateMachine.addSequential(ungripState);
+//        stateMachine.addSequential(newDelayState("wait for un-grip", 1));
+//        stateMachine.addSequential(getClearState);
+//        stateMachine.addSequential(strafeToParkState);
+//        stateMachine.addSequential(backToParkState);
+//        stateMachine.addSequential(snugUpState);
+//
+//        stateMachine.addSequential(newDoneState("Done!"));
     }
-
-    /**
-     * Creates an instance of the "delay" state which waits the number of seconds before
-     * advancing to the next state
-     */
+//
+//    /**
+//     * Creates an instance of the "delay" state which waits the number of seconds before
+//     * advancing to the next state
+//     */
     protected State newDelayState() {
         return newDelayState("start delay", initialDelaySeconds);
     }
@@ -1167,7 +1136,7 @@ public class SkystoneAuto extends OpMode {
             @Override
             public State doStuffAndGetNextState() {
                 if (!issuedStop) {
-                    driveBase.setMotorPowers(0, 0, 0, 0);
+                    // driveBase.setMotorPowers(0, 0, 0, 0);
 
                     issuedStop = true;
                 }

@@ -29,8 +29,8 @@ import android.util.Size;
 
 import androidx.annotation.NonNull;
 
-import com.acmerobotics.roadrunner.control.PIDCoefficients;
-import com.acmerobotics.roadrunner.geometry.Pose2d;
+// import com.acmerobotics.roadrunner.control.PIDCoefficients;
+// import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.state.RunnableState;
 import com.ftc9929.corelib.state.SequenceOfStates;
@@ -42,11 +42,11 @@ import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
-import com.hfrobots.tnt.corelib.drive.Turn;
-import com.hfrobots.tnt.corelib.drive.mecanum.DriveConstants;
-import com.hfrobots.tnt.corelib.drive.mecanum.MultipleTrajectoriesFollowerState;
-import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
-import com.hfrobots.tnt.corelib.drive.mecanum.TurnState;
+// import com.hfrobots.tnt.corelib.drive.Turn;
+// import com.hfrobots.tnt.corelib.drive.mecanum.DriveConstants;
+// import com.hfrobots.tnt.corelib.drive.mecanum.MultipleTrajectoriesFollowerState;
+// import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
+// import com.hfrobots.tnt.corelib.drive.mecanum.TurnState;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -102,7 +102,7 @@ public class CenterstageAuto extends OpMode {
 
     private Ticker ticker;
 
-    private RoadRunnerMecanumDriveBase driveBase;
+    // private RoadRunnerMecanumDriveBase driveBase;
 
     private StateMachine stateMachine;
 
@@ -110,7 +110,7 @@ public class CenterstageAuto extends OpMode {
 
     private CenterstageDriverControls driverControls;
 
-    private DriveConstants driveConstants;
+    // private DriveConstants driveConstants;
 
     private VisionPortal visionPortal;
 
@@ -174,15 +174,15 @@ public class CenterstageAuto extends OpMode {
                 spikeStripDetector.useBluePipeline();
             }
 
-            driveConstants = new CenterstageDriveConstants();
+            // driveConstants = new CenterstageDriveConstants();
 
             IMU.Parameters imuParameters = new IMU.Parameters(
                     new RevHubOrientationOnRobot(
                             RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
                             RevHubOrientationOnRobot.UsbFacingDirection.DOWN));
 
-            driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
-                    driveConstants, Optional.of(imuParameters));
+            // driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
+            //        driveConstants, Optional.of(imuParameters));
 
             stateMachine = new StateMachine(telemetry);
         });
@@ -410,163 +410,163 @@ public class CenterstageAuto extends OpMode {
 
         final State detectState = createSpikeStripDetectorState();
 
-        final State moveRobotToSpikeStrips = new MultipleTrajectoriesFollowerState("Move robot",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected void createTrajectoryProviders() {
-                switch (detectedLocation) {
-                    case LOCATION_LEFT: {
-                        addTrajectoryProvider("Off wall", (t) -> t.back(29));
+//        final State moveRobotToSpikeStrips = new MultipleTrajectoriesFollowerState("Move robot",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected void createTrajectoryProviders() {
+//                switch (detectedLocation) {
+//                    case LOCATION_LEFT: {
+//                        addTrajectoryProvider("Off wall", (t) -> t.back(29));
+//
+//                        break;
+//                    }
+//                    case LOCATION_CENTER: {
+//                        // It's quicker to spline, but remember x is fwd/back, y is left/right
+//
+//                        final double yScale = 3;
+//                        double ySign = SPLINE_RIGHT_SIGN;
+//
+//                        if (isBackstage) {
+//                            if (currentAlliance == Constants.Alliance.RED) {
+//                                // RED -> Right (-y)
+//                                ySign = SPLINE_RIGHT_SIGN;
+//                            } else {
+//                                // BLUE -> LEFT (+y)
+//                                ySign = SPLINE_LEFT_SIGN;
+//                            }
+//                        } else {
+//                            if (currentAlliance == Constants.Alliance.RED) {
+//                                // RED -> Left (+y)
+//                                ySign = SPLINE_LEFT_SIGN;
+//                            } else {
+//                                // BLUE -> RIGHT (-y)
+//                                ySign = SPLINE_RIGHT_SIGN;
+//                            }
+//                        }
+//
+//                        final double yDelta = yScale * ySign;
+//
+//                        addTrajectoryProvider("Off wall", (t) -> t.splineToLinearHeading(new Pose2d(-27D, yDelta, 0),0));
+//
+//                        break;
+//                    }
+//                    case LOCATION_RIGHT: {
+//                        addTrajectoryProvider("Off wall", (t) -> t.back(30));
+//
+//                        break;
+//                    }
+//                }
+//            }
+//        };
+//
+//        final State turnRobot = new TurnState("Turn towards spike strip",
+//                telemetry,
+//                (Supplier<Turn>) () -> {
+//                    switch (detectedLocation) {
+//                        case LOCATION_LEFT: {
+//                            // this turn does not depend on starting location or alliance
+//                            return new Turn(Rotation.CCW, 90);
+//                        }
+//                        case LOCATION_CENTER: {
+//                            // We don't need to turn
+//                            return null;
+//                        }
+//                        case LOCATION_RIGHT: {
+//                            // this turn does not depend on starting location or alliance
+//                            return new Turn(Rotation.CW, 90);
+//                        }
+//                    }
+//
+//                    return null;
+//                }, driveBase,ticker,30_000);
+//
+//        final State moveRobotToBackstage = new MultipleTrajectoriesFollowerState("Move robot to backstage",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//
+//            @Override
+//            protected void createTrajectoryProviders() {
+//                driveBase.resetLocalizer();
+//
+//                switch (detectedLocation) {
+//                    case LOCATION_LEFT: {
+//
+//                        if (currentAlliance == Constants.Alliance.BLUE) {
+//                            // Needs a bit more tuning
+//                            // BLUE LEFT -> 20" left, 32" back (checked, but not tested)
+//                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeLeft(30 - 8));
+//                            addTrajectoryProvider("To backstage", (t) -> t.back(32 + 3));
+//                        } else {
+//                            // tested and ok
+//                            addTrajectoryProvider("Away from pixel", (t) -> t.forward(3));
+//                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeLeft(30 - 2));
+//                            addTrajectoryProvider("To backstage", (t) -> t.forward(32));
+//                        }
+//
+//                        break;
+//                    }
+//                    case LOCATION_CENTER: {
+//                        if (currentAlliance == Constants.Alliance.BLUE) {
+//                            // Tested, and ok
+//                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeRight(20));
+//                            addTrajectoryProvider("Align to backstage", (t) -> t.back(26 - 2.5));
+//                            addTrajectoryProvider("To backstage", (t) -> t.strafeRight(20));
+//                        } else {
+//                            // Tested, and ok
+//                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeLeft(20));
+//                            addTrajectoryProvider("Align to backstage", (t) -> t.back(26 - 2.5));
+//                            addTrajectoryProvider("To backstage", (t) -> t.strafeLeft(20));
+//                        }
+//
+//                        break;
+//                    }
+//                    case LOCATION_RIGHT: {
+//                        if (currentAlliance == Constants.Alliance.BLUE) {
+//                            // tested and ok
+//                            addTrajectoryProvider("Avoid rigging", (t) -> t.forward(3));
+//                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeRight(30));
+//                            addTrajectoryProvider("To backstage", (t) -> t.forward(32));
+//                        } else {
+//                            // tested and ok
+//                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeRight(20));
+//                            addTrajectoryProvider("To backstage", (t) -> t.back(32));
+//
+//                        }
+//
+//                        break;
+//                    }
+//                }
+//            }
+//        };
+//
+//        final SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
+//
+//        sequence.addSequential(detectState);
+//        sequence.addSequential(moveRobotToSpikeStrips);
+//        sequence.addSequential(turnRobot);
+//
+//        // Outtake the pixel
+//        sequence.addSequential(new RunnableState("start outtake", telemetry, () -> {
+//            if (intake != null) {
+//                intake.out(0.40);
+//            }
+//        }));
+//
+//        sequence.addSequential(newDelayState("Place pixel", 1, TimeUnit.SECONDS));
+//
+//        // Outtake the pixel
+//        sequence.addSequential(new RunnableState("stop outtake", telemetry, () -> {
+//            if (intake != null) {
+//                intake.stop();
+//            }
+//        }));
+//
+//        if (isBackstage && shouldPark) {
+//
+//            sequence.addSequential(moveRobotToBackstage);
+//        }
 
-                        break;
-                    }
-                    case LOCATION_CENTER: {
-                        // It's quicker to spline, but remember x is fwd/back, y is left/right
-
-                        final double yScale = 3;
-                        double ySign = SPLINE_RIGHT_SIGN;
-
-                        if (isBackstage) {
-                            if (currentAlliance == Constants.Alliance.RED) {
-                                // RED -> Right (-y)
-                                ySign = SPLINE_RIGHT_SIGN;
-                            } else {
-                                // BLUE -> LEFT (+y)
-                                ySign = SPLINE_LEFT_SIGN;
-                            }
-                        } else {
-                            if (currentAlliance == Constants.Alliance.RED) {
-                                // RED -> Left (+y)
-                                ySign = SPLINE_LEFT_SIGN;
-                            } else {
-                                // BLUE -> RIGHT (-y)
-                                ySign = SPLINE_RIGHT_SIGN;
-                            }
-                        }
-
-                        final double yDelta = yScale * ySign;
-
-                        addTrajectoryProvider("Off wall", (t) -> t.splineToLinearHeading(new Pose2d(-27D, yDelta, 0),0));
-
-                        break;
-                    }
-                    case LOCATION_RIGHT: {
-                        addTrajectoryProvider("Off wall", (t) -> t.back(30));
-
-                        break;
-                    }
-                }
-            }
-        };
-
-        final State turnRobot = new TurnState("Turn towards spike strip",
-                telemetry,
-                (Supplier<Turn>) () -> {
-                    switch (detectedLocation) {
-                        case LOCATION_LEFT: {
-                            // this turn does not depend on starting location or alliance
-                            return new Turn(Rotation.CCW, 90);
-                        }
-                        case LOCATION_CENTER: {
-                            // We don't need to turn
-                            return null;
-                        }
-                        case LOCATION_RIGHT: {
-                            // this turn does not depend on starting location or alliance
-                            return new Turn(Rotation.CW, 90);
-                        }
-                    }
-
-                    return null;
-                }, driveBase,ticker,30_000);
-
-        final State moveRobotToBackstage = new MultipleTrajectoriesFollowerState("Move robot to backstage",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-
-            @Override
-            protected void createTrajectoryProviders() {
-                driveBase.resetLocalizer();
-
-                switch (detectedLocation) {
-                    case LOCATION_LEFT: {
-
-                        if (currentAlliance == Constants.Alliance.BLUE) {
-                            // Needs a bit more tuning
-                            // BLUE LEFT -> 20" left, 32" back (checked, but not tested)
-                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeLeft(30 - 8));
-                            addTrajectoryProvider("To backstage", (t) -> t.back(32 + 3));
-                        } else {
-                            // tested and ok
-                            addTrajectoryProvider("Away from pixel", (t) -> t.forward(3));
-                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeLeft(30 - 2));
-                            addTrajectoryProvider("To backstage", (t) -> t.forward(32));
-                        }
-
-                        break;
-                    }
-                    case LOCATION_CENTER: {
-                        if (currentAlliance == Constants.Alliance.BLUE) {
-                            // Tested, and ok
-                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeRight(20));
-                            addTrajectoryProvider("Align to backstage", (t) -> t.back(26 - 2.5));
-                            addTrajectoryProvider("To backstage", (t) -> t.strafeRight(20));
-                        } else {
-                            // Tested, and ok
-                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeLeft(20));
-                            addTrajectoryProvider("Align to backstage", (t) -> t.back(26 - 2.5));
-                            addTrajectoryProvider("To backstage", (t) -> t.strafeLeft(20));
-                        }
-
-                        break;
-                    }
-                    case LOCATION_RIGHT: {
-                        if (currentAlliance == Constants.Alliance.BLUE) {
-                            // tested and ok
-                            addTrajectoryProvider("Avoid rigging", (t) -> t.forward(3));
-                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeRight(30));
-                            addTrajectoryProvider("To backstage", (t) -> t.forward(32));
-                        } else {
-                            // tested and ok
-                            addTrajectoryProvider("Away from spike strip", (t) -> t.strafeRight(20));
-                            addTrajectoryProvider("To backstage", (t) -> t.back(32));
-
-                        }
-
-                        break;
-                    }
-                }
-            }
-        };
-
-        final SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
-
-        sequence.addSequential(detectState);
-        sequence.addSequential(moveRobotToSpikeStrips);
-        sequence.addSequential(turnRobot);
-
-        // Outtake the pixel
-        sequence.addSequential(new RunnableState("start outtake", telemetry, () -> {
-            if (intake != null) {
-                intake.out(0.40);
-            }
-        }));
-
-        sequence.addSequential(newDelayState("Place pixel", 1, TimeUnit.SECONDS));
-
-        // Outtake the pixel
-        sequence.addSequential(new RunnableState("stop outtake", telemetry, () -> {
-            if (intake != null) {
-                intake.stop();
-            }
-        }));
-
-        if (isBackstage && shouldPark) {
-
-            sequence.addSequential(moveRobotToBackstage);
-        }
-
-        sequence.addSequential(newDoneState("Done!"));
-        stateMachine.addSequence(sequence);
+        // sequence.addSequential(newDoneState("Done!"));
+        // stateMachine.addSequence(sequence);
     }
 
     /**
@@ -596,65 +596,65 @@ public class CenterstageAuto extends OpMode {
         };
     }
 
-    public static class CenterstageDriveConstants extends DriveConstants {
-
-        private static DriveConstraints DRIVE_CONSTRAINTS = new DriveConstraints(80, 30.0, 0.0,
-                Math.toRadians(46.5), Math.toRadians(46.5), 0.0);
-
-        private static PIDCoefficients TRANSLATIONAL_PID_COEFFICIENTS = new PIDCoefficients(4.2D, 0, 0);
-
-        private static PIDCoefficients HEADING_PID_COEFFICIENTS = new PIDCoefficients(0.295D, 0, 0);
-
-        private static double ENCODER_PPR = 384.5;
-
-        private static double WHEEL_RADIUS_IN = 1.89;
-
-        private static double TRACK_WIDTH_IN = 9.0;
-
-        private static double MAX_MOTOR_RPM = 435;
-
-        private static double GEAR_RATIO = 1.0;
-
-        @Override
-        public DriveConstraints getBaseConstraints() {
-            return DRIVE_CONSTRAINTS;
-        }
-
-        @Override
-        public PIDCoefficients getTranslationalPID() {
-            return TRANSLATIONAL_PID_COEFFICIENTS;
-        }
-
-        @Override
-        public PIDCoefficients getHeadingPid() {
-            return HEADING_PID_COEFFICIENTS;
-        }
-
-        @Override
-        public DriveConstraints getDriveConstraints() {
-            return DRIVE_CONSTRAINTS;
-        }
-
-        @Override
-        public double encoderTicksToInches(double ticks) {
-            return WHEEL_RADIUS_IN * 2 * Math.PI * GEAR_RATIO * ticks / ENCODER_PPR;
-        }
-
-        @Override
-        public double rpmToVelocity(double rpm) {
-            return rpm * GEAR_RATIO * 2 * Math.PI * WHEEL_RADIUS_IN / 60.0;
-        }
-
-        @Override
-        public double getMaxRpm() {
-            return MAX_MOTOR_RPM;
-        }
-
-        @Override
-        public double getTrackWidth() {
-            return TRACK_WIDTH_IN;
-        }
-    }
+//    public static class CenterstageDriveConstants extends DriveConstants {
+//
+//        private static DriveConstraints DRIVE_CONSTRAINTS = new DriveConstraints(80, 30.0, 0.0,
+//                Math.toRadians(46.5), Math.toRadians(46.5), 0.0);
+//
+//        private static PIDCoefficients TRANSLATIONAL_PID_COEFFICIENTS = new PIDCoefficients(4.2D, 0, 0);
+//
+//        private static PIDCoefficients HEADING_PID_COEFFICIENTS = new PIDCoefficients(0.295D, 0, 0);
+//
+//        private static double ENCODER_PPR = 384.5;
+//
+//        private static double WHEEL_RADIUS_IN = 1.89;
+//
+//        private static double TRACK_WIDTH_IN = 9.0;
+//
+//        private static double MAX_MOTOR_RPM = 435;
+//
+//        private static double GEAR_RATIO = 1.0;
+//
+//        @Override
+//        public DriveConstraints getBaseConstraints() {
+//            return DRIVE_CONSTRAINTS;
+//        }
+//
+//        @Override
+//        public PIDCoefficients getTranslationalPID() {
+//            return TRANSLATIONAL_PID_COEFFICIENTS;
+//        }
+//
+//        @Override
+//        public PIDCoefficients getHeadingPid() {
+//            return HEADING_PID_COEFFICIENTS;
+//        }
+//
+//        @Override
+//        public DriveConstraints getDriveConstraints() {
+//            return DRIVE_CONSTRAINTS;
+//        }
+//
+//        @Override
+//        public double encoderTicksToInches(double ticks) {
+//            return WHEEL_RADIUS_IN * 2 * Math.PI * GEAR_RATIO * ticks / ENCODER_PPR;
+//        }
+//
+//        @Override
+//        public double rpmToVelocity(double rpm) {
+//            return rpm * GEAR_RATIO * 2 * Math.PI * WHEEL_RADIUS_IN / 60.0;
+//        }
+//
+//        @Override
+//        public double getMaxRpm() {
+//            return MAX_MOTOR_RPM;
+//        }
+//
+//        @Override
+//        public double getTrackWidth() {
+//            return TRACK_WIDTH_IN;
+//        }
+//    }
 
     @NonNull
     private State createSpikeStripDetectorState() {

@@ -19,14 +19,14 @@
 
 package com.hfrobots.tnt.season1920;
 
-import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
+// import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
 import com.qualcomm.robotcore.util.Range;
 
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
 public class OpenLoopMecanumKinematics {
-    private final RoadRunnerMecanumDriveBase mecanumDrive;
+    //private final RoadRunnerMecanumDriveBase mecanumDrive;
 
     public void driveCartesian(double xPower,
                                double yPower,
@@ -133,9 +133,9 @@ public class OpenLoopMecanumKinematics {
 //        rightRear.setPower(v2);
 //        rightFront.setPower(v3);
 
-        mecanumDrive.setMotorPowers(wheelSpeeds.leftFront,
-                wheelSpeeds.leftRear,
-                wheelSpeeds.rightRear,
-                wheelSpeeds.rightFront);
+        // mecanumDrive.setMotorPowers(wheelSpeeds.leftFront,
+        //        wheelSpeeds.leftRear,
+        //        wheelSpeeds.rightRear,
+        //        wheelSpeeds.rightFront);
     }
 }

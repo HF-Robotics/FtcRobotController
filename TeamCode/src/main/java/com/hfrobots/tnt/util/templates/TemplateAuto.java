@@ -36,9 +36,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Ticker;
 import com.google.common.collect.Sets;
 import com.hfrobots.tnt.corelib.Constants;
-import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
 import com.hfrobots.tnt.corelib.state.ReadyCheckable;
-import com.hfrobots.tnt.season2324.CenterstageDriveTeamSignal;
 import com.hfrobots.tnt.season2324.Shared;
 import com.hfrobots.tnt.util.DriveTeamSignal;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -59,7 +57,7 @@ import java.util.concurrent.TimeUnit;
 public class TemplateAuto extends OpMode {
     private Ticker ticker;
 
-    private RoadRunnerMecanumDriveBase driveBase;
+    // private RoadRunnerMecanumDriveBase driveBase;
 
     private StateMachine stateMachine;
 
@@ -95,7 +93,7 @@ public class TemplateAuto extends OpMode {
 
     private int initialDelaySeconds = 0;
 
-    private ExampleDriveConstants driveConstants;
+    // private ExampleDriveConstants driveConstants;
 
     private TemplateOperatorControls operatorControls;
 
@@ -118,15 +116,15 @@ public class TemplateAuto extends OpMode {
 
             driveTeamSignal = new DriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
-            driveConstants = new ExampleDriveConstants();
+            // driveConstants = new ExampleDriveConstants();
 
             IMU.Parameters imuParameters = new IMU.Parameters(
                     new RevHubOrientationOnRobot(
                             RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
                             RevHubOrientationOnRobot.UsbFacingDirection.DOWN));
 
-            driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
-                    driveConstants, Optional.of(imuParameters));
+            // driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
+            //        driveConstants, Optional.of(imuParameters));
 
             stateMachine = new StateMachine(telemetry);
         });
@@ -307,7 +305,7 @@ public class TemplateAuto extends OpMode {
             public State doStuffAndGetNextState() {
                 // FIXME: Stop everything on the robot here
                 if (!issuedStop) {
-                    driveBase.setMotorPowers(0, 0, 0, 0);
+                    // driveBase.setMotorPowers(0, 0, 0, 0);
 
                     issuedStop = true;
                 }

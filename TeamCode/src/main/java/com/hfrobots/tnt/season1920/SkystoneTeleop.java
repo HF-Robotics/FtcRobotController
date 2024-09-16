@@ -29,7 +29,7 @@ import com.hfrobots.tnt.corelib.chaosninja.ChaosConfigSaver;
 import com.hfrobots.tnt.corelib.chaosninja.ChaosController;
 import com.hfrobots.tnt.corelib.control.ChaosNinjaLandingState;
 import com.hfrobots.tnt.corelib.control.KonamiCode;
-import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
+// import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
 import com.hfrobots.tnt.corelib.util.RealSimplerHardwareMap;
 import com.hfrobots.tnt.corelib.util.SimplerHardwareMap;
@@ -47,7 +47,7 @@ import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
 public class SkystoneTeleop extends OpMode {
     private OpenLoopMecanumKinematics kinematics;
 
-    private RoadRunnerMecanumDriveBase driveBase;
+    // private RoadRunnerMecanumDriveBase driveBase;
 
     private DriverControls driverControls;
 
@@ -84,8 +84,8 @@ public class SkystoneTeleop extends OpMode {
         ticker = createAndroidTicker();
 
         simplerHardwareMap = new RealSimplerHardwareMap(this.hardwareMap);
-        driveBase = new RoadRunnerMecanumDriveBase(hardwareMap, new SkystoneDriveConstants());
-        kinematics = new OpenLoopMecanumKinematics(driveBase);
+        // driveBase = new RoadRunnerMecanumDriveBase(hardwareMap, new SkystoneDriveConstants());
+        // kinematics = new OpenLoopMecanumKinematics(driveBase);
 
         //stationKeeping = new StationKeeping(simplerHardwareMap, telemetry);
 

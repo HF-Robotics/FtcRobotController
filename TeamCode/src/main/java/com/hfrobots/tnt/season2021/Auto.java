@@ -21,8 +21,8 @@ package com.hfrobots.tnt.season2021;
 
 import android.util.Log;
 
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
-import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
+// import com.acmerobotics.roadrunner.trajectory.Trajectory;
+// import com.acmerobotics.roadrunner.trajectory.TrajectoryBuilder;
 import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.control.OnOffButton;
@@ -31,30 +31,18 @@ import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
 import com.ftc9929.corelib.state.StopwatchDelayState;
 import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
-import com.google.common.base.Supplier;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
-import com.hfrobots.tnt.corelib.drive.Turn;
-import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
-import com.hfrobots.tnt.corelib.drive.mecanum.TrajectoryFollowerState;
-import com.hfrobots.tnt.corelib.drive.mecanum.TurnState;
+// import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
+// import com.hfrobots.tnt.corelib.drive.mecanum.TrajectoryFollowerState;
+// import com.hfrobots.tnt.corelib.drive.mecanum.TurnState;
 import com.hfrobots.tnt.corelib.util.RealSimplerHardwareMap;
-import com.hfrobots.tnt.season1920.CapstoneMechanism;
-import com.hfrobots.tnt.season1920.DeliveryMechanism;
-import com.hfrobots.tnt.season1920.FoundationGripMechanism;
-import com.hfrobots.tnt.season1920.GrungyUltimateGoalAuto;
-import com.hfrobots.tnt.season1920.SkystoneDriveConstants;
-import com.hfrobots.tnt.season1920.SkystoneGrabber;
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
-
 import java.util.concurrent.TimeUnit;
-
-import lombok.NonNull;
 
 import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
 @Disabled
@@ -94,7 +82,7 @@ public class Auto extends OpMode {
         }
     };
 
-    private RoadRunnerMecanumDriveBase driveBase;
+    // private RoadRunnerMecanumDriveBase driveBase;
 
     private StateMachine stateMachine;
     private StarterStackDetectorPipeline starterStackDetectorPipeline;
@@ -139,8 +127,8 @@ public class Auto extends OpMode {
 
         RealSimplerHardwareMap simplerHardwareMap = new RealSimplerHardwareMap(this.hardwareMap);
 
-        driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
-                new SkystoneDriveConstants());
+        // driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
+        //        new SkystoneDriveConstants());
 
         stateMachine = new StateMachine(telemetry);
 
@@ -388,229 +376,229 @@ public class Auto extends OpMode {
             }
         };
 
-        State toTargetZone = new TrajectoryFollowerState("To skystone",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-
-                switch (deliverToTarget) {
-                    case A:
-                        trajectoryBuilder.forward(58 - 4);
-                        break;
-                    case B:
-                        // Instead, use A, + park from A
-                        // before placing the wobble goal:
-                        trajectoryBuilder.forward(58).strafeLeft(34+4).forward(6+5);
-
-                        break;
-                    case C:
-                        trajectoryBuilder.forward(101);
-                        break;
-                }
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-        State wobbleGoalToPlaceState = new StopwatchTimeoutSafetyState("wobbleMovingToPlace",
-                telemetry, ticker, TimeUnit.SECONDS.toMillis(10)) {
-            @Override
-            public State doStuffAndGetNextState() {
-                runWobbleGoalStateMachine = true;
-
-                Class<? extends State> wobbleStateClass = wobbleGoal.getCurrentState().getClass();
-
-                // FIXME: Remove, then talk about
-                if (wobbleStateClass.equals(WobbleGoal.PlaceState.class)) {
-                    return nextState;
-                }
-
-                if (!wobbleStateClass.equals(WobbleGoal.AutoPlaceState.class)) {
-                    wobbleGoal.gotoPlaceState();
-
-                    return this;
-                }
-
-                if (isTimedOut()) {
-                    resetTimer();
-
-                    return nextState;
-                }
-
-                if (wobbleStateClass.equals(WobbleGoal.PlaceState.class)) {
-                    return nextState;
-                }
-
-                return this;
-            }
-        };
-
-        State toParkedPosition = new TrajectoryFollowerState("Parking",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-                switch (deliverToTarget) {
-                    case A:
-                        trajectoryBuilder.strafeLeft(22).forward(12 + 19 + 4 + 6);
-                        break;
-                    case B:
-                        trajectoryBuilder.forward(20);
-                        break;
-                    case C:
-                        trajectoryBuilder.forward(28);
-                        break;
-                }
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-        State dropWobbleGoalState = new State("Drop wobble goal", telemetry) {
-            @Override
-            public State doStuffAndGetNextState() {
-                runWobbleGoalStateMachine = false;
-
-                wobbleGoal.openAutoGripper();
-
-                return nextState;
-            }
-
-            @Override
-            public void resetToStart() {
-
-            }
-        };
-
-        State wobbleGoalCoolDownState = new State("Close servo, back to stow", telemetry){
-            @Override
-            public State doStuffAndGetNextState() {
-                runWobbleGoalStateMachine = true;
-
-                Class<? extends State> wobbleStateClass = wobbleGoal.getCurrentState().getClass();
-
-                if (!wobbleStateClass.equals(WobbleGoal.AutoStowState.class)) {
-                    wobbleGoal.gotoStowState();
-                }
-
-                return nextState;
-            }
-
-            @Override
-            public void resetToStart() {
-
-            }
-        };
-
-        State toLaunchPosition = new TrajectoryFollowerState("Shooting Position",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected Trajectory createTrajectory() {
-                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
-
-                switch (deliverToTarget) {
-                    case A:
-                        trajectoryBuilder.back(16 + 4);
-                        break;
-                    case B:
-                        trajectoryBuilder.back(26 + 5 + 5);
-                        break;
-                    case C:
-                        trajectoryBuilder.back(64 - 5);
-                        break;
-                }
-
-                scoringMechanism.toPreloadRingsState();
-
-                return trajectoryBuilder.build();
-            }
-        };
-
-        State autoLauncherReadyCheck = new StopwatchTimeoutSafetyState(
-                "Autonomous Launcher Check", telemetry, ticker, TimeUnit.SECONDS.toMillis(2)) {
-            @Override
-            public State doStuffAndGetNextState() {
-                if (isTimedOut()) {
-                    resetTimer();
-                    Log.e(LOG_TAG, "Timed out waiting for launcher to get to speed");
-
-                    return nextState;
-                }
-
-                Class<? extends State> currentLauncherStateClass = scoringMechanism.getCurrentState().getClass();
-
-                if (currentLauncherStateClass.equals(ScoringMechanism.LauncherReady.class)) {
-                    telemetry.addLine("Ready");
-
-                    return nextState;
-                }
-
-                telemetry.addLine("Launcher not Ready");
-
-                return this;
-            }
-
-            @Override
-            public void resetToStart() {
-
-            }
-        };
-
-        // Used to provide a turn to use after auto has already started (because target zones
-        // have different routes and turns!)
-        Supplier<Turn> turnToLaunchSupplier = new Supplier<Turn>() {
-
-            @Override
-            public Turn get() {
-                switch (deliverToTarget) {
-                    case A:
-                        return new Turn(Rotation.CCW, 2);
-                    case C:
-                        return new Turn(Rotation.CCW, 4);
-                    case B:
-                        return new Turn(Rotation.CW, 19); // FIXME
-                    default:
-                        return new Turn(Rotation.CCW, 5);
-                }
-            }
-        };
-
-        TurnState turnToLaunch = new TurnState("Turn to aim launcher",
-                telemetry,
-                turnToLaunchSupplier,
-                driveBase,
-                ticker,2000);
-
-        stateMachine.addSequential(detectorState);
-        stateMachine.addSequential(toTargetZone);
-        stateMachine.addSequential(wobbleGoalToPlaceState);
-        stateMachine.addSequential(dropWobbleGoalState);
-        stateMachine.addSequential(newDelayState("Wait to drop", 3));
-        stateMachine.addSequential(wobbleGoalCoolDownState);
-        stateMachine.addSequential(newDelayState("Wait to stow", 3));
-
-        stateMachine.addSequential(toLaunchPosition);
-        stateMachine.addSequential(turnToLaunch);
-        stateMachine.addSequential(autoLauncherReadyCheck);
-
-        stateMachine.addSequential(newAutoLaunch());
-        stateMachine.addSequential(newMsDelayState("Wait to feed", 400));
-        stateMachine.addSequential(newAutoLaunchReset());
-        stateMachine.addSequential(newMsDelayState("Wait to return", 400));
-        stateMachine.addSequential(newAutoLaunch());
-        stateMachine.addSequential(newMsDelayState("Wait to feed", 400));
-        stateMachine.addSequential(newAutoLaunchReset());
-        stateMachine.addSequential(newMsDelayState("Wait to return", 400));
-        stateMachine.addSequential(newAutoLaunch());
-        stateMachine.addSequential(newMsDelayState("Wait to feed", 400));
-        stateMachine.addSequential(newAutoLaunchReset()); // FIXME: Question - why aren't we waiting for a return here?
-
-        stateMachine.addSequential(toParkedPosition);
-
-        stateMachine.addSequential(newDoneState("Done!"));
+//        State toTargetZone = new TrajectoryFollowerState("To skystone",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected Trajectory createTrajectory() {
+//                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+//
+//
+//                switch (deliverToTarget) {
+//                    case A:
+//                        trajectoryBuilder.forward(58 - 4);
+//                        break;
+//                    case B:
+//                        // Instead, use A, + park from A
+//                        // before placing the wobble goal:
+//                        trajectoryBuilder.forward(58).strafeLeft(34+4).forward(6+5);
+//
+//                        break;
+//                    case C:
+//                        trajectoryBuilder.forward(101);
+//                        break;
+//                }
+//
+//                return trajectoryBuilder.build();
+//            }
+//        };
+//
+//        State wobbleGoalToPlaceState = new StopwatchTimeoutSafetyState("wobbleMovingToPlace",
+//                telemetry, ticker, TimeUnit.SECONDS.toMillis(10)) {
+//            @Override
+//            public State doStuffAndGetNextState() {
+//                runWobbleGoalStateMachine = true;
+//
+//                Class<? extends State> wobbleStateClass = wobbleGoal.getCurrentState().getClass();
+//
+//                // FIXME: Remove, then talk about
+//                if (wobbleStateClass.equals(WobbleGoal.PlaceState.class)) {
+//                    return nextState;
+//                }
+//
+//                if (!wobbleStateClass.equals(WobbleGoal.AutoPlaceState.class)) {
+//                    wobbleGoal.gotoPlaceState();
+//
+//                    return this;
+//                }
+//
+//                if (isTimedOut()) {
+//                    resetTimer();
+//
+//                    return nextState;
+//                }
+//
+//                if (wobbleStateClass.equals(WobbleGoal.PlaceState.class)) {
+//                    return nextState;
+//                }
+//
+//                return this;
+//            }
+//        };
+//
+//        State toParkedPosition = new TrajectoryFollowerState("Parking",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected Trajectory createTrajectory() {
+//                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+//
+//                switch (deliverToTarget) {
+//                    case A:
+//                        trajectoryBuilder.strafeLeft(22).forward(12 + 19 + 4 + 6);
+//                        break;
+//                    case B:
+//                        trajectoryBuilder.forward(20);
+//                        break;
+//                    case C:
+//                        trajectoryBuilder.forward(28);
+//                        break;
+//                }
+//
+//                return trajectoryBuilder.build();
+//            }
+//        };
+//
+//        State dropWobbleGoalState = new State("Drop wobble goal", telemetry) {
+//            @Override
+//            public State doStuffAndGetNextState() {
+//                runWobbleGoalStateMachine = false;
+//
+//                wobbleGoal.openAutoGripper();
+//
+//                return nextState;
+//            }
+//
+//            @Override
+//            public void resetToStart() {
+//
+//            }
+//        };
+//
+//        State wobbleGoalCoolDownState = new State("Close servo, back to stow", telemetry){
+//            @Override
+//            public State doStuffAndGetNextState() {
+//                runWobbleGoalStateMachine = true;
+//
+//                Class<? extends State> wobbleStateClass = wobbleGoal.getCurrentState().getClass();
+//
+//                if (!wobbleStateClass.equals(WobbleGoal.AutoStowState.class)) {
+//                    wobbleGoal.gotoStowState();
+//                }
+//
+//                return nextState;
+//            }
+//
+//            @Override
+//            public void resetToStart() {
+//
+//            }
+//        };
+//
+//        State toLaunchPosition = new TrajectoryFollowerState("Shooting Position",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected Trajectory createTrajectory() {
+//                TrajectoryBuilder trajectoryBuilder = driveBase.trajectoryBuilder();
+//
+//                switch (deliverToTarget) {
+//                    case A:
+//                        trajectoryBuilder.back(16 + 4);
+//                        break;
+//                    case B:
+//                        trajectoryBuilder.back(26 + 5 + 5);
+//                        break;
+//                    case C:
+//                        trajectoryBuilder.back(64 - 5);
+//                        break;
+//                }
+//
+//                scoringMechanism.toPreloadRingsState();
+//
+//                return trajectoryBuilder.build();
+//            }
+//        };
+//
+//        State autoLauncherReadyCheck = new StopwatchTimeoutSafetyState(
+//                "Autonomous Launcher Check", telemetry, ticker, TimeUnit.SECONDS.toMillis(2)) {
+//            @Override
+//            public State doStuffAndGetNextState() {
+//                if (isTimedOut()) {
+//                    resetTimer();
+//                    Log.e(LOG_TAG, "Timed out waiting for launcher to get to speed");
+//
+//                    return nextState;
+//                }
+//
+//                Class<? extends State> currentLauncherStateClass = scoringMechanism.getCurrentState().getClass();
+//
+//                if (currentLauncherStateClass.equals(ScoringMechanism.LauncherReady.class)) {
+//                    telemetry.addLine("Ready");
+//
+//                    return nextState;
+//                }
+//
+//                telemetry.addLine("Launcher not Ready");
+//
+//                return this;
+//            }
+//
+//            @Override
+//            public void resetToStart() {
+//
+//            }
+//        };
+//
+//        // Used to provide a turn to use after auto has already started (because target zones
+//        // have different routes and turns!)
+//        Supplier<Turn> turnToLaunchSupplier = new Supplier<Turn>() {
+//
+//            @Override
+//            public Turn get() {
+//                switch (deliverToTarget) {
+//                    case A:
+//                        return new Turn(Rotation.CCW, 2);
+//                    case C:
+//                        return new Turn(Rotation.CCW, 4);
+//                    case B:
+//                        return new Turn(Rotation.CW, 19); // FIXME
+//                    default:
+//                        return new Turn(Rotation.CCW, 5);
+//                }
+//            }
+//        };
+//
+//        TurnState turnToLaunch = new TurnState("Turn to aim launcher",
+//                telemetry,
+//                turnToLaunchSupplier,
+//                driveBase,
+//                ticker,2000);
+//
+//        stateMachine.addSequential(detectorState);
+//        stateMachine.addSequential(toTargetZone);
+//        stateMachine.addSequential(wobbleGoalToPlaceState);
+//        stateMachine.addSequential(dropWobbleGoalState);
+//        stateMachine.addSequential(newDelayState("Wait to drop", 3));
+//        stateMachine.addSequential(wobbleGoalCoolDownState);
+//        stateMachine.addSequential(newDelayState("Wait to stow", 3));
+//
+//        stateMachine.addSequential(toLaunchPosition);
+//        stateMachine.addSequential(turnToLaunch);
+//        stateMachine.addSequential(autoLauncherReadyCheck);
+//
+//        stateMachine.addSequential(newAutoLaunch());
+//        stateMachine.addSequential(newMsDelayState("Wait to feed", 400));
+//        stateMachine.addSequential(newAutoLaunchReset());
+//        stateMachine.addSequential(newMsDelayState("Wait to return", 400));
+//        stateMachine.addSequential(newAutoLaunch());
+//        stateMachine.addSequential(newMsDelayState("Wait to feed", 400));
+//        stateMachine.addSequential(newAutoLaunchReset());
+//        stateMachine.addSequential(newMsDelayState("Wait to return", 400));
+//        stateMachine.addSequential(newAutoLaunch());
+//        stateMachine.addSequential(newMsDelayState("Wait to feed", 400));
+//        stateMachine.addSequential(newAutoLaunchReset()); // FIXME: Question - why aren't we waiting for a return here?
+//
+//        stateMachine.addSequential(toParkedPosition);
+//
+//        stateMachine.addSequential(newDoneState("Done!"));
     }
 
     /**
@@ -729,7 +717,7 @@ public class Auto extends OpMode {
             @Override
             public State doStuffAndGetNextState() {
                 if (!issuedStop) {
-                    driveBase.setMotorPowers(0, 0, 0, 0);
+                    // driveBase.setMotorPowers(0, 0, 0, 0);
 
                     issuedStop = true;
                 }

@@ -43,10 +43,10 @@ import com.google.common.base.Ticker;
 import com.google.common.collect.Sets;
 import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.corelib.drive.Turn;
-import com.hfrobots.tnt.corelib.drive.mecanum.MultipleTrajectoriesFollowerState;
-import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
-import com.hfrobots.tnt.corelib.drive.mecanum.TurnState;
-import com.hfrobots.tnt.corelib.drive.mecanum.util.AxisDirection;
+// import com.hfrobots.tnt.corelib.drive.mecanum.MultipleTrajectoriesFollowerState;
+// import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
+// import com.hfrobots.tnt.corelib.drive.mecanum.TurnState;
+// import com.hfrobots.tnt.corelib.drive.mecanum.util.AxisDirection;
 import com.hfrobots.tnt.corelib.state.ReadyCheckable;
 import com.hfrobots.tnt.season2223.pipelines.ColorSignalDetectorPipeline;
 import com.hfrobots.tnt.season2223.pipelines.CyanGripPipeline;
@@ -69,7 +69,7 @@ import java.util.concurrent.TimeUnit;
 public class PowerPlayAuto extends OpMode {
     private Ticker ticker;
 
-    private RoadRunnerMecanumDriveBase driveBase;
+    // private RoadRunnerMecanumDriveBase driveBase;
 
     private StateMachine stateMachine;
 
@@ -140,9 +140,9 @@ public class PowerPlayAuto extends OpMode {
 
         setupOperatorControls();
 
-        driveConstants = new PowerPlayDriveConstants();
-        driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
-                driveConstants);
+        // driveConstants = new PowerPlayDriveConstants();
+        // driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
+        //        driveConstants);
 
         stateMachine = new StateMachine(telemetry);
 
@@ -369,58 +369,58 @@ public class PowerPlayAuto extends OpMode {
 
         final State detectState = createSignalDetectorState();
 
-        final State moveRobot = new MultipleTrajectoriesFollowerState("Move robot",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected void createTrajectoryProviders() {
-                switch (detectedLocation) {
-                    case LOCATION_ONE: {
-                        addTrajectoryProvider("Off wall", (t) -> t.forward(3));
-                        addTrajectoryProvider("Align with location", (t) -> t.strafeLeft(29 - 3));
-                        addTrajectoryProvider("Into location", (t) -> t.forward(24 + 15));
-                        break;
-                    }
-                    case LOCATION_TWO: {
-                        // needs to be even further!!!
-                        addTrajectoryProvider("Off wall 1", (t) -> t.forward(12));
-                        addTrajectoryProvider("Off wall 2", (t) -> t.forward(12 + 4));
-                        addTrajectoryProvider("Push signal", (t) -> t.forward(4 + 4));
-                        addTrajectoryProvider("Retreat from signal", (t) -> t.back(8));
-                        break;
-                    }
-                    case LOCATION_THREE: {
-                        addTrajectoryProvider("Off wall", (t) -> t.forward(3));
-                        addTrajectoryProvider("Align with location", (t) -> t.strafeRight(29 - 3));
-                        addTrajectoryProvider("Into location", (t) -> t.forward(24 + 15));
-                        break;
-                    }
-                }
-            }
-        };
+//        final State moveRobot = new MultipleTrajectoriesFollowerState("Move robot",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected void createTrajectoryProviders() {
+//                switch (detectedLocation) {
+//                    case LOCATION_ONE: {
+//                        addTrajectoryProvider("Off wall", (t) -> t.forward(3));
+//                        addTrajectoryProvider("Align with location", (t) -> t.strafeLeft(29 - 3));
+//                        addTrajectoryProvider("Into location", (t) -> t.forward(24 + 15));
+//                        break;
+//                    }
+//                    case LOCATION_TWO: {
+//                        // needs to be even further!!!
+//                        addTrajectoryProvider("Off wall 1", (t) -> t.forward(12));
+//                        addTrajectoryProvider("Off wall 2", (t) -> t.forward(12 + 4));
+//                        addTrajectoryProvider("Push signal", (t) -> t.forward(4 + 4));
+//                        addTrajectoryProvider("Retreat from signal", (t) -> t.back(8));
+//                        break;
+//                    }
+//                    case LOCATION_THREE: {
+//                        addTrajectoryProvider("Off wall", (t) -> t.forward(3));
+//                        addTrajectoryProvider("Align with location", (t) -> t.strafeRight(29 - 3));
+//                        addTrajectoryProvider("Into location", (t) -> t.forward(24 + 15));
+//                        break;
+//                    }
+//                }
+//            }
+//        };
+//
+//        final SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
+//        sequence.addSequential(detectState);
 
-        final SequenceOfStates sequence = new SequenceOfStates(ticker, telemetry);
-        sequence.addSequential(detectState);
-
-        sequence.addSequential(new RunnableState("Ensure cone gripped", telemetry,
-                gripper::close));
-
-        sequence.addWaitStep("Wait for gripper", 500, TimeUnit.MILLISECONDS);
-
-        sequence.addSequential(new RunnableState("Lift cone", telemetry,
-                () -> goSmallJunctionAutoButton.setPressed(true)));
-
-        sequence.addWaitStep("wait on cone", 1, TimeUnit.SECONDS);
-
-        sequence.addSequential(new RunnableState("Clear lift cone", telemetry,
-                () -> goSmallJunctionAutoButton.setPressed(false)));
-
-        sequence.addSequential(moveRobot);
-
-        sequence.addSequential(new RunnableState("Move cone down", telemetry,
-                () -> liftToBottom.setPressed(true)));
-
-        sequence.addSequential(newDoneState("Done!"));
-        stateMachine.addSequence(sequence);
+//        sequence.addSequential(new RunnableState("Ensure cone gripped", telemetry,
+//                gripper::close));
+//
+//        sequence.addWaitStep("Wait for gripper", 500, TimeUnit.MILLISECONDS);
+//
+//        sequence.addSequential(new RunnableState("Lift cone", telemetry,
+//                () -> goSmallJunctionAutoButton.setPressed(true)));
+//
+//        sequence.addWaitStep("wait on cone", 1, TimeUnit.SECONDS);
+//
+//        sequence.addSequential(new RunnableState("Clear lift cone", telemetry,
+//                () -> goSmallJunctionAutoButton.setPressed(false)));
+//
+//        sequence.addSequential(moveRobot);
+//
+//        sequence.addSequential(new RunnableState("Move cone down", telemetry,
+//                () -> liftToBottom.setPressed(true)));
+//
+//        sequence.addSequential(newDoneState("Done!"));
+//        stateMachine.addSequence(sequence);
     }
 
     @NonNull
@@ -657,7 +657,7 @@ public class PowerPlayAuto extends OpMode {
             public State doStuffAndGetNextState() {
                 // FIXME: Stop everything on the robot here
                 if (!issuedStop) {
-                    driveBase.setMotorPowers(0, 0, 0, 0);
+                    // driveBase.setMotorPowers(0, 0, 0, 0);
 
                     issuedStop = true;
                 }
