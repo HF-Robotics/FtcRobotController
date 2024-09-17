@@ -40,7 +40,8 @@ import java.util.List;
 @TeleOp(name = CenterstageDriverControlled.CENTERSTAGE_TELE_OP_NAME)
 public class CenterstageDriverControlled extends OpMode {
 
-    public static final String CENTERSTAGE_TELE_OP_NAME = "00 CS TeleOp";
+    public static final String CENTERSTAGE_TELE_OP_NAME = "CS TeleOp";
+
     private CenterstageDrivebase drivebase;
 
     private CenterstageDriverControls driverControls;
