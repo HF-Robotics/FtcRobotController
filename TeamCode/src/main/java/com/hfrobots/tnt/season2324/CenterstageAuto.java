@@ -59,7 +59,7 @@ import org.firstinspires.ftc.vision.VisionPortal;
 
 import java.util.concurrent.TimeUnit;
 
-@Autonomous(name="00 CS Auto", preselectTeleOp = CenterstageDriverControlled.CENTERSTAGE_TELE_OP_NAME)
+@Autonomous(name="CS Auto", preselectTeleOp = CenterstageDriverControlled.CENTERSTAGE_TELE_OP_NAME)
 public class CenterstageAuto extends OpMode {
 
     public static final int SPLINE_RIGHT_SIGN = -1;
