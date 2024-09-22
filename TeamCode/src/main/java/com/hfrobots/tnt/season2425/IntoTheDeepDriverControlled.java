@@ -40,7 +40,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import java.util.List;
 
-@Disabled
 @TeleOp(name = "00 ITDeep TeleOp")
 public class IntoTheDeepDriverControlled extends OpMode {
 
