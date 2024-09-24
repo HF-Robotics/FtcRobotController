@@ -36,7 +36,7 @@ SOFTWARE.
         </LynxModule>
 
         <LynxModule name="Expansion Hub 3" port="3">
-            
+            <Motor name="shoulderMotor"  port="0" /> <!-- Red    -->
         </LynxModule>
     </LynxUsbDevice>
 </Robot>

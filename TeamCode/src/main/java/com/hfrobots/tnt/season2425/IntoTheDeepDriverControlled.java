@@ -75,7 +75,10 @@ public class IntoTheDeepDriverControlled extends OpMode {
             NinjaGamePad operatorGamepad = new NinjaGamePad(gamepad2);
 
             // FIXME: Add mechanisms when they exist
+            final IntoTheDeepScoringMech scoringMech = new IntoTheDeepScoringMech(hardwareMap);
+
             operatorControls = IntoTheDeepOperatorControls.builder().operatorGamepad(operatorGamepad)
+                    .scoringMech(scoringMech)
                     .build();
 
             driveTeamSignal = new IntoTheDeepDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
