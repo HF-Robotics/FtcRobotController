@@ -75,8 +75,12 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
     // FIXME: Add "derived" controls here by name, as they relate to things they control
     // on the robot
 
+    private RangeInput shoulderRotate;
+
     // FIXME: Add all of the mechanisms controlled by the operator here, and add them to
     // the constructor, and set them there from the constructor arguments
+
+    private IntoTheDeepScoringMech scoringMech;
 
     @Builder
     private IntoTheDeepOperatorControls(RangeInput leftStickX,
@@ -99,7 +103,8 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
                                         OnOffButton leftBumper,
                                         RangeInput leftTrigger,
                                         RangeInput rightTrigger,
-                                        NinjaGamePad operatorGamepad) {
+                                        NinjaGamePad operatorGamepad,
+                                        IntoTheDeepScoringMech scoringMech) {
         if (operatorGamepad != null) {
             this.operatorGamepad = operatorGamepad;
             setupFromGamepad();
@@ -127,6 +132,7 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
         // FIXME: Make sure that mechanisms are setup here, before "wiring" them to
         // controls
 
+        this.scoringMech = scoringMech;
         wireControlsToOperatorsMechanisms();
     }
 
@@ -160,6 +166,7 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
     // names.
     private void setupDerivedControls() {
         unsafe = new RangeInputButton( leftTrigger, 0.65f);
+        shoulderRotate = leftStickY;
     }
 
     // FIXME: As-needed, set controls to setters on scoring mechanisms that have
@@ -171,5 +178,14 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
     @Override
     public void periodicTask() {
         // FIXME: Here is where we ask the various mechanisms to respond to operator input
+        float shoulderRotatePosition = shoulderRotate.getPosition();
+
+        if (shoulderRotatePosition < 0) {
+            scoringMech.arm.shoulderUp(Math.abs(shoulderRotatePosition));
+        } else if (shoulderRotatePosition > 0) {
+            scoringMech.arm.shoulderDown(Math.abs(shoulderRotatePosition));
+        } else {
+            scoringMech.arm.stopShoulder();
+        }
     }
 }
