@@ -22,6 +22,7 @@
 
 package com.hfrobots.tnt.season2425;
 
+import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.control.OnOffButton;
 import com.ftc9929.corelib.control.RangeInput;
@@ -77,8 +78,20 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
 
     private RangeInput shoulderRotate;
 
+    private RangeInput specimenLiftThrottle;
+
+    private DebouncedButton specimenGripButton;
+
+    private DebouncedButton specimenUngripButton;
+
+    private DebouncedButton forearmOutButton;
+
+    private DebouncedButton forearmInButton;
+
     // FIXME: Add all of the mechanisms controlled by the operator here, and add them to
     // the constructor, and set them there from the constructor arguments
+
+    private SpecimenMechanism specimenMechanism;
 
     private IntoTheDeepScoringMech scoringMech;
 
@@ -104,7 +117,8 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
                                         RangeInput leftTrigger,
                                         RangeInput rightTrigger,
                                         NinjaGamePad operatorGamepad,
-                                        IntoTheDeepScoringMech scoringMech) {
+                                        IntoTheDeepScoringMech scoringMech,
+                                        SpecimenMechanism specimenMechanism) {
         if (operatorGamepad != null) {
             this.operatorGamepad = operatorGamepad;
             setupFromGamepad();
@@ -133,6 +147,8 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
         // controls
 
         this.scoringMech = scoringMech;
+        this.specimenMechanism = specimenMechanism;
+
         wireControlsToOperatorsMechanisms();
     }
 
@@ -167,12 +183,30 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
     private void setupDerivedControls() {
         unsafe = new RangeInputButton( leftTrigger, 0.65f);
         shoulderRotate = leftStickY;
+
+        // FIXME:
+        specimenLiftThrottle = rightStickY;
+        specimenGripButton = aGreenButton.debounced();
+        specimenUngripButton = bRedButton.debounced();
+
+        forearmOutButton = dpadUp.debounced();
+        forearmInButton = dpadDown.debounced();
     }
 
     // FIXME: As-needed, set controls to setters on scoring mechanisms that have
     //        internal state machines that respond to operator control inputs
     public void wireControlsToOperatorsMechanisms() {
+        if (specimenMechanism != null) {
+            specimenMechanism.setLiftThrottle(specimenLiftThrottle);
+            specimenMechanism.setGripButton(specimenGripButton);
+            specimenMechanism.setUngripButton(specimenUngripButton);
+            specimenMechanism.setLimitOverrideButton(unsafe);
 
+            // FIXME
+            //specimenMechanism.setLiftLowerLimitButton(autoRetractLiftButton);
+            //specimenMechanism.setToFirstLineButton(liftToFirstLineButton);
+            // FIXME: Needs an e-stop button!
+        }
     }
 
     @Override
@@ -186,6 +220,16 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
             scoringMech.arm.shoulderDown(Math.abs(shoulderRotatePosition));
         } else {
             scoringMech.arm.stopShoulder();
+        }
+
+        if (forearmInButton.getRise()) {
+            scoringMech.arm.forearmIn();
+        } else if (forearmOutButton.getRise()) {
+            scoringMech.arm.forearmOut();
+        }
+
+        if (specimenMechanism != null) {
+            specimenMechanism.periodicTask();
         }
     }
 }
