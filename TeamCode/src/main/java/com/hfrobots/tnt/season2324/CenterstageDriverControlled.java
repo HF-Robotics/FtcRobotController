@@ -32,12 +32,14 @@ import com.ftc9929.metrics.StatsdMetricsReporter;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import java.util.List;
 
 @TeleOp(name = CenterstageDriverControlled.CENTERSTAGE_TELE_OP_NAME)
+@Disabled
 public class CenterstageDriverControlled extends OpMode {
 
     public static final String CENTERSTAGE_TELE_OP_NAME = "CS TeleOp";
