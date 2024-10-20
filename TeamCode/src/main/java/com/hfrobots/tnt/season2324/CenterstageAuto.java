@@ -49,6 +49,7 @@ import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
 import com.hfrobots.tnt.corelib.drive.mecanum.TurnState;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -60,6 +61,7 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import java.util.concurrent.TimeUnit;
 
 @Autonomous(name="CS Auto", preselectTeleOp = CenterstageDriverControlled.CENTERSTAGE_TELE_OP_NAME)
+@Disabled
 public class CenterstageAuto extends OpMode {
 
     public static final int SPLINE_RIGHT_SIGN = -1;
