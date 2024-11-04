@@ -218,9 +218,9 @@ public class IntoTheDeepDriverControls implements PeriodicTask {
             double rot = driveRotate.getPosition(); // positive robot z rotation (human-normal) is negative joystick x axis
 
             if (!(driveFastButton.isPressed())) {
-                y /= 1.25;
-                x /= 1.25;
-                rot /= 1.25;
+                y /= 2;
+                x /= 2;
+                rot /= 2;
             }
 
             final boolean driveInverted;
