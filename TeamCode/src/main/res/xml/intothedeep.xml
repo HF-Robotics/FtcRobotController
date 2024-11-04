@@ -19,7 +19,7 @@ SOFTWARE.
 -->
 <Robot type="FirstInspires-FTC">
     <!-- C310 with mount removed -->
-    <Webcam name="webcam" serialNumber="7B2F4FD0" />
+    <!-- <Webcam name="webcam" serialNumber="7B2F4FD0" /> -->
 
     <!-- Control Hub #1 -->
 
@@ -38,6 +38,8 @@ SOFTWARE.
         <LynxModule name="Expansion Hub 3" port="3">
             <Motor name="shoulderMotor"  port="0" /> <!-- Red    -->
             <Servo name="elbowServo"     port="1" /> <!-- Yellow -->
+            <!-- <ContinuousRotationServo name="intakeServo"     port="2" />  -->
+            <Servo name="intakeServo"     port="2" /> <!-- Yellow -->
 
             <Motor name="specimenLiftMotor"                 port="1" /> <!-- Red    -->
             <Servo name="specimenGripServo"                 port="0" /> <!-- Yellow -->

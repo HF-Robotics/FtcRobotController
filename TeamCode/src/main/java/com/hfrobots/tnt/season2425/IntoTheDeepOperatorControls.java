@@ -25,6 +25,7 @@ package com.hfrobots.tnt.season2425;
 import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.control.OnOffButton;
+import com.ftc9929.corelib.control.ParametricScaledRangeInput;
 import com.ftc9929.corelib.control.RangeInput;
 import com.ftc9929.corelib.control.RangeInputButton;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
@@ -84,9 +85,14 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
 
     private DebouncedButton specimenUngripButton;
 
-    private DebouncedButton forearmOutButton;
+    private OnOffButton forearmOutButton;
 
     private DebouncedButton forearmInButton;
+
+    private OnOffButton sampleIntakeButton;
+
+    private OnOffButton sampleOuttakeButton;
+
 
     // FIXME: Add all of the mechanisms controlled by the operator here, and add them to
     // the constructor, and set them there from the constructor arguments
@@ -182,15 +188,21 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
     // names.
     private void setupDerivedControls() {
         unsafe = new RangeInputButton( leftTrigger, 0.65f);
-        shoulderRotate = leftStickY;
+        final RangeInput armThrottleCurve = ParametricScaledRangeInput.builder()
+                .throttleExponent(11).throttleGain(0.7F).rawInput(leftStickY).build();
 
-        // FIXME:
+        shoulderRotate = armThrottleCurve;
+
         specimenLiftThrottle = rightStickY;
         specimenGripButton = aGreenButton.debounced();
         specimenUngripButton = bRedButton.debounced();
 
-        forearmOutButton = dpadUp.debounced();
-        forearmInButton = dpadDown.debounced();
+        forearmOutButton = xBlueButton;
+        forearmInButton = yYellowButton.debounced();
+
+        sampleIntakeButton = new RangeInputButton(rightTrigger, 0.5F);
+
+        sampleOuttakeButton = rightBumper;
     }
 
     // FIXME: As-needed, set controls to setters on scoring mechanisms that have
@@ -224,8 +236,17 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
 
         if (forearmInButton.getRise()) {
             scoringMech.arm.forearmIn();
-        } else if (forearmOutButton.getRise()) {
+            //} else if (forearmOutButton.getRise()) {
+        } else if (forearmOutButton.isPressed()) {
             scoringMech.arm.forearmOut();
+        }
+
+        if (sampleIntakeButton.isPressed()) {
+            scoringMech.arm.intakeSample();
+        } else if (sampleOuttakeButton.isPressed()) {
+            scoringMech.arm.outtakeSample();
+        } else {
+            scoringMech.arm.stopIntake();
         }
 
         if (specimenMechanism != null) {

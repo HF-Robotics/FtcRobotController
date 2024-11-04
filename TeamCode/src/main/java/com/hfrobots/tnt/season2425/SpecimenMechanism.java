@@ -113,6 +113,13 @@ public class SpecimenMechanism extends LinearLiftController {
             return goFirstLineState;
         }
 
+        // Always allow the gripper to be manipulated!
+        if (gripButton != null && gripButton.getRise()) {
+            gripServo.setPosition(GRIP_SERVO_GRIPPED_POSITION);
+        } else if (ungripButton != null && ungripButton.getRise()) {
+            gripServo.setPosition(GRIP_SERVO_UNGRIPPED_POSITION);
+        }
+
         return null;
     }
 
@@ -134,11 +141,6 @@ public class SpecimenMechanism extends LinearLiftController {
         @Override
         public State doStuffAndGetNextState() {
             // FIXME: Probably needs some safeties!
-            if (gripButton != null && gripButton.getRise()) {
-                gripServo.setPosition(GRIP_SERVO_GRIPPED_POSITION);
-            } else if (ungripButton != null && ungripButton.getRise()) {
-                gripServo.setPosition(GRIP_SERVO_UNGRIPPED_POSITION);
-            }
 
             return super.doStuffAndGetNextState();
         }
