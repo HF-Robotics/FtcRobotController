@@ -68,6 +68,10 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
 
     protected RangeInput rightTrigger;
 
+    protected DebouncedButton goHighChamberButton;
+
+    protected DebouncedButton scoreSpecimenButton;
+
     private NinjaGamePad operatorGamepad;
 
     private NinjaGamePad driverGamepad;
@@ -87,7 +91,7 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
 
     private OnOffButton forearmOutButton;
 
-    private DebouncedButton forearmInButton;
+    private OnOffButton forearmInButton;
 
     private OnOffButton sampleIntakeButton;
 
@@ -196,9 +200,12 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
         specimenLiftThrottle = rightStickY;
         specimenGripButton = aGreenButton.debounced();
         specimenUngripButton = bRedButton.debounced();
+        // FIXME!
+        goHighChamberButton = null;
+        scoreSpecimenButton = null;
 
         forearmOutButton = xBlueButton;
-        forearmInButton = yYellowButton.debounced();
+        forearmInButton = yYellowButton;
 
         sampleIntakeButton = new RangeInputButton(rightTrigger, 0.5F);
 
@@ -213,6 +220,14 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
             specimenMechanism.setGripButton(specimenGripButton);
             specimenMechanism.setUngripButton(specimenUngripButton);
             specimenMechanism.setLimitOverrideButton(unsafe);
+
+            if (goHighChamberButton != null) {
+                specimenMechanism.setLiftUpperLimitButton(goHighChamberButton);
+            }
+
+            if (scoreSpecimenButton != null) {
+                specimenMechanism.setScoreSpecimenButton(scoreSpecimenButton);
+            }
 
             // FIXME
             //specimenMechanism.setLiftLowerLimitButton(autoRetractLiftButton);
@@ -234,9 +249,8 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
             scoringMech.arm.stopShoulder();
         }
 
-        if (forearmInButton.getRise()) {
+        if (forearmInButton.isPressed()) {
             scoringMech.arm.forearmIn();
-            //} else if (forearmOutButton.getRise()) {
         } else if (forearmOutButton.isPressed()) {
             scoringMech.arm.forearmOut();
         }

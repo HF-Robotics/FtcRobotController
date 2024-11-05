@@ -47,7 +47,10 @@ import lombok.Builder;
 import lombok.Setter;
 
 public class SpecimenMechanism extends LinearLiftController {
-    public static final double LIFT_FIRST_LINE_ENCODER_POS = 1632;
+    public static final int LIFT_ABOVE_UPPER_CHAMBER_POS = 9632;
+
+    public static final int LIFT_ATTACH_SPECIMEN_UPPER_CHAMBER_POS = 1632;
+
     public static final double K_P_UP_TO_LINE = .008;
     protected static Tunables goBilda26_1 = new Tunables(){
         @Override
@@ -70,7 +73,7 @@ public class SpecimenMechanism extends LinearLiftController {
 
         @Override
         protected int getUpperLimitEncoderPos() {
-            return 2632;
+            return LIFT_ABOVE_UPPER_CHAMBER_POS;
         }
 
         @Override
@@ -88,6 +91,14 @@ public class SpecimenMechanism extends LinearLiftController {
     public void periodicTask() {
         super.periodicTask();
 
+    }
+
+    public void goAboveHighChamber() {
+        currentState = goUpperLimitState;
+    }
+
+    public void attachSpecimen() {
+        currentState = attachSpecimenHighState;
     }
 
     public static SpecimenMechanism.SpecimenMechanismBuilder builderFromHardwareMap(
@@ -109,18 +120,22 @@ public class SpecimenMechanism extends LinearLiftController {
 
     @Override
     protected State preHandleButtons() {
-        if (toFirstLineButton != null && toFirstLineButton.getRise()) {
-            return goFirstLineState;
+        if (scoreSpecimenButton != null && scoreSpecimenButton.getRise()) {
+            return attachSpecimenHighState;
         }
 
         // Always allow the gripper to be manipulated!
         if (gripButton != null && gripButton.getRise()) {
             gripServo.setPosition(GRIP_SERVO_GRIPPED_POSITION);
         } else if (ungripButton != null && ungripButton.getRise()) {
-            gripServo.setPosition(GRIP_SERVO_UNGRIPPED_POSITION);
+            openGripper();
         }
 
         return null;
+    }
+
+    public void openGripper() {
+        gripServo.setPosition(GRIP_SERVO_UNGRIPPED_POSITION);
     }
 
     @Override
@@ -130,7 +145,7 @@ public class SpecimenMechanism extends LinearLiftController {
         // We want idle to be able to dump the bucket on command
         this.idleState = new SpecimenLiftIdleState(telemetry);
 
-        goFirstLineState = new LiftGoFirstLineState(telemetry);
+        attachSpecimenHighState = new LiftAttachSpecimenHighState(telemetry);
     }
 
     class SpecimenLiftIdleState extends LiftIdleState {
@@ -155,13 +170,13 @@ public class SpecimenMechanism extends LinearLiftController {
     private DebouncedButton ungripButton;
 
     @Setter
-    private DebouncedButton toFirstLineButton;
+    private DebouncedButton scoreSpecimenButton;
 
     final static double GRIP_SERVO_GRIPPED_POSITION = 0.43;
 
     final static double GRIP_SERVO_UNGRIPPED_POSITION = 0.058;
 
-    private State goFirstLineState;
+    private State attachSpecimenHighState;
 
     @Builder(builderMethodName = "scoringMechanismBuilder")
     protected SpecimenMechanism(Tunables tunables,
@@ -181,17 +196,17 @@ public class SpecimenMechanism extends LinearLiftController {
         this.gripServo.setPosition(GRIP_SERVO_UNGRIPPED_POSITION);
     }
 
-    class LiftGoFirstLineState extends LiftClosedLoopState {
+    class LiftAttachSpecimenHighState extends LiftClosedLoopState {
 
-        LiftGoFirstLineState(Telemetry telemetry) {
-            super("Lift-auto-small", telemetry, TimeUnit.SECONDS.toMillis(15)); // FIXME
+        LiftAttachSpecimenHighState(Telemetry telemetry) {
+            super("Lift-auto-attach-high", telemetry, TimeUnit.SECONDS.toMillis(15)); // FIXME
         }
 
         @Override
         public State doStuffAndGetNextState() {
             if (isTimedOut() && limitOverrideButton != null && !limitOverrideButton.isPressed()) {
                 stopLift();
-                Log.e(LOG_TAG, "Timed out while going to small junction");
+                Log.e(LOG_TAG, "Timed out while attaching specimen");
 
                 return transitionToState(idleState);
             }
@@ -213,7 +228,7 @@ public class SpecimenMechanism extends LinearLiftController {
                 pidController.setOutputRange(-1, 1); // fix bouncing while descending
                 pidController.setAbsoluteSetPoint(true); // MM
 
-                pidController.setTarget(LIFT_FIRST_LINE_ENCODER_POS,
+                pidController.setTarget(LIFT_ATTACH_SPECIMEN_UPPER_CHAMBER_POS,
                         liftMotor.getCurrentPosition());
 
                 initialized = true;

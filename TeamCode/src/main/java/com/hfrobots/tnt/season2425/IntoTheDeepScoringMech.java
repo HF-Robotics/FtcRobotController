@@ -54,7 +54,6 @@ public class IntoTheDeepScoringMech {
         private boolean forearmIsExtended = false;
 
         public void forearmOut() {
-            forearmIsExtended = true;
             double elbowPosition = elbowServo.getPosition();
             elbowPosition += .035;
             elbowPosition = Math.min(elbowPosition, ELBOW_UNSTOWED_SERVO_POSITION);
@@ -63,8 +62,11 @@ public class IntoTheDeepScoringMech {
         }
 
         public void forearmIn() {
-            forearmIsExtended = false;
-            elbowServo.setPosition(ELBOW_STOWED_SERVO_POSITION);
+            double elbowPosition = elbowServo.getPosition();
+            elbowPosition -= .035;
+            elbowPosition = Math.max(elbowPosition, ELBOW_STOWED_SERVO_POSITION);
+
+            elbowServo.setPosition(elbowPosition);
         }
 
         public void intakeSample() {

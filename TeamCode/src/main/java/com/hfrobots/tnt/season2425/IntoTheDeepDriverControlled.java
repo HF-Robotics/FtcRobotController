@@ -40,8 +40,10 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import java.util.List;
 
-@TeleOp(name = "00 ITDeep TeleOp")
+@TeleOp(name = IntoTheDeepDriverControlled.ITDEEP_TELE_OP)
 public class IntoTheDeepDriverControlled extends OpMode {
+
+    public static final String ITDEEP_TELE_OP = "00 ITDeep TeleOp";
 
     private Drivebase drivebase;
 

@@ -23,11 +23,13 @@
 package com.hfrobots.tnt.season2425;
 
 import static com.ftc9929.corelib.Constants.LOG_TAG;
+import static com.hfrobots.tnt.season2425.IntoTheDeepDriverControlled.ITDEEP_TELE_OP;
 
 import android.util.Log;
 import android.util.Size;
 
 import com.ftc9929.corelib.control.NinjaGamePad;
+import com.ftc9929.corelib.state.RunnableState;
 import com.ftc9929.corelib.state.SequenceOfStates;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
@@ -36,13 +38,12 @@ import com.google.common.base.Optional;
 import com.google.common.base.Ticker;
 import com.google.common.collect.Sets;
 import com.hfrobots.tnt.corelib.Constants;
+import com.hfrobots.tnt.corelib.drive.mecanum.MultipleTrajectoriesFollowerState;
 import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
 import com.hfrobots.tnt.corelib.state.ReadyCheckable;
 import com.hfrobots.tnt.season2324.Shared;
-import com.hfrobots.tnt.util.templates.ExampleDriveConstants;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -53,8 +54,7 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-@Disabled
-@Autonomous(name="00 ITDEEP Auto")
+@Autonomous(name = "00 ITDEEP Auto", preselectTeleOp = ITDEEP_TELE_OP)
 public class IntoTheDeepAuto extends OpMode {
     private Ticker ticker;
 
@@ -64,6 +64,8 @@ public class IntoTheDeepAuto extends OpMode {
 
     // Used to ensure that states with circular dependencies are setup correctly
     private final Set<ReadyCheckable> readyCheckables = Sets.newHashSet();
+    private IntoTheDeepScoringMech scoringMech;
+    private SpecimenMechanism specimenMechanism;
 
     // FIXME: The tasks our robot knows how to do - rename these to
     //  something meaningful for the season!
@@ -94,7 +96,7 @@ public class IntoTheDeepAuto extends OpMode {
 
     private int initialDelaySeconds = 0;
 
-    private ExampleDriveConstants driveConstants;
+    private IntoTheDeepDriveConstants driveConstants;
 
     private IntoTheDeepOperatorControls operatorControls;
 
@@ -109,20 +111,26 @@ public class IntoTheDeepAuto extends OpMode {
         Shared.withBetterErrorHandling(() -> {
             ticker = createAndroidTicker();
 
-            // FIXME: Setup mechanisms from hardware map here
+            scoringMech = new IntoTheDeepScoringMech(hardwareMap);
+
+            scoringMech.arm.shoulderDown(0.15F);
+
+            specimenMechanism = SpecimenMechanism.builderFromHardwareMap(hardwareMap, telemetry).build();
 
             setupDriverControls();
             setupOperatorControls();
-            setupVisionPortal(hardwareMap);
+
+            //setupVisionPortal(hardwareMap);
 
             driveTeamSignal = new IntoTheDeepDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
-            driveConstants = new ExampleDriveConstants();
+            driveConstants = new IntoTheDeepDriveConstants();
 
+            // MM: FIXME - how are these sitting?
             IMU.Parameters imuParameters = new IMU.Parameters(
                     new RevHubOrientationOnRobot(
-                            RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
-                            RevHubOrientationOnRobot.UsbFacingDirection.DOWN));
+                            RevHubOrientationOnRobot.LogoFacingDirection.UP,
+                            RevHubOrientationOnRobot.UsbFacingDirection.LEFT));
 
             driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
                     driveConstants, Optional.of(imuParameters));
@@ -151,17 +159,23 @@ public class IntoTheDeepAuto extends OpMode {
 
     @Override
     public void start() {
+        scoringMech.arm.stopShoulder();
+
         Shared.withBetterErrorHandling(() -> {
             super.start();
-            visionPortal.stopLiveView();
+            if (visionPortal != null) {
+                visionPortal.stopLiveView();
+            }
         });
     }
 
     public void stop() {
         Shared.withBetterErrorHandling(() -> {
             super.stop();
-            visionPortal.stopStreaming();
-            visionPortal.stopLiveView();
+            if (visionPortal != null) {
+                visionPortal.stopStreaming();
+                visionPortal.stopLiveView();
+            }
         });
     }
 
@@ -244,6 +258,7 @@ public class IntoTheDeepAuto extends OpMode {
                 stateMachineSetup = true;
             }
 
+            specimenMechanism.periodicTask();
             stateMachine.doOneStateLoop();
 
             // If you have other mechanisms, like a DriveTeamSignal that needs
@@ -268,17 +283,56 @@ public class IntoTheDeepAuto extends OpMode {
     }
 
     protected void setupTaskChoiceA() {
-        // Different ways to do this, if complex transitions involved, then
-        // chain to first state, and then set that as the first state on the state
-        // machine:
-
-        final State firstState = null; // FIXME: Replace with something real
-        stateMachine.setFirstState(firstState);
-
         // Alternatively, for something straightforward you can do sequentials, like this:
         SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
-        sequenceOfStates.addSequential(null /* Use your State */);
-        sequenceOfStates.addWaitStep("Wait 2 seconds", 2, TimeUnit.SECONDS);
+
+        final State moveBackwardsFromWall = new MultipleTrajectoriesFollowerState("Move backwards from wall",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected void createTrajectoryProviders() {
+                addTrajectoryProvider("Off wall", (t) -> t.back(27));
+            }
+        };
+
+        final State raiseGripper = new RunnableState("raiseGripper", telemetry, () -> {
+            specimenMechanism.goAboveHighChamber();
+        });
+
+        final State moveBackwardsToBar = new MultipleTrajectoriesFollowerState("Move backwards to bar",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected void createTrajectoryProviders() {
+                addTrajectoryProvider("to bar", (t) -> t.back(3));
+            }
+        };
+
+        final State hookSpecimen = new RunnableState("hook specimen", telemetry, () -> {
+            specimenMechanism.attachSpecimen();
+        });
+
+        final State openGripper = new RunnableState("open gripper", telemetry, () -> {
+            specimenMechanism.openGripper();
+        });
+
+        final State moveForwardFromBar = new MultipleTrajectoriesFollowerState("Move forward from bar",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected void createTrajectoryProviders() {
+                addTrajectoryProvider("from bar", (t) -> t.forward(3));
+            }
+        };
+
+        sequenceOfStates.addSequential(moveBackwardsFromWall);
+        sequenceOfStates.addSequential(raiseGripper);
+        sequenceOfStates.addWaitStep("Wait for gripper to raise", 2, TimeUnit.SECONDS);
+        sequenceOfStates.addSequential(moveBackwardsToBar);
+        sequenceOfStates.addSequential(hookSpecimen);
+        sequenceOfStates.addWaitStep("Wait for gripper to lower", 1, TimeUnit.SECONDS);
+        sequenceOfStates.addSequential(openGripper);
+        sequenceOfStates.addWaitStep("wait for gripper to open", 2, TimeUnit.SECONDS);
+        sequenceOfStates.addSequential(moveForwardFromBar);
+
+        sequenceOfStates.addSequential(newDoneState("Done!"));
         stateMachine.addSequence(sequenceOfStates);
     }
 
@@ -395,6 +449,9 @@ public class IntoTheDeepAuto extends OpMode {
     }
 
     private void setupOperatorControls() {
-        operatorControls = IntoTheDeepOperatorControls.builder().operatorGamepad(new NinjaGamePad(gamepad2)).build();
+        operatorControls = IntoTheDeepOperatorControls.builder().operatorGamepad(new NinjaGamePad(gamepad2))
+                .scoringMech(scoringMech)
+                .specimenMechanism(specimenMechanism)
+                .build();
     }
 }
