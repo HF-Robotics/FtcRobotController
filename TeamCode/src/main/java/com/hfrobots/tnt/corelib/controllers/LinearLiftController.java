@@ -739,10 +739,12 @@ public class LinearLiftController {
                 return transitionToState(atUpperLimitState);
             }
 
-            if (liftMotor.getCurrentPosition() > tunables.getUpperLimitEncoderPos()) {
-                stopLift();
+            if (!isUnsafePressed()) {
+                if (liftMotor.getCurrentPosition() > tunables.getUpperLimitEncoderPos()) {
+                    stopLift();
 
-                return transitionToState(atUpperLimitState);
+                    return transitionToState(atUpperLimitState);
+                }
             }
 
             if (!liftThrottleIsUp()) {

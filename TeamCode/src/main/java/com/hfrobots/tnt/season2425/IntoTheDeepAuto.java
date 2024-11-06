@@ -70,9 +70,9 @@ public class IntoTheDeepAuto extends OpMode {
     // FIXME: The tasks our robot knows how to do - rename these to
     //  something meaningful for the season!
     private enum Task {
-        TASK_CHOICE_A("Choice A"),
-        TASK_CHOICE_B("Choice B"),
-        TASK_CHOICE_C("Choice C");
+        HANG_SPECIMEN("Hang specimen"); //,
+        //TASK_CHOICE_B("Choice B"),
+        //TASK_CHOICE_C("Choice C");
 
         final String description;
 
@@ -237,15 +237,15 @@ public class IntoTheDeepAuto extends OpMode {
                 // FIXME: Change the methods in the switch() below to align with
                 // the name of each task
                 switch (selectedTask) {
-                    case TASK_CHOICE_A:
-                        setupTaskChoiceA();
+                    case HANG_SPECIMEN:
+                        setupTaskHangSpecimen();
                         break;
-                    case TASK_CHOICE_B:
-                        setupTaskChoiceB();
-                        break;
-                    case TASK_CHOICE_C:
-                        setupTaskChoiceC();
-                        break;
+//                    case TASK_CHOICE_B:
+//                        setupTaskChoiceB();
+//                        break;
+//                    case TASK_CHOICE_C:
+//                        setupTaskChoiceC();
+//                        break;
                     default:
                         stateMachine.addSequential(newDoneState("Default done"));
                         break;
@@ -282,7 +282,7 @@ public class IntoTheDeepAuto extends OpMode {
         }
     }
 
-    protected void setupTaskChoiceA() {
+    protected void setupTaskHangSpecimen() {
         // Alternatively, for something straightforward you can do sequentials, like this:
         SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
 
@@ -290,6 +290,8 @@ public class IntoTheDeepAuto extends OpMode {
                 telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
             @Override
             protected void createTrajectoryProviders() {
+                driveBase.resetLocalizer();
+
                 addTrajectoryProvider("Off wall", (t) -> t.back(27));
             }
         };
@@ -302,6 +304,8 @@ public class IntoTheDeepAuto extends OpMode {
                 telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
             @Override
             protected void createTrajectoryProviders() {
+                driveBase.resetLocalizer();
+
                 addTrajectoryProvider("to bar", (t) -> t.back(3));
             }
         };
@@ -318,7 +322,33 @@ public class IntoTheDeepAuto extends OpMode {
                 telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
             @Override
             protected void createTrajectoryProviders() {
+                driveBase.resetLocalizer();
+
                 addTrajectoryProvider("from bar", (t) -> t.forward(3));
+            }
+        };
+
+        final State lowerSpecimenMechanism = new RunnableState("lower specimen lift", telemetry, () -> {
+            specimenMechanism.stowLift();
+        });
+
+        final State toObservationZone = new MultipleTrajectoriesFollowerState("To observation zone",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected void createTrajectoryProviders() {
+                driveBase.resetLocalizer();
+
+                addTrajectoryProvider("to bar", (t) -> t.strafeLeft(48 + 9));
+            }
+        };
+
+        final State pullToPark = new MultipleTrajectoriesFollowerState("park",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected void createTrajectoryProviders() {
+                driveBase.resetLocalizer();
+
+                addTrajectoryProvider("to bar", (t) -> t.forward(17));
             }
         };
 
@@ -331,7 +361,9 @@ public class IntoTheDeepAuto extends OpMode {
         sequenceOfStates.addSequential(openGripper);
         sequenceOfStates.addWaitStep("wait for gripper to open", 2, TimeUnit.SECONDS);
         sequenceOfStates.addSequential(moveForwardFromBar);
-
+        sequenceOfStates.addSequential(lowerSpecimenMechanism);
+        sequenceOfStates.addSequential(toObservationZone);
+        sequenceOfStates.addSequential(pullToPark);
         sequenceOfStates.addSequential(newDoneState("Done!"));
         stateMachine.addSequence(sequenceOfStates);
     }

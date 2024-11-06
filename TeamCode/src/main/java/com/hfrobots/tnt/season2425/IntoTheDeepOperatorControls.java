@@ -233,6 +233,10 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
             //specimenMechanism.setLiftLowerLimitButton(autoRetractLiftButton);
             //specimenMechanism.setToFirstLineButton(liftToFirstLineButton);
             // FIXME: Needs an e-stop button!
+
+            if (scoringMech != null && unsafe != null) {
+                scoringMech.setUnsafeButton(unsafe);
+            }
         }
     }
 

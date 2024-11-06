@@ -1,19 +1,28 @@
 package com.hfrobots.tnt.season2425;
 
+import com.ftc9929.corelib.control.OnOffButton;
 import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
+import lombok.Setter;
+
 public class IntoTheDeepScoringMech {
+    public static final int SHOULDER_MOTOR_UPPER_LIMIT = 850;
     Arm arm;
+
+    @Setter
+    private OnOffButton unsafeButton;
 
     public IntoTheDeepScoringMech(final HardwareMap hardwareMap) {
         this.arm = new Arm(hardwareMap);
     }
 
-    public static class Arm {
+    public class Arm {
+        public static final float SHOULDER_FEED_FORWARD = 0.24F;
         DcMotorEx shoulderMotor;
 
         Servo elbowServo;
@@ -24,8 +33,6 @@ public class IntoTheDeepScoringMech {
 
         final double ELBOW_UNSTOWED_SERVO_POSITION = .98D;
 
-        final double ARM_ANTI_GRAVITY_FEED_FORWARD = 0;
-
         Arm(final HardwareMap hardwareMap) {
             shoulderMotor = hardwareMap.get(DcMotorEx.class, "shoulderMotor");
             elbowServo = hardwareMap.get(Servo.class, "elbowServo");
@@ -35,23 +42,51 @@ public class IntoTheDeepScoringMech {
             outtakeSample();
         }
 
+        private Integer positionBeforeStopping = null;
+
         public void shoulderUp(float power) {
+            setupShoulderMotorForMovement();
+
+            if (!isUnsafePressed() && shoulderMotor.getCurrentPosition() >= SHOULDER_MOTOR_UPPER_LIMIT) {
+                positionBeforeStopping = SHOULDER_MOTOR_UPPER_LIMIT;
+
+                stopShoulder();
+
+                return;
+            }
+
             shoulderMotor.setPower(power);
         }
 
+        private void setupShoulderMotorForMovement() {
+            positionBeforeStopping = null;
+
+            if (isUnsafePressed()) {
+                shoulderMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            } else {
+                shoulderMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            }
+        }
+
         public void shoulderDown(float power) {
+            setupShoulderMotorForMovement();
+
             shoulderMotor.setPower(-power);
         }
 
         public void stopShoulder() {
-            if (forearmIsExtended) {
-                shoulderUp(0.24F);
+            if (isUnsafePressed()) {
+                shoulderUp(SHOULDER_FEED_FORWARD);
             } else {
-                shoulderMotor.setPower(0);
+                if (positionBeforeStopping == null) {
+                    positionBeforeStopping = shoulderMotor.getCurrentPosition();
+                }
+
+                shoulderMotor.setTargetPosition(positionBeforeStopping);
+                shoulderMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                shoulderMotor.setPower(SHOULDER_FEED_FORWARD);
             }
         }
-
-        private boolean forearmIsExtended = false;
 
         public void forearmOut() {
             double elbowPosition = elbowServo.getPosition();
@@ -80,5 +115,9 @@ public class IntoTheDeepScoringMech {
         public void stopIntake() {
             //intakeServo.setPower(0);
         }
+    }
+
+    boolean isUnsafePressed() {
+        return unsafeButton != null && unsafeButton.isPressed();
     }
 }

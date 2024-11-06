@@ -47,9 +47,9 @@ import lombok.Builder;
 import lombok.Setter;
 
 public class SpecimenMechanism extends LinearLiftController {
-    public static final int LIFT_ABOVE_UPPER_CHAMBER_POS = 9632;
+    public static final int LIFT_ABOVE_UPPER_CHAMBER_POS = 1423 + 34;
 
-    public static final int LIFT_ATTACH_SPECIMEN_UPPER_CHAMBER_POS = 1632;
+    public static final int LIFT_ATTACH_SPECIMEN_UPPER_CHAMBER_POS = 977 + 34;
 
     public static final double K_P_UP_TO_LINE = .008;
     protected static Tunables goBilda26_1 = new Tunables(){
@@ -95,6 +95,10 @@ public class SpecimenMechanism extends LinearLiftController {
 
     public void goAboveHighChamber() {
         currentState = goUpperLimitState;
+    }
+
+    public void stowLift() {
+        currentState = goLowerLimitState;
     }
 
     public void attachSpecimen() {
