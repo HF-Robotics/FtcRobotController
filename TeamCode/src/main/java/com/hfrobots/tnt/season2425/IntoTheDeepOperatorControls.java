@@ -97,13 +97,14 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
 
     private OnOffButton sampleOuttakeButton;
 
-
     // FIXME: Add all of the mechanisms controlled by the operator here, and add them to
     // the constructor, and set them there from the constructor arguments
 
     private SpecimenMechanism specimenMechanism;
 
     private IntoTheDeepScoringMech scoringMech;
+
+    private boolean noSpecimenAutoUpDown;
 
     @Builder
     private IntoTheDeepOperatorControls(RangeInput leftStickX,
@@ -128,7 +129,8 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
                                         RangeInput rightTrigger,
                                         NinjaGamePad operatorGamepad,
                                         IntoTheDeepScoringMech scoringMech,
-                                        SpecimenMechanism specimenMechanism) {
+                                        SpecimenMechanism specimenMechanism,
+                                        boolean noAutoSpecimenUpDown) {
         if (operatorGamepad != null) {
             this.operatorGamepad = operatorGamepad;
             setupFromGamepad();
@@ -150,6 +152,8 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
             this.leftTrigger = leftTrigger;
             this.rightTrigger = rightTrigger;
         }
+
+        this.noSpecimenAutoUpDown = noAutoSpecimenUpDown;
 
         setupDerivedControls();
 
@@ -201,8 +205,8 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
         specimenGripButton = aGreenButton.debounced();
         specimenUngripButton = bRedButton.debounced();
         // FIXME!
-        goHighChamberButton = null;
-        scoreSpecimenButton = null;
+        goHighChamberButton = dpadUp.debounced();
+        scoreSpecimenButton = dpadDown.debounced();
 
         forearmOutButton = xBlueButton;
         forearmInButton = yYellowButton;
@@ -221,12 +225,14 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
             specimenMechanism.setUngripButton(specimenUngripButton);
             specimenMechanism.setLimitOverrideButton(unsafe);
 
-            if (goHighChamberButton != null) {
-                specimenMechanism.setLiftUpperLimitButton(goHighChamberButton);
-            }
+            if (!noSpecimenAutoUpDown) {
+                if (goHighChamberButton != null) {
+                    specimenMechanism.setLiftUpperLimitButton(goHighChamberButton);
+                }
 
-            if (scoreSpecimenButton != null) {
-                specimenMechanism.setScoreSpecimenButton(scoreSpecimenButton);
+                if (scoreSpecimenButton != null) {
+                    specimenMechanism.setScoreSpecimenButton(scoreSpecimenButton);
+                }
             }
 
             // FIXME

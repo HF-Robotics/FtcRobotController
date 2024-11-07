@@ -70,9 +70,9 @@ public class IntoTheDeepAuto extends OpMode {
     // FIXME: The tasks our robot knows how to do - rename these to
     //  something meaningful for the season!
     private enum Task {
-        HANG_SPECIMEN("Hang specimen"); //,
-        //TASK_CHOICE_B("Choice B"),
-        //TASK_CHOICE_C("Choice C");
+        HANG_SPECIMEN("Hang specimen"),
+        HANG_SPECIMEN_NO_PARK("Hang specimen - no park"),
+        HANG_SPECIMEN_NET_SIDE("Hang specimen - net side");
 
         final String description;
 
@@ -240,12 +240,12 @@ public class IntoTheDeepAuto extends OpMode {
                     case HANG_SPECIMEN:
                         setupTaskHangSpecimen();
                         break;
-//                    case TASK_CHOICE_B:
-//                        setupTaskChoiceB();
-//                        break;
-//                    case TASK_CHOICE_C:
-//                        setupTaskChoiceC();
-//                        break;
+                    case HANG_SPECIMEN_NO_PARK:
+                        setupTaskHangSpecimenNoPark();
+                        break;
+                    case HANG_SPECIMEN_NET_SIDE:
+                        setupTaskHangSpecimenGoToNets();
+                        break;
                     default:
                         stateMachine.addSequential(newDoneState("Default done"));
                         break;
@@ -286,6 +286,69 @@ public class IntoTheDeepAuto extends OpMode {
         // Alternatively, for something straightforward you can do sequentials, like this:
         SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
 
+        setupCommonSpecimenHang(sequenceOfStates, false);
+
+        final State toObservationZone = new MultipleTrajectoriesFollowerState("To observation zone",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected void createTrajectoryProviders() {
+                driveBase.resetLocalizer();
+
+                addTrajectoryProvider("to bar", (t) -> t.strafeLeft(48 + 9));
+            }
+        };
+
+        final State pullToPark = new MultipleTrajectoriesFollowerState("park",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected void createTrajectoryProviders() {
+                driveBase.resetLocalizer();
+
+                addTrajectoryProvider("to bar", (t) -> t.forward(17));
+            }
+        };
+
+        sequenceOfStates.addSequential(toObservationZone);
+        sequenceOfStates.addSequential(pullToPark);
+        sequenceOfStates.addSequential(newDoneState("Done!"));
+        stateMachine.addSequence(sequenceOfStates);
+    }
+
+    protected void setupTaskHangSpecimenNoPark() {
+        // Alternatively, for something straightforward you can do sequentials, like this:
+        SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
+
+        setupCommonSpecimenHang(sequenceOfStates, false);
+
+        sequenceOfStates.addSequential(newDoneState("Done!"));
+        stateMachine.addSequence(sequenceOfStates);
+    }
+
+    protected void setupTaskHangSpecimenGoToNets() {
+        // Alternatively, for something straightforward you can do sequentials, like this:
+        SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
+
+        setupCommonSpecimenHang(sequenceOfStates, true);
+
+        final State moveToNets = new MultipleTrajectoriesFollowerState("move to nets",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected void createTrajectoryProviders() {
+                driveBase.resetLocalizer();
+
+                addTrajectoryProvider("to bar", (t) -> t.strafeRight(48 +9));
+            }
+        };
+
+        sequenceOfStates.addSequential(moveToNets);
+
+        sequenceOfStates.addSequential(newDoneState("Done!"));
+        stateMachine.addSequence(sequenceOfStates);
+    }
+
+    private void setupCommonSpecimenHang(final SequenceOfStates sequenceOfStates,
+                                         boolean needsStrafeToAlignWithChamber) {
+
         final State moveBackwardsFromWall = new MultipleTrajectoriesFollowerState("Move backwards from wall",
                 telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
             @Override
@@ -300,13 +363,15 @@ public class IntoTheDeepAuto extends OpMode {
             specimenMechanism.goAboveHighChamber();
         });
 
+        final double distanceToBar = needsStrafeToAlignWithChamber ? 4 : 3;
+
         final State moveBackwardsToBar = new MultipleTrajectoriesFollowerState("Move backwards to bar",
                 telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
             @Override
             protected void createTrajectoryProviders() {
                 driveBase.resetLocalizer();
 
-                addTrajectoryProvider("to bar", (t) -> t.back(3));
+                addTrajectoryProvider("to bar", (t) -> t.back(distanceToBar));
             }
         };
 
@@ -332,29 +397,24 @@ public class IntoTheDeepAuto extends OpMode {
             specimenMechanism.stowLift();
         });
 
-        final State toObservationZone = new MultipleTrajectoriesFollowerState("To observation zone",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected void createTrajectoryProviders() {
-                driveBase.resetLocalizer();
-
-                addTrajectoryProvider("to bar", (t) -> t.strafeLeft(48 + 9));
-            }
-        };
-
-        final State pullToPark = new MultipleTrajectoriesFollowerState("park",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected void createTrajectoryProviders() {
-                driveBase.resetLocalizer();
-
-                addTrajectoryProvider("to bar", (t) -> t.forward(17));
-            }
-        };
-
         sequenceOfStates.addSequential(moveBackwardsFromWall);
         sequenceOfStates.addSequential(raiseGripper);
         sequenceOfStates.addWaitStep("Wait for gripper to raise", 2, TimeUnit.SECONDS);
+
+        if (needsStrafeToAlignWithChamber) {
+            final State alignWithChambers = new MultipleTrajectoriesFollowerState("align with chambers",
+                    telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+                @Override
+                protected void createTrajectoryProviders() {
+                    driveBase.resetLocalizer();
+
+                    addTrajectoryProvider("to bar", (t) -> t.strafeLeft(16));
+                }
+            };
+
+            sequenceOfStates.addSequential(alignWithChambers);
+        }
+
         sequenceOfStates.addSequential(moveBackwardsToBar);
         sequenceOfStates.addSequential(hookSpecimen);
         sequenceOfStates.addWaitStep("Wait for gripper to lower", 1, TimeUnit.SECONDS);
@@ -362,18 +422,6 @@ public class IntoTheDeepAuto extends OpMode {
         sequenceOfStates.addWaitStep("wait for gripper to open", 2, TimeUnit.SECONDS);
         sequenceOfStates.addSequential(moveForwardFromBar);
         sequenceOfStates.addSequential(lowerSpecimenMechanism);
-        sequenceOfStates.addSequential(toObservationZone);
-        sequenceOfStates.addSequential(pullToPark);
-        sequenceOfStates.addSequential(newDoneState("Done!"));
-        stateMachine.addSequence(sequenceOfStates);
-    }
-
-    void setupTaskChoiceB() {
-
-    }
-
-    void setupTaskChoiceC() {
-
     }
 
     protected State newMsDelayState(String name, final int numberOfMillis) {
@@ -484,6 +532,7 @@ public class IntoTheDeepAuto extends OpMode {
         operatorControls = IntoTheDeepOperatorControls.builder().operatorGamepad(new NinjaGamePad(gamepad2))
                 .scoringMech(scoringMech)
                 .specimenMechanism(specimenMechanism)
+                .noAutoSpecimenUpDown(true)
                 .build();
     }
 }
