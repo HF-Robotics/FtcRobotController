@@ -35,6 +35,7 @@ import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
 import com.ftc9929.corelib.state.StopwatchDelayState;
 import com.google.common.base.Optional;
+import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
 import com.google.common.collect.Sets;
 import com.hfrobots.tnt.corelib.Constants;
@@ -115,6 +116,8 @@ public class IntoTheDeepAuto extends OpMode {
 
             scoringMech.arm.shoulderDown(0.15F);
 
+            unstallArmTimer.start();
+
             specimenMechanism = SpecimenMechanism.builderFromHardwareMap(hardwareMap, telemetry).build();
 
             setupDriverControls();
@@ -181,8 +184,16 @@ public class IntoTheDeepAuto extends OpMode {
 
     private boolean configLocked = false;
 
+    private Stopwatch unstallArmTimer = Stopwatch.createUnstarted();
+
     @Override
     public void init_loop() {
+        if (unstallArmTimer.isRunning() && unstallArmTimer.elapsed(TimeUnit.SECONDS) > 30) {
+            scoringMech.arm.setDeadStop();
+            unstallArmTimer.stop();
+            Log.d(LOG_TAG, "Un-stalling arm - waited too long in init()");
+        }
+
         doAutoConfig();
         updateTelemetry(telemetry);
     }
@@ -363,7 +374,7 @@ public class IntoTheDeepAuto extends OpMode {
             specimenMechanism.goAboveHighChamber();
         });
 
-        final double distanceToBar = needsStrafeToAlignWithChamber ? 4 : 3;
+        final double distanceToBar = needsStrafeToAlignWithChamber ? 4 + 1 : 3 + 1;
 
         final State moveBackwardsToBar = new MultipleTrajectoriesFollowerState("Move backwards to bar",
                 telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {

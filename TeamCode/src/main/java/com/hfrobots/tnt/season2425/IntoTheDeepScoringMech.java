@@ -36,7 +36,8 @@ public class IntoTheDeepScoringMech {
         Arm(final HardwareMap hardwareMap) {
             shoulderMotor = hardwareMap.get(DcMotorEx.class, "shoulderMotor");
             elbowServo = hardwareMap.get(Servo.class, "elbowServo");
-            elbowServo.setPosition(ELBOW_STOWED_SERVO_POSITION);
+            currentForearmServoPos =   ELBOW_STOWED_SERVO_POSITION;
+            maintainForearmPosition();
 
             intakeServo = hardwareMap.get(Servo.class, "intakeServo");
             outtakeSample();
@@ -88,18 +89,32 @@ public class IntoTheDeepScoringMech {
             }
         }
 
+        public void setDeadStop() {
+            shoulderMotor.setPower(0);
+        }
+
         public void forearmOut() {
             double elbowPosition = elbowServo.getPosition();
             elbowPosition += .035;
             elbowPosition = Math.min(elbowPosition, ELBOW_UNSTOWED_SERVO_POSITION);
 
+            currentForearmServoPos = elbowPosition;
             elbowServo.setPosition(elbowPosition);
         }
+
+        // FIXME: Hack, hack (or maybe a mitigation?)
+
+        public void maintainForearmPosition() {
+            elbowServo.setPosition(currentForearmServoPos);
+        }
+
+        private double currentForearmServoPos;
 
         public void forearmIn() {
             double elbowPosition = elbowServo.getPosition();
             elbowPosition -= .035;
             elbowPosition = Math.max(elbowPosition, ELBOW_STOWED_SERVO_POSITION);
+            currentForearmServoPos = elbowPosition;
 
             elbowServo.setPosition(elbowPosition);
         }
@@ -110,6 +125,10 @@ public class IntoTheDeepScoringMech {
 
         public void outtakeSample() {
             intakeServo.setPosition(0);
+        }
+
+        public void maintainIntakeServoPos() {
+            intakeServo.setPosition(intakeServo.getPosition());
         }
 
         public void stopIntake() {

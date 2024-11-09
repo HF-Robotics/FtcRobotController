@@ -93,9 +93,9 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
 
     private OnOffButton forearmInButton;
 
-    private OnOffButton sampleIntakeButton;
+    private DebouncedButton sampleIntakeButton;
 
-    private OnOffButton sampleOuttakeButton;
+    private DebouncedButton sampleOuttakeButton;
 
     // FIXME: Add all of the mechanisms controlled by the operator here, and add them to
     // the constructor, and set them there from the constructor arguments
@@ -205,15 +205,15 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
         specimenGripButton = aGreenButton.debounced();
         specimenUngripButton = bRedButton.debounced();
         // FIXME!
-        goHighChamberButton = dpadUp.debounced();
-        scoreSpecimenButton = dpadDown.debounced();
+        goHighChamberButton = null;
+        scoreSpecimenButton = null;
 
         forearmOutButton = xBlueButton;
         forearmInButton = yYellowButton;
 
-        sampleIntakeButton = new RangeInputButton(rightTrigger, 0.5F);
+        sampleIntakeButton = new RangeInputButton(rightTrigger, 0.5F).debounced();
 
-        sampleOuttakeButton = rightBumper;
+        sampleOuttakeButton = rightBumper.debounced();
     }
 
     // FIXME: As-needed, set controls to setters on scoring mechanisms that have
@@ -263,14 +263,16 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
             scoringMech.arm.forearmIn();
         } else if (forearmOutButton.isPressed()) {
             scoringMech.arm.forearmOut();
+        } else {
+            scoringMech.arm.maintainForearmPosition();
         }
 
-        if (sampleIntakeButton.isPressed()) {
+        if (sampleIntakeButton.getRise()) {
             scoringMech.arm.intakeSample();
-        } else if (sampleOuttakeButton.isPressed()) {
+        } else if (sampleOuttakeButton.getRise()) {
             scoringMech.arm.outtakeSample();
         } else {
-            scoringMech.arm.stopIntake();
+            scoringMech.arm.maintainIntakeServoPos();
         }
 
         if (specimenMechanism != null) {

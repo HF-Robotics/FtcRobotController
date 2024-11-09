@@ -130,15 +130,31 @@ public class SpecimenMechanism extends LinearLiftController {
 
         // Always allow the gripper to be manipulated!
         if (gripButton != null && gripButton.getRise()) {
-            gripServo.setPosition(GRIP_SERVO_GRIPPED_POSITION);
+            Log.i(LOG_TAG, "Specimen grip command");
+            closeGripper();
         } else if (ungripButton != null && ungripButton.getRise()) {
+            Log.i(LOG_TAG, "Specimen un-grip command");
             openGripper();
+        }
+
+        if (keepGripperClosed) {
+            gripServo.setPosition(GRIP_SERVO_GRIPPED_POSITION);
+        } else {
+            gripServo.setPosition(GRIP_SERVO_UNGRIPPED_POSITION);
         }
 
         return null;
     }
 
+    private boolean keepGripperClosed = false;
+
+    private void closeGripper() {
+        keepGripperClosed = true;
+        gripServo.setPosition(GRIP_SERVO_GRIPPED_POSITION);
+    }
+
     public void openGripper() {
+        keepGripperClosed = false;
         gripServo.setPosition(GRIP_SERVO_UNGRIPPED_POSITION);
     }
 
@@ -176,7 +192,7 @@ public class SpecimenMechanism extends LinearLiftController {
     @Setter
     private DebouncedButton scoreSpecimenButton;
 
-    final static double GRIP_SERVO_GRIPPED_POSITION = 0.43;
+    final static double GRIP_SERVO_GRIPPED_POSITION = 0.366666;
 
     final static double GRIP_SERVO_UNGRIPPED_POSITION = 0.058;
 
