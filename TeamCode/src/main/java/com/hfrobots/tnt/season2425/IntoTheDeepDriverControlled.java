@@ -42,8 +42,9 @@ import java.util.List;
 
 @TeleOp(name = IntoTheDeepDriverControlled.ITDEEP_TELE_OP)
 public class IntoTheDeepDriverControlled extends OpMode {
-
     public static final String ITDEEP_TELE_OP = "00 ITDeep TeleOp";
+
+    private final boolean emitMetrics = false;
 
     private Drivebase drivebase;
 
@@ -100,23 +101,25 @@ public class IntoTheDeepDriverControlled extends OpMode {
     }
 
     private void setupMetricsSampler(NinjaGamePad driversGamepad, NinjaGamePad operatorGamepad) {
-        try {
-            if (useLegacyMetricsSampler) {
-                legacyMetricsSampler = new StatsDMetricSampler(hardwareMap, driversGamepad, operatorGamepad);
-            } else {
-                StatsdMetricsReporter metricsReporter = StatsdMetricsReporter.builder()
-                        .metricsServerHost("192.168.43.78").
-                                metricsServerPortNumber(8126).build();
+        if (emitMetrics) {
+            try {
+                if (useLegacyMetricsSampler) {
+                    legacyMetricsSampler = new StatsDMetricSampler(hardwareMap, driversGamepad, operatorGamepad);
+                } else {
+                    StatsdMetricsReporter metricsReporter = StatsdMetricsReporter.builder()
+                            .metricsServerHost("192.168.43.78").
+                            metricsServerPortNumber(8126).build();
 
-                newMetricsSampler = RobotMetricsSampler.builder()
-                        .metricsReporter(metricsReporter)
-                        .hardwareMap(hardwareMap)
-                        .driverControls(driversGamepad)
-                        .operatorControls(operatorGamepad).build();
+                    newMetricsSampler = RobotMetricsSampler.builder()
+                            .metricsReporter(metricsReporter)
+                            .hardwareMap(hardwareMap)
+                            .driverControls(driversGamepad)
+                            .operatorControls(operatorGamepad).build();
 
+                }
+            } catch (Exception ex) {
+                Log.w(LOG_TAG, "Unable to setup metrics sampler", ex);
             }
-        } catch (Exception ex) {
-            Log.w(LOG_TAG, "Unable to setup metrics sampler", ex);
         }
     }
 
@@ -149,13 +152,15 @@ public class IntoTheDeepDriverControlled extends OpMode {
 
             operatorControls.periodicTask();
 
-            if (useLegacyMetricsSampler) {
-                if (legacyMetricsSampler != null) {
-                    legacyMetricsSampler.doSamples();
-                }
-            } else {
-                if (newMetricsSampler != null) {
-                    newMetricsSampler.doSamples();
+            if (emitMetrics) {
+                if (useLegacyMetricsSampler) {
+                    if (legacyMetricsSampler != null) {
+                        legacyMetricsSampler.doSamples();
+                    }
+                } else {
+                    if (newMetricsSampler != null) {
+                        newMetricsSampler.doSamples();
+                    }
                 }
             }
 
