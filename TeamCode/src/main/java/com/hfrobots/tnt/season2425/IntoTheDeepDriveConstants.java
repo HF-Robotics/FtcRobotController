@@ -23,12 +23,10 @@
 package com.hfrobots.tnt.season2425;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.roadrunner.control.PIDCoefficients;
-import com.hfrobots.tnt.corelib.drive.mecanum.DriveConstants;
 
 @Config
-public class IntoTheDeepDriveConstants extends DriveConstants {
-
+public class IntoTheDeepDriveConstants /* extends DriveConstants */ {
+/*
     private static final double INTO_THE_DEEP_TICKS_PER_REV = 537.6;
     private static DriveConstraints DRIVE_CONSTRAINTS = new DriveConstraints(80, 30.0, 0.0,
             Math.toRadians(27), Math.toRadians(90.0), 0.0);
@@ -58,5 +56,5 @@ public class IntoTheDeepDriveConstants extends DriveConstants {
     @Override
     public DriveConstraints getDriveConstraints() {
         return DRIVE_CONSTRAINTS;
-    }
+    }*/
 }

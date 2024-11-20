@@ -34,15 +34,12 @@ import com.ftc9929.corelib.state.SequenceOfStates;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
 import com.ftc9929.corelib.state.StopwatchDelayState;
-import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
 import com.google.common.collect.Sets;
 import com.hfrobots.tnt.corelib.Constants;
-import com.hfrobots.tnt.corelib.drive.mecanum.MultipleTrajectoriesFollowerState;
-import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
 import com.hfrobots.tnt.corelib.state.ReadyCheckable;
-import com.hfrobots.tnt.season2324.Shared;
+import com.hfrobots.tnt.util.Shared;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -59,7 +56,7 @@ import java.util.concurrent.TimeUnit;
 public class IntoTheDeepAuto extends OpMode {
     private Ticker ticker;
 
-    private RoadRunnerMecanumDriveBase driveBase;
+    // private RoadRunnerMecanumDriveBase driveBase;
 
     private StateMachine stateMachine;
 
@@ -135,8 +132,8 @@ public class IntoTheDeepAuto extends OpMode {
                             RevHubOrientationOnRobot.LogoFacingDirection.UP,
                             RevHubOrientationOnRobot.UsbFacingDirection.LEFT));
 
-            driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
-                    driveConstants, Optional.of(imuParameters));
+            //driveBase = new RoadRunnerMecanumDriveBase(hardwareMap,
+            //        driveConstants, Optional.of(imuParameters));
 
             stateMachine = new StateMachine(telemetry);
         });
@@ -298,30 +295,30 @@ public class IntoTheDeepAuto extends OpMode {
         SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
 
         setupCommonSpecimenHang(sequenceOfStates, false);
-
-        final State toObservationZone = new MultipleTrajectoriesFollowerState("To observation zone",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected void createTrajectoryProviders() {
-                driveBase.resetLocalizer();
-
-                addTrajectoryProvider("to bar", (t) -> t.strafeLeft(48 + 9));
-            }
-        };
-
-        final State pullToPark = new MultipleTrajectoriesFollowerState("park",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected void createTrajectoryProviders() {
-                driveBase.resetLocalizer();
-
-                addTrajectoryProvider("to bar", (t) -> t.forward(17));
-            }
-        };
-
-        sequenceOfStates.addSequential(toObservationZone);
-        sequenceOfStates.addSequential(pullToPark);
-        sequenceOfStates.addSequential(newDoneState("Done!"));
+//
+//        final State toObservationZone = new MultipleTrajectoriesFollowerState("To observation zone",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected void createTrajectoryProviders() {
+//                driveBase.resetLocalizer();
+//
+//                addTrajectoryProvider("to bar", (t) -> t.strafeLeft(48 + 9));
+//            }
+//        };
+//
+//        final State pullToPark = new MultipleTrajectoriesFollowerState("park",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected void createTrajectoryProviders() {
+//                driveBase.resetLocalizer();
+//
+//                addTrajectoryProvider("to bar", (t) -> t.forward(17));
+//            }
+//        };
+//
+//        sequenceOfStates.addSequential(toObservationZone);
+//        sequenceOfStates.addSequential(pullToPark);
+//        sequenceOfStates.addSequential(newDoneState("Done!"));
         stateMachine.addSequence(sequenceOfStates);
     }
 
@@ -341,17 +338,17 @@ public class IntoTheDeepAuto extends OpMode {
 
         setupCommonSpecimenHang(sequenceOfStates, true);
 
-        final State moveToNets = new MultipleTrajectoriesFollowerState("move to nets",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected void createTrajectoryProviders() {
-                driveBase.resetLocalizer();
-
-                addTrajectoryProvider("to bar", (t) -> t.strafeRight(48 +9));
-            }
-        };
-
-        sequenceOfStates.addSequential(moveToNets);
+//        final State moveToNets = new MultipleTrajectoriesFollowerState("move to nets",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected void createTrajectoryProviders() {
+//                driveBase.resetLocalizer();
+//
+//                addTrajectoryProvider("to bar", (t) -> t.strafeRight(48 +9));
+//            }
+//        };
+//
+//        sequenceOfStates.addSequential(moveToNets);
 
         sequenceOfStates.addSequential(newDoneState("Done!"));
         stateMachine.addSequence(sequenceOfStates);
@@ -360,15 +357,15 @@ public class IntoTheDeepAuto extends OpMode {
     private void setupCommonSpecimenHang(final SequenceOfStates sequenceOfStates,
                                          boolean needsStrafeToAlignWithChamber) {
 
-        final State moveBackwardsFromWall = new MultipleTrajectoriesFollowerState("Move backwards from wall",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected void createTrajectoryProviders() {
-                driveBase.resetLocalizer();
-
-                addTrajectoryProvider("Off wall", (t) -> t.back(27));
-            }
-        };
+//        final State moveBackwardsFromWall = new MultipleTrajectoriesFollowerState("Move backwards from wall",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected void createTrajectoryProviders() {
+//                driveBase.resetLocalizer();
+//
+//                addTrajectoryProvider("Off wall", (t) -> t.back(27));
+//            }
+//        };
 
         final State raiseGripper = new RunnableState("raiseGripper", telemetry, () -> {
             specimenMechanism.goAboveHighChamber();
@@ -376,15 +373,15 @@ public class IntoTheDeepAuto extends OpMode {
 
         final double distanceToBar = needsStrafeToAlignWithChamber ? 4 + 1 : 3 + 1;
 
-        final State moveBackwardsToBar = new MultipleTrajectoriesFollowerState("Move backwards to bar",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected void createTrajectoryProviders() {
-                driveBase.resetLocalizer();
-
-                addTrajectoryProvider("to bar", (t) -> t.back(distanceToBar));
-            }
-        };
+//        final State moveBackwardsToBar = new MultipleTrajectoriesFollowerState("Move backwards to bar",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected void createTrajectoryProviders() {
+//                driveBase.resetLocalizer();
+//
+//                addTrajectoryProvider("to bar", (t) -> t.back(distanceToBar));
+//            }
+//        };
 
         final State hookSpecimen = new RunnableState("hook specimen", telemetry, () -> {
             specimenMechanism.attachSpecimen();
@@ -393,45 +390,45 @@ public class IntoTheDeepAuto extends OpMode {
         final State openGripper = new RunnableState("open gripper", telemetry, () -> {
             specimenMechanism.openGripper();
         });
-
-        final State moveForwardFromBar = new MultipleTrajectoriesFollowerState("Move forward from bar",
-                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-            @Override
-            protected void createTrajectoryProviders() {
-                driveBase.resetLocalizer();
-
-                addTrajectoryProvider("from bar", (t) -> t.forward(3));
-            }
-        };
+//
+//        final State moveForwardFromBar = new MultipleTrajectoriesFollowerState("Move forward from bar",
+//                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//            @Override
+//            protected void createTrajectoryProviders() {
+//                driveBase.resetLocalizer();
+//
+//                addTrajectoryProvider("from bar", (t) -> t.forward(3));
+//            }
+//        };
 
         final State lowerSpecimenMechanism = new RunnableState("lower specimen lift", telemetry, () -> {
             specimenMechanism.stowLift();
         });
 
-        sequenceOfStates.addSequential(moveBackwardsFromWall);
+        //sequenceOfStates.addSequential(moveBackwardsFromWall);
         sequenceOfStates.addSequential(raiseGripper);
         sequenceOfStates.addWaitStep("Wait for gripper to raise", 2, TimeUnit.SECONDS);
 
         if (needsStrafeToAlignWithChamber) {
-            final State alignWithChambers = new MultipleTrajectoriesFollowerState("align with chambers",
-                    telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
-                @Override
-                protected void createTrajectoryProviders() {
-                    driveBase.resetLocalizer();
+//            final State alignWithChambers = new MultipleTrajectoriesFollowerState("align with chambers",
+//                    telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+//                @Override
+//                protected void createTrajectoryProviders() {
+//                    driveBase.resetLocalizer();
+//
+//                    addTrajectoryProvider("to bar", (t) -> t.strafeLeft(16));
+//                }
+//            };
 
-                    addTrajectoryProvider("to bar", (t) -> t.strafeLeft(16));
-                }
-            };
-
-            sequenceOfStates.addSequential(alignWithChambers);
+           // sequenceOfStates.addSequential(alignWithChambers);
         }
 
-        sequenceOfStates.addSequential(moveBackwardsToBar);
+        //sequenceOfStates.addSequential(moveBackwardsToBar);
         sequenceOfStates.addSequential(hookSpecimen);
         sequenceOfStates.addWaitStep("Wait for gripper to lower", 1, TimeUnit.SECONDS);
         sequenceOfStates.addSequential(openGripper);
         sequenceOfStates.addWaitStep("wait for gripper to open", 2, TimeUnit.SECONDS);
-        sequenceOfStates.addSequential(moveForwardFromBar);
+        //sequenceOfStates.addSequential(moveForwardFromBar);
         sequenceOfStates.addSequential(lowerSpecimenMechanism);
     }
 
@@ -451,7 +448,7 @@ public class IntoTheDeepAuto extends OpMode {
             public State doStuffAndGetNextState() {
                 // FIXME: Stop everything on the robot here
                 if (!issuedStop) {
-                    driveBase.setMotorPowers(0, 0, 0, 0);
+                    //driveBase.setMotorPowers(0, 0, 0, 0);
 
                     issuedStop = true;
                 }
