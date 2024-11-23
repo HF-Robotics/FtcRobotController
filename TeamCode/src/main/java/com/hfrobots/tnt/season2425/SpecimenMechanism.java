@@ -29,7 +29,9 @@ import android.util.Log;
 import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.OnOffButton;
 import com.ftc9929.corelib.control.RangeInput;
+import com.ftc9929.corelib.control.StallDetector;
 import com.ftc9929.corelib.state.State;
+import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.controllers.LinearLiftController;
 import com.hfrobots.tnt.corelib.drive.ExtendedDcMotor;
 import com.hfrobots.tnt.corelib.drive.NinjaMotor;
@@ -95,6 +97,10 @@ public class SpecimenMechanism extends LinearLiftController {
 
     public void goAboveHighChamber() {
         currentState = goUpperLimitState;
+    }
+
+    public boolean isAboveHighChamber() {
+        return isAtUpperLimit();
     }
 
     public void stowLift() {
@@ -218,8 +224,11 @@ public class SpecimenMechanism extends LinearLiftController {
 
     class LiftAttachSpecimenHighState extends LiftClosedLoopState {
 
+        StallDetector stallDetector = new StallDetector(
+                Ticker.systemTicker(), 20, 250);
+
         LiftAttachSpecimenHighState(Telemetry telemetry) {
-            super("Lift-auto-attach-high", telemetry, TimeUnit.SECONDS.toMillis(15)); // FIXME
+            super("Lift-auto-attach-high", telemetry, TimeUnit.SECONDS.toMillis(1)); // FIXME
         }
 
         @Override
@@ -261,6 +270,13 @@ public class SpecimenMechanism extends LinearLiftController {
             if (pidController.isOnTarget()) {
                 Log.d(LOG_TAG, "Lift reached small target");
 
+                stopLift();
+
+                return transitionToState(idleState);
+            }
+
+            if (stallDetector.isStalled(liftMotor.getCurrentPosition())) {
+                Log.i(LOG_TAG, "Lift motor stalled, assuming attached");
                 stopLift();
 
                 return transitionToState(idleState);
