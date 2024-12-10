@@ -32,9 +32,7 @@ import com.ftc9929.metrics.StatsdMetricsReporter;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
 import com.hfrobots.tnt.season2324.Shared;
-import com.hfrobots.tnt.util.templates.Drivebase;
 import com.qualcomm.hardware.lynx.LynxModule;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -46,7 +44,7 @@ public class IntoTheDeepDriverControlled extends OpMode {
 
     private final boolean emitMetrics = false;
 
-    private Drivebase drivebase;
+    private IntoTheDeepDrivebase drivebase;
 
     private IntoTheDeepDriverControls driverControls;
 
@@ -67,7 +65,7 @@ public class IntoTheDeepDriverControlled extends OpMode {
         Shared.withBetterErrorHandling(() -> {
             final Ticker ticker = Ticker.systemTicker();
 
-            drivebase = new Drivebase(hardwareMap);
+            drivebase = new IntoTheDeepDrivebase(hardwareMap);
 
             NinjaGamePad driversGamepad = new NinjaGamePad(gamepad1);
 
@@ -78,7 +76,7 @@ public class IntoTheDeepDriverControlled extends OpMode {
             NinjaGamePad operatorGamepad = new NinjaGamePad(gamepad2);
 
             // FIXME: Add mechanisms when they exist
-            final IntoTheDeepScoringMech scoringMech = new IntoTheDeepScoringMech(hardwareMap);
+            final IntoTheDeepScoringMech scoringMech = new IntoTheDeepScoringMech(hardwareMap, telemetry);
 
             final SpecimenMechanism specimenMechanism = SpecimenMechanism.builderFromHardwareMap(hardwareMap, telemetry).build();
 

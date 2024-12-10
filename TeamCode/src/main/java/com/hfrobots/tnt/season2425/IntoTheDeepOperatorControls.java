@@ -197,7 +197,7 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
     private void setupDerivedControls() {
         unsafe = new RangeInputButton( leftTrigger, 0.65f);
         final RangeInput armThrottleCurve = ParametricScaledRangeInput.builder()
-                .throttleExponent(11).throttleGain(0.7F).rawInput(leftStickY).build();
+                .throttleExponent(11).throttleGain(0.9F).rawInput(leftStickY).build();
 
         shoulderRotate = armThrottleCurve;
 

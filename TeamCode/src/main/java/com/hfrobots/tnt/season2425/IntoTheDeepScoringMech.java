@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 import lombok.Setter;
 
 public class IntoTheDeepScoringMech {
@@ -17,8 +19,11 @@ public class IntoTheDeepScoringMech {
     @Setter
     private OnOffButton unsafeButton;
 
-    public IntoTheDeepScoringMech(final HardwareMap hardwareMap) {
+    private final Telemetry telemetry;
+
+    public IntoTheDeepScoringMech(final HardwareMap hardwareMap, final Telemetry telemetry) {
         this.arm = new Arm(hardwareMap);
+        this.telemetry = telemetry;
     }
 
     public class Arm {
@@ -95,11 +100,12 @@ public class IntoTheDeepScoringMech {
 
         public void forearmOut() {
             double elbowPosition = elbowServo.getPosition();
-            elbowPosition += .035;
+            elbowPosition += .008;
             elbowPosition = Math.min(elbowPosition, ELBOW_UNSTOWED_SERVO_POSITION);
 
             currentForearmServoPos = elbowPosition;
             elbowServo.setPosition(elbowPosition);
+            telemetry.addData("elbow-pos: ", elbowPosition);
         }
 
         // FIXME: Hack, hack (or maybe a mitigation?)
@@ -112,11 +118,12 @@ public class IntoTheDeepScoringMech {
 
         public void forearmIn() {
             double elbowPosition = elbowServo.getPosition();
-            elbowPosition -= .035;
+            elbowPosition -= .008;
             elbowPosition = Math.max(elbowPosition, ELBOW_STOWED_SERVO_POSITION);
             currentForearmServoPos = elbowPosition;
 
             elbowServo.setPosition(elbowPosition);
+            telemetry.addData("elbow-pos: ", elbowPosition);
         }
 
         public void intakeSample() {

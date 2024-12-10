@@ -34,6 +34,7 @@ import com.ftc9929.corelib.state.SequenceOfStates;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
 import com.ftc9929.corelib.state.StopwatchDelayState;
+import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
@@ -49,11 +50,14 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import lombok.NonNull;
 
 @Autonomous(name = "00 ITDEEP Auto", preselectTeleOp = ITDEEP_TELE_OP)
 public class IntoTheDeepAuto extends OpMode {
@@ -74,6 +78,7 @@ public class IntoTheDeepAuto extends OpMode {
         HANG_SPECIMEN("Hang specimen"),
         HANG_SPECIMEN_NO_PARK("Hang specimen - no park"),
         HANG_SPECIMEN_NET_SIDE("Hang specimen - net side");
+        // WORKOUT_TIME("Exercise the specimen lift");
 
         final String description;
 
@@ -112,9 +117,9 @@ public class IntoTheDeepAuto extends OpMode {
         Shared.withBetterErrorHandling(() -> {
             ticker = createAndroidTicker();
 
-            scoringMech = new IntoTheDeepScoringMech(hardwareMap);
+            scoringMech = new IntoTheDeepScoringMech(hardwareMap, telemetry);
 
-            scoringMech.arm.shoulderDown(0.15F);
+            holdArmDown();
 
             unstallArmTimer.start();
 
@@ -142,6 +147,10 @@ public class IntoTheDeepAuto extends OpMode {
         });
     }
 
+    private void holdArmDown() {
+        scoringMech.arm.shoulderDown(0.20F);
+    }
+
     private com.hfrobots.tnt.corelib.vision.EasyOpenCvPipelineAndCamera pipelineAndCamera;
 
     private void setupVisionPortal(final HardwareMap hardwareMap) {
@@ -162,7 +171,7 @@ public class IntoTheDeepAuto extends OpMode {
 
     @Override
     public void start() {
-        scoringMech.arm.stopShoulder();
+        holdArmDown();
 
         Shared.withBetterErrorHandling(() -> {
             super.start();
@@ -257,6 +266,9 @@ public class IntoTheDeepAuto extends OpMode {
                     case HANG_SPECIMEN_NET_SIDE:
                         setupTaskHangSpecimenGoToNets();
                         break;
+                    // case WORKOUT_TIME:
+                    //     setupTaskWorkout();
+                    //    break;
                     default:
                         stateMachine.addSequential(newDoneState("Default done"));
                         break;
@@ -291,6 +303,72 @@ public class IntoTheDeepAuto extends OpMode {
 
             throw rte;
         }
+    }
+
+    protected void setupTaskWorkout() {
+        final State raiseGripper = new RunnableState("raiseGripper", telemetry, () -> {
+            specimenMechanism.goAboveHighChamber();
+        });
+
+        final class WaitForRaise extends StopwatchTimeoutSafetyState {
+
+            protected WaitForRaise(Telemetry telemetry, @NonNull Ticker ticker) {
+                super("Wait for raise", telemetry, ticker, TimeUnit.SECONDS.toMillis(4));
+            }
+
+            @Override
+            public State doStuffAndGetNextState() {
+                if (isTimedOut()) {
+                    resetToStart();
+
+                    return nextState;
+                }
+
+                if (specimenMechanism.isAtUpperLimit()) {
+                    return nextState;
+                }
+
+                return this;
+            }
+        }
+
+        final WaitForRaise waitForRaise = new WaitForRaise(telemetry, ticker);
+
+        raiseGripper.setNextState(waitForRaise);
+
+        final State lowerGripper = new RunnableState("lowerGripper", telemetry, () -> {
+            specimenMechanism.stowLift();
+        });
+
+        final class WaitForStow extends StopwatchTimeoutSafetyState {
+
+            protected WaitForStow(Telemetry telemetry, @NonNull Ticker ticker) {
+                super("Wait for stow", telemetry, ticker, TimeUnit.SECONDS.toMillis(4));
+            }
+
+            @Override
+            public State doStuffAndGetNextState() {
+                if (isTimedOut()) {
+                    resetToStart();
+
+                    return nextState;
+                }
+
+                if (specimenMechanism.isAtLowerLimit()) {
+                    return nextState;
+                }
+
+                return this;
+            }
+        }
+
+        WaitForStow waitForStow = new WaitForStow(telemetry, ticker);
+        waitForRaise.setNextState(lowerGripper);
+        lowerGripper.setNextState(waitForStow);
+
+        waitForStow.setNextState(raiseGripper);
+
+        stateMachine.setFirstState(raiseGripper);
     }
 
     protected void setupTaskHangSpecimen() {
