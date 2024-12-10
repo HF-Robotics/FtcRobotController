@@ -36,7 +36,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
  * 'servo2'.
  */
 @TeleOp(name="Dual Servo Tester", group="Utilities")
-@Disabled
 @SuppressWarnings("unused")
 public class DualServoTester extends OpMode {
     private DebouncedButton stopButton;
@@ -50,8 +49,8 @@ public class DualServoTester extends OpMode {
 
         NinjaGamePad ninjaGamePad = new NinjaGamePad(gamepad1);
         stopButton = new DebouncedButton(ninjaGamePad.getBButton());
-        servo1 = hardwareMap.get(CRServo.class, "servo1");
-        servo2 = hardwareMap.get(CRServo.class, "servo2");
+        servo1 = hardwareMap.get(CRServo.class, "leftIntakeServo");
+        servo2 = hardwareMap.get(CRServo.class, "rightIntakeServo");
         servo1.setDirection(DcMotorSimple.Direction.FORWARD);
         servo2.setDirection(DcMotorSimple.Direction.REVERSE);
     }
