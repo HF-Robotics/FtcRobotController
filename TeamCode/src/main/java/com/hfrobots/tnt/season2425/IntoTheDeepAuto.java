@@ -37,11 +37,14 @@ import com.ftc9929.corelib.state.StopwatchDelayState;
 import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
+import com.google.common.base.Supplier;
 import com.google.common.base.Ticker;
 import com.google.common.collect.Sets;
 import com.hfrobots.tnt.corelib.Constants;
+import com.hfrobots.tnt.corelib.drive.Turn;
 import com.hfrobots.tnt.corelib.drive.mecanum.MultipleTrajectoriesFollowerState;
 import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
+import com.hfrobots.tnt.corelib.drive.mecanum.TurnState;
 import com.hfrobots.tnt.corelib.state.ReadyCheckable;
 import com.hfrobots.tnt.season2324.Shared;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -52,6 +55,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.Rotation;
 import org.firstinspires.ftc.vision.VisionPortal;
 
 import java.util.Set;
@@ -425,11 +429,20 @@ public class IntoTheDeepAuto extends OpMode {
             protected void createTrajectoryProviders() {
                 driveBase.resetLocalizer();
 
-                addTrajectoryProvider("to bar", (t) -> t.strafeRight(48 +9));
+                addTrajectoryProvider("to neets", (t) -> t.strafeRight(48 +9));
             }
         };
 
         sequenceOfStates.addSequential(moveToNets);
+
+        // FIXME
+        final State turnRobot = new TurnState(
+                "Turn robot around",
+                telemetry,
+                new Turn(Rotation.CCW, 90),
+                driveBase,
+                ticker, 15000L);
+
 
         sequenceOfStates.addSequential(newDoneState("Done!"));
         stateMachine.addSequence(sequenceOfStates);
