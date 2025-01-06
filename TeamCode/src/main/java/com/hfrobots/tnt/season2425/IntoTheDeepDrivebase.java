@@ -58,4 +58,20 @@ public class IntoTheDeepDrivebase extends OpenLoopMecanumKinematics {
         leftFrontDriveMotor.setPower(wheelSpeeds.getLeftFront());
         leftRearDriveMotor.setPower(wheelSpeeds.getLeftRear());
     }
+
+    protected int getLeftFrontEncoderCount() {
+        return leftFrontDriveMotor.getCurrentPosition();
+    }
+
+    protected int getLeftRearEncoderCount() {
+        return leftRearDriveMotor.getCurrentPosition();
+    }
+
+    protected int getRightFrontEncoderCount() {
+        return rightFrontDriveMotor.getCurrentPosition();
+    }
+
+    protected int getRightRearEncoderCount() {
+        return rightRearDriveMotor.getCurrentPosition();
+    }
 }
