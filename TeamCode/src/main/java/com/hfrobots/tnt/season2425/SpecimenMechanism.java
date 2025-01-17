@@ -49,15 +49,15 @@ import lombok.Setter;
 public class SpecimenMechanism extends LinearLiftController {
     public static final int UPPER_POS_1600_RPM = 440;
 
-    public static final int UPPER_POS_435_RPM = 1423 + 34;
-    
-    public static final int LIFT_ABOVE_UPPER_CHAMBER_POS = UPPER_POS_1600_RPM;
+    public static final int UPPER_POS_435_RPM = 1400;
 
-    public static final int ATTACH_POS_1600_RPM = 190;
+    public static final int LIFT_ABOVE_UPPER_CHAMBER_POS = UPPER_POS_435_RPM;
 
-    public static final int ATTACH_POS_435_RPM = 977 + 34;
+    public static final int ATTACH_POS_1600_RPM = 190 - 100;
 
-    public static final int LIFT_ATTACH_SPECIMEN_UPPER_CHAMBER_POS = ATTACH_POS_1600_RPM;
+    public static final int ATTACH_POS_435_RPM = 700;
+
+    public static final int LIFT_ATTACH_SPECIMEN_UPPER_CHAMBER_POS = ATTACH_POS_435_RPM;
 
     public static final double K_P_UP_TO_LINE = .008;
     protected static Tunables goBilda26_1 = new Tunables(){

@@ -387,7 +387,7 @@ public class IntoTheDeepAuto extends OpMode {
             protected void createTrajectoryProviders() {
                 driveBase.resetLocalizer();
 
-                addTrajectoryProvider("to bar", (t) -> t.strafeLeft(48 + 9));
+                addTrajectoryProvider("to bar", (t) -> t.strafeLeft(48 + 6));
             }
         };
 
@@ -397,11 +397,16 @@ public class IntoTheDeepAuto extends OpMode {
             protected void createTrajectoryProviders() {
                 driveBase.resetLocalizer();
 
-                addTrajectoryProvider("to bar", (t) -> t.forward(17));
+                addTrajectoryProvider("park", (t) -> t.back(3));
             }
         };
 
         sequenceOfStates.addSequential(toObservationZone);
+
+        final State turnRobot = turnRobotToFaceSamples();
+
+        sequenceOfStates.addSequential(turnRobot);
+
         sequenceOfStates.addSequential(pullToPark);
         sequenceOfStates.addSequential(newDoneState("Done!"));
         stateMachine.addSequence(sequenceOfStates);
@@ -435,17 +440,34 @@ public class IntoTheDeepAuto extends OpMode {
 
         sequenceOfStates.addSequential(moveToNets);
 
-        // FIXME
-        final State turnRobot = new TurnState(
-                "Turn robot around",
-                telemetry,
-                new Turn(Rotation.CCW, 90),
-                driveBase,
-                ticker, 15000L);
+        final State turnRobot = turnRobotToFaceSamples();
 
+        final State moveToSampleWithinReach = new MultipleTrajectoriesFollowerState("Sample within reach",
+                telemetry, driveBase, ticker, TimeUnit.SECONDS.toMillis(20 * 1000)) {
+            @Override
+            protected void createTrajectoryProviders() {
+                driveBase.resetLocalizer();
+
+                addTrajectoryProvider("sample within reach", (t) -> t.back(10));
+            }
+        };
+
+        sequenceOfStates.addSequential(turnRobot);
+        sequenceOfStates.addSequential(moveToSampleWithinReach);
 
         sequenceOfStates.addSequential(newDoneState("Done!"));
         stateMachine.addSequence(sequenceOfStates);
+    }
+
+    @androidx.annotation.NonNull
+    private State turnRobotToFaceSamples() {
+        final State turnRobot = new TurnState(
+                "Turn robot around",
+                telemetry,
+                new Turn(Rotation.CCW, 180 - 45),
+                driveBase,
+                ticker, 15000L);
+        return turnRobot;
     }
 
     private void setupCommonSpecimenHang(final SequenceOfStates sequenceOfStates,
@@ -491,7 +513,7 @@ public class IntoTheDeepAuto extends OpMode {
             protected void createTrajectoryProviders() {
                 driveBase.resetLocalizer();
 
-                addTrajectoryProvider("from bar", (t) -> t.forward(3));
+                addTrajectoryProvider("from bar", (t) -> t.forward(15));
             }
         };
 
