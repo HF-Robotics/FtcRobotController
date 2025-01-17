@@ -36,7 +36,6 @@ SOFTWARE.
 
             <Servo name="specimenGripServo" port="4" /> <!-- Blue -->
             <Servo name="intakeServo"       port="5" /> <!-- Purple -->
-
         </LynxModule>
 
         <LynxModule name="Expansion Hub 3" port="3">
@@ -45,7 +44,10 @@ SOFTWARE.
             <!-- <ContinuousRotationServo name="intakeServo"     port="2" />  -->
 
             <Motor name="specimenLiftMotor"                 port="1" /> <!-- Red    -->
-            <Servo name="elbowServo"     port="1" /> <!-- Yellow -->
+
+            <Servo name="elbowServo"                port="1" /> <!-- Yellow -->
+            <RevBlinkinLedDriver name="blinkin"     port="0" />
+
             <DigitalDevice name="specimenLowLimitSwitch"    port="7" />
         </LynxModule>
     </LynxUsbDevice>
