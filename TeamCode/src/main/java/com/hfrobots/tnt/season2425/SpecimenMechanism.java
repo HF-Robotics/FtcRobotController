@@ -200,9 +200,9 @@ public class SpecimenMechanism extends LinearLiftController {
     @Setter
     private DebouncedButton scoreSpecimenButton;
 
-    final static double GRIP_SERVO_GRIPPED_POSITION = 0.366666;
+    final static double GRIP_SERVO_UNGRIPPED_POSITION = 0.366666;
 
-    final static double GRIP_SERVO_UNGRIPPED_POSITION = 0.058;
+    final static double GRIP_SERVO_GRIPPED_POSITION = 0.058;
 
     private State attachSpecimenHighState;
 

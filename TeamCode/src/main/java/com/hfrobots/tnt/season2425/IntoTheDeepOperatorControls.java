@@ -68,10 +68,6 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
 
     protected RangeInput rightTrigger;
 
-    protected DebouncedButton goHighChamberButton;
-
-    protected DebouncedButton scoreSpecimenButton;
-
     private NinjaGamePad operatorGamepad;
 
     private NinjaGamePad driverGamepad;
@@ -88,6 +84,12 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
     private DebouncedButton specimenGripButton;
 
     private DebouncedButton specimenUngripButton;
+
+    private DebouncedButton specimenStowButton;
+
+    private DebouncedButton specimenHighBarButton;
+
+    private DebouncedButton scoreSpecimenButton;
 
     private OnOffButton forearmOutButton;
 
@@ -197,16 +199,17 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
     private void setupDerivedControls() {
         unsafe = new RangeInputButton( leftTrigger, 0.65f);
         final RangeInput armThrottleCurve = ParametricScaledRangeInput.builder()
-                .throttleExponent(11).throttleGain(0.9F).rawInput(leftStickY).build();
+                .throttleExponent(13).throttleGain(0.7F).rawInput(leftStickY).build();
 
         shoulderRotate = armThrottleCurve;
 
         specimenLiftThrottle = rightStickY;
         specimenGripButton = aGreenButton.debounced();
         specimenUngripButton = bRedButton.debounced();
-        // FIXME!
-        goHighChamberButton = null;
-        scoreSpecimenButton = null;
+
+        specimenHighBarButton = dpadUp.debounced();
+        specimenStowButton = dpadDown.debounced();
+        scoreSpecimenButton = dpadRight.debounced();
 
         forearmOutButton = xBlueButton;
         forearmInButton = yYellowButton;
@@ -226,12 +229,12 @@ public class IntoTheDeepOperatorControls implements PeriodicTask {
             specimenMechanism.setLimitOverrideButton(unsafe);
 
             if (!noSpecimenAutoUpDown) {
-                if (goHighChamberButton != null) {
-                    specimenMechanism.setLiftUpperLimitButton(goHighChamberButton);
+                if (specimenHighBarButton != null) {
+                    specimenMechanism.setLiftUpperLimitButton(specimenHighBarButton);
                 }
 
-                if (scoreSpecimenButton != null) {
-                    specimenMechanism.setScoreSpecimenButton(scoreSpecimenButton);
+                if (specimenStowButton != null) {
+                    specimenMechanism.setLiftLowerLimitButton(specimenStowButton);
                 }
             }
 
