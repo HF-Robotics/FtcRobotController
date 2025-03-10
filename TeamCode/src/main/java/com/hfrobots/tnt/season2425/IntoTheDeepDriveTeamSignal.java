@@ -31,6 +31,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.concurrent.TimeUnit;
 
+import lombok.Setter;
+
 public class IntoTheDeepDriveTeamSignal implements PeriodicTask {
     private RevBlinkinLedDriver blinkinLed;
 
@@ -57,6 +59,11 @@ public class IntoTheDeepDriveTeamSignal implements PeriodicTask {
     private static Constants.Alliance chosenAlliance = null;
     private boolean haveSentReadyForEndGameRumble;
     private boolean haveEndGameRumble;
+
+    @Setter
+    private boolean forceEndGameState = false;
+
+
 
     public IntoTheDeepDriveTeamSignal(final HardwareMap hardwareMap, final Ticker ticker,
                                       final Gamepad driverGamepad,
@@ -158,6 +165,10 @@ public class IntoTheDeepDriveTeamSignal implements PeriodicTask {
     }
 
     public boolean isEndGame() {
+        if (forceEndGameState) {
+            return true;
+        }
+
         return hasEnoughTimePassed(END_GAME_SECONDS);
     }
 }
