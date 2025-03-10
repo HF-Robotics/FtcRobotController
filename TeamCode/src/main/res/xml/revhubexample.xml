@@ -52,7 +52,10 @@ SOFTWARE.
             <DigitalDevice name="" port="0" />
 
             <!-- I2C devices - we only use one device per bus, so port stays "0"
-                 bus numbers (sockets on the hub) run from 0 to 3 -->
+                 bus numbers (sockets on the hub) run from 0 to 3
+
+                 The first (0) I2C socket on the hub will be port "1", bus "0" -->
+            
             <!-- This is the built-in IMU - always on bus 0 - use the LynxEmbeddedIMU class in your code -->
             <LynxEmbeddedIMU name="imu" port="0" bus="0" />
 
