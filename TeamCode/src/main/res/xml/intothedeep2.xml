@@ -37,6 +37,7 @@ SOFTWARE.
             <Servo name="specimenGripServo" port="4" /> <!-- Blue -->
             <Servo name="intakeServo"       port="5" /> <!-- Purple -->
 
+            <SparkFunOTOS name="sensor_otos" port="1" bus="0"/>
         </LynxModule>
 
         <LynxModule name="Expansion Hub 2" port="2">
