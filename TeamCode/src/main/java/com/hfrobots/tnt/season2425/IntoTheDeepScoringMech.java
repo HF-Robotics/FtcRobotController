@@ -34,7 +34,7 @@ public class IntoTheDeepScoringMech {
 
     public class Arm {
         public static final float SHOULDER_FEED_FORWARD = 0.24F;
-        private static final boolean DO_PWM_SHUTDOWN_STUFF = false;
+
         DcMotorEx shoulderMotor;
 
         Servo elbowServo;
@@ -93,10 +93,10 @@ public class IntoTheDeepScoringMech {
 
             if (!isUnsafePressed()) {
                 if (currentForearmServoPos > 0.05) {
-                    power = power * .15F;
+                    power = power * .25F;
                 }
 
-                power = power * .25F;
+                power = power * .35F;
             }
 
             shoulderMotor.setPower(-power);
@@ -127,65 +127,121 @@ public class IntoTheDeepScoringMech {
 
             if (shoulderMotor.getCurrentPosition() < 60) {
                 dynamicUnstowedServoPosition = FOREARM_SERVO_PARALLEL_GROUND_POS;
-
             }
         }
 
         public void forearmOut() {
+            if (isUnsafePressed()) {
+                oldForearmOut();
+
+                return;
+            }
+
+            newForearmOut();
+        }
+
+        public void oldForearmOut() {
             double elbowPosition = elbowServo.getPosition();
             elbowPosition += FOREARM_SERVO_OUT_INCREMENT;
-            elbowPosition = Math.min(elbowPosition, dynamicUnstowedServoPosition);
+
+            elbowPosition = smartRangeClip(elbowPosition, ELBOW_STOWED_SERVO_POSITION, ELBOW_UNSTOWED_SERVO_POSITION);
+
+            currentForearmServoPos = elbowPosition;
+            elbowServo.setPosition(elbowPosition);
+            telemetry.addData("elbow-pos: ", elbowPosition);
+        }
+
+        public void newForearmOut() {
+            evaluateElbowStowedServoPosition();
+
+            double elbowPosition = elbowServo.getPosition();
+            elbowPosition += FOREARM_SERVO_OUT_INCREMENT;
+
+            elbowPosition = smartRangeClip(elbowPosition, ELBOW_STOWED_SERVO_POSITION, dynamicUnstowedServoPosition);
 
             currentForearmServoPos = elbowPosition;
 
-            if (!isUnsafePressed() && DO_PWM_SHUTDOWN_STUFF &&
-                Math.abs(elbowPosition - dynamicUnstowedServoPosition) < .02) {
-                elbowServo.getController().pwmDisable();
-            } else {
-                if (DO_PWM_SHUTDOWN_STUFF) {
-                    elbowServo.getController().pwmEnable();
-                }
-
-                elbowServo.setPosition(elbowPosition);
-            }
+            elbowServo.setPosition(elbowPosition);
 
             telemetry.addData("elbow-pos: ", elbowPosition);
-
-
         }
 
         // FIXME: Hack, hack (or maybe a mitigation?)
 
         public void maintainForearmPosition() {
+//            if (isUnsafePressed()) {
+//                oldMaintainForearmPosition();
+//
+//                return;
+//            }
+//
+//            newMaintainForearmPosition();
+        }
+
+        public void oldMaintainForearmPosition() {
+            elbowServo.setPosition(currentForearmServoPos);
+        }
+
+        public void newMaintainForearmPosition() {
             evaluateElbowStowedServoPosition();
 
             if (dynamicUnstowedServoPosition < elbowServo.getPosition()) {
                 currentForearmServoPos = dynamicUnstowedServoPosition;
             }
 
-            if (DO_PWM_SHUTDOWN_STUFF && elbowServo.getController().getPwmStatus() == ServoController.PwmStatus.ENABLED) {
-                elbowServo.setPosition(currentForearmServoPos);
-            } else {
-                elbowServo.setPosition(currentForearmServoPos);
-            }
+            elbowServo.setPosition(currentForearmServoPos);
         }
 
         private double currentForearmServoPos;
 
         public void forearmIn() {
-            if (DO_PWM_SHUTDOWN_STUFF) {
-                elbowServo.getController().pwmEnable();
+            if (isUnsafePressed()) {
+                oldForearmIn();
+
+                return;
             }
 
+            newForearmIn();
+        }
+
+        public void oldForearmIn() {
             double elbowPosition = elbowServo.getPosition();
             elbowPosition -= FOREARM_SERVO_IN_INCREMENT;
-            elbowPosition = Math.max(elbowPosition, ELBOW_STOWED_SERVO_POSITION);
+
+            elbowPosition = smartRangeClip(elbowPosition, ELBOW_STOWED_SERVO_POSITION, ELBOW_UNSTOWED_SERVO_POSITION);
+
             currentForearmServoPos = elbowPosition;
 
             elbowServo.setPosition(elbowPosition);
             telemetry.addData("elbow-pos: ", elbowPosition);
         }
 
+        public void newForearmIn() {
+            double elbowPosition = elbowServo.getPosition();
+            elbowPosition -= FOREARM_SERVO_IN_INCREMENT;
+
+            elbowPosition = smartRangeClip(elbowPosition, ELBOW_STOWED_SERVO_POSITION, ELBOW_UNSTOWED_SERVO_POSITION);
+
+            currentForearmServoPos = elbowPosition;
+
+            elbowServo.setPosition(elbowPosition);
+            telemetry.addData("elbow-pos: ", elbowPosition);
+        }
+
+        double smartRangeClip(double value, final double min, final double max) {
+            final double actualMin;
+            final double actualMax;
+
+            if (min > max) {
+                actualMin = max;
+                actualMax = min;
+            } else {
+                actualMin = min;
+                actualMax = max;
+            }
+
+            return Range.clip(value, actualMin, actualMax);
+        }
         public void intakeSample() {
             intakeServo.setPosition(1);
         }
@@ -196,10 +252,6 @@ public class IntoTheDeepScoringMech {
 
         public void maintainIntakeServoPos() {
             intakeServo.setPosition(intakeServo.getPosition());
-        }
-
-        public void stopIntake() {
-            //intakeServo.setPower(0);
         }
     }
 
