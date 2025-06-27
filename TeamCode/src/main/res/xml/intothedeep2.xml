@@ -29,10 +29,13 @@ SOFTWARE.
         <LynxModule name="Main Hub" port="173">
             <LynxEmbeddedIMU name="imu" port="0" bus="0" />
 
-            <Motor name="leftFrontDriveMotor"  port="0" /> <!-- Red    -->
-            <Motor name="leftRearDriveMotor"   port="1" /> <!-- Orange -->
-            <Motor name="rightFrontDriveMotor" port="2" /> <!-- Yellow -->
-            <Motor name="rightRearDriveMotor"  port="3" /> <!-- Green  -->
+            <!-- FIXME - This did *not* get wired correctly with respect
+            to orientation of the OTOS sensor -->
+
+            <Motor name="rightFrontDriveMotor"  port="0" /> <!-- Red    -->
+            <Motor name="rightRearDriveMotor"   port="1" /> <!-- Orange -->
+            <Motor name="leftFrontDriveMotor" port="2" /> <!-- Yellow -->
+            <Motor name="leftRearDriveMotor"  port="3" /> <!-- Green  -->
 
             <Servo name="specimenGripServo" port="4" /> <!-- Blue -->
             <Servo name="intakeServo"       port="5" /> <!-- Purple -->
