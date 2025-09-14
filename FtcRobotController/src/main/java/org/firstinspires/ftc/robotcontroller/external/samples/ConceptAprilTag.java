@@ -126,7 +126,7 @@ public class ConceptAprilTag extends LinearOpMode {
         aprilTag = new AprilTagProcessor.Builder()
 
             // The following default settings are available to un-comment and edit as needed.
-            //.setDrawAxes(false)
+            .setDrawAxes(false)
             //.setDrawCubeProjection(false)
             //.setDrawTagOutline(true)
             //.setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
@@ -148,7 +148,7 @@ public class ConceptAprilTag extends LinearOpMode {
         // Decimation = 3 ..  Detect 2" Tag from 4  feet away at 30 Frames Per Second (default)
         // Decimation = 3 ..  Detect 5" Tag from 10 feet away at 30 Frames Per Second (default)
         // Note: Decimation can be changed on-the-fly to adapt during a match.
-        //aprilTag.setDecimation(3);
+        aprilTag.setDecimation(3);
 
         // Create the vision portal by using a builder.
         VisionPortal.Builder builder = new VisionPortal.Builder();

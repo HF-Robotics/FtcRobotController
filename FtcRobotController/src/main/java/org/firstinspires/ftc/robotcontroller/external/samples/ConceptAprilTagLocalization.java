@@ -65,7 +65,7 @@ import java.util.List;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list.
  */
 @TeleOp(name = "Concept: AprilTag Localization", group = "Concept")
-@Disabled
+//@Disabled
 public class ConceptAprilTagLocalization extends LinearOpMode {
 
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
@@ -95,7 +95,7 @@ public class ConceptAprilTagLocalization extends LinearOpMode {
      * to +/-90 degrees if it's vertical, or 180 degrees if it's upside-down.
      */
     private Position cameraPosition = new Position(DistanceUnit.INCH,
-            0, 0, 0, 0);
+            0, 0, 4.75, 0);
     private YawPitchRollAngles cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES,
             0, -90, 0, 0);
 
@@ -152,8 +152,8 @@ public class ConceptAprilTagLocalization extends LinearOpMode {
         aprilTag = new AprilTagProcessor.Builder()
 
                 // The following default settings are available to un-comment and edit as needed.
-                //.setDrawAxes(false)
-                //.setDrawCubeProjection(false)
+                .setDrawAxes(false)
+                .setDrawCubeProjection(false)
                 //.setDrawTagOutline(true)
                 //.setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
                 //.setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary())
@@ -225,7 +225,7 @@ public class ConceptAprilTagLocalization extends LinearOpMode {
             if (detection.metadata != null) {
                 telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
                 // Only use tags that don't have Obelisk in them
-                if (!detection.metadata.name.contains("Obelisk")) {
+
                     telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)",
                             detection.robotPose.getPosition().x,
                             detection.robotPose.getPosition().y,
@@ -234,7 +234,7 @@ public class ConceptAprilTagLocalization extends LinearOpMode {
                             detection.robotPose.getOrientation().getPitch(AngleUnit.DEGREES),
                             detection.robotPose.getOrientation().getRoll(AngleUnit.DEGREES),
                             detection.robotPose.getOrientation().getYaw(AngleUnit.DEGREES)));
-                }
+
             } else {
                 telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
                 telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
