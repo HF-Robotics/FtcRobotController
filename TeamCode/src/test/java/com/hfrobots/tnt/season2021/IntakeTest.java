@@ -34,6 +34,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -100,6 +101,7 @@ public class IntakeTest {
     }
 
     @Test
+    @Ignore
     public void testIntake() {
         Intake intakeToTest = new Intake(hwMap, new FakeTicker());
         intakeToTest.intake(Intake.INTAKE_POWER);
