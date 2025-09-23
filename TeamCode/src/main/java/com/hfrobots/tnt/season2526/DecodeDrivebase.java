@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2022 The Tech Ninja Team (https://ftc9929.com)
+ Copyright (c) 2025 The Tech Ninja Team (https://ftc9929.com)
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -30,13 +30,13 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import lombok.NonNull;
 
-public class Offseason2025Drivebase extends OpenLoopMecanumKinematics {
+public class DecodeDrivebase extends OpenLoopMecanumKinematics {
     private final DcMotorEx rightFrontDriveMotor;
     private final DcMotorEx rightRearDriveMotor;
     private final DcMotorEx leftFrontDriveMotor;
     private final DcMotorEx leftRearDriveMotor;
 
-    public Offseason2025Drivebase(@NonNull HardwareMap hardwareMap) {
+    public DecodeDrivebase(@NonNull HardwareMap hardwareMap) {
         rightFrontDriveMotor = hardwareMap.get(DcMotorEx.class, "rightFrontDriveMotor");
         rightRearDriveMotor = hardwareMap.get(DcMotorEx.class, "rightRearDriveMotor");
         leftFrontDriveMotor = hardwareMap.get(DcMotorEx.class, "leftFrontDriveMotor");

@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2024 The Tech Ninja Team (https://ftc9929.com)
+ Copyright (c) 2025 The Tech Ninja Team (https://ftc9929.com)
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -38,13 +38,15 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import java.util.List;
 
-@TeleOp(name = "Offseason 2025")
-public class Offseason2025DriverControlled extends OpMode {
+@TeleOp(name = DecodeDriverControlled.OP_MODE_NAME)
+public class DecodeDriverControlled extends OpMode {
+    public static final String OP_MODE_NAME = "00 DECODE";
+
     private final boolean emitMetrics = false;
 
-    private Offseason2025Drivebase drivebase;
+    private DecodeDrivebase drivebase;
 
-    private Offseason2025DriverControls driverControls;
+    private DecodeDriverControls driverControls;
 
     private StatsDMetricSampler legacyMetricsSampler;
 
@@ -59,11 +61,11 @@ public class Offseason2025DriverControlled extends OpMode {
         Shared.withBetterErrorHandling(() -> {
             final Ticker ticker = Ticker.systemTicker();
 
-            drivebase = new Offseason2025Drivebase(hardwareMap);
+            drivebase = new DecodeDrivebase(hardwareMap);
 
             NinjaGamePad driversGamepad = new NinjaGamePad(gamepad1);
 
-            driverControls = Offseason2025DriverControls.builder()
+            driverControls = DecodeDriverControls.builder()
                     .driversGamepad(driversGamepad)
                     .kinematics(drivebase).build();
 

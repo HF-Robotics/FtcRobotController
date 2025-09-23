@@ -37,7 +37,7 @@ import lombok.Builder;
 // FIXME: Copy this class into the season package, and rename it to include the season name
 // to avoid referencing controls of prior seasons, e.e. CenterstageDriverControls,
 // PowerplayDriverControls, etc.
-public class Offseason2025DriverControls implements PeriodicTask {
+public class DecodeDriverControls implements PeriodicTask {
     protected InitLoopConfigTask autoConfigTask;
 
     protected RangeInput leftStickX;
@@ -104,29 +104,29 @@ public class Offseason2025DriverControls implements PeriodicTask {
     private final float lowPassFilterFactor = 1.0F;
 
     @Builder
-    private Offseason2025DriverControls(RangeInput leftStickX,
-                                        RangeInput leftStickY,
-                                        RangeInput rightStickX,
-                                        RangeInput rightStickY,
-                                        DebouncedButton dpadUp,
-                                        DebouncedButton dpadDown,
-                                        DebouncedButton dpadLeft,
-                                        DebouncedButton dpadRight,
-                                        OnOffButton dpadUpRaw,
-                                        OnOffButton dpadDownRaw,
-                                        OnOffButton dpadLeftRaw,
-                                        OnOffButton dpadRightRaw,
-                                        DebouncedButton xBlueButton,
-                                        DebouncedButton bRedButton,
-                                        DebouncedButton yYellowButton,
-                                        DebouncedButton aGreenButton,
-                                        OnOffButton rightBumper,
-                                        OnOffButton leftBumper,
-                                        RangeInput leftTrigger,
-                                        RangeInput rightTrigger,
-                                        NinjaGamePad driversGamepad,
-                                        OpenLoopMecanumKinematics kinematics,
-                                        InitLoopConfigTask autoConfigTask)  {
+    private DecodeDriverControls(RangeInput leftStickX,
+                                 RangeInput leftStickY,
+                                 RangeInput rightStickX,
+                                 RangeInput rightStickY,
+                                 DebouncedButton dpadUp,
+                                 DebouncedButton dpadDown,
+                                 DebouncedButton dpadLeft,
+                                 DebouncedButton dpadRight,
+                                 OnOffButton dpadUpRaw,
+                                 OnOffButton dpadDownRaw,
+                                 OnOffButton dpadLeftRaw,
+                                 OnOffButton dpadRightRaw,
+                                 DebouncedButton xBlueButton,
+                                 DebouncedButton bRedButton,
+                                 DebouncedButton yYellowButton,
+                                 DebouncedButton aGreenButton,
+                                 OnOffButton rightBumper,
+                                 OnOffButton leftBumper,
+                                 RangeInput leftTrigger,
+                                 RangeInput rightTrigger,
+                                 NinjaGamePad driversGamepad,
+                                 OpenLoopMecanumKinematics kinematics,
+                                 InitLoopConfigTask autoConfigTask)  {
         if (driversGamepad != null) {
             this.driversGamepad = driversGamepad;
             setupFromGamepad();
