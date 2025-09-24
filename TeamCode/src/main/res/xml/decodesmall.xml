@@ -18,8 +18,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 -->
 <Robot type="FirstInspires-FTC">
-    <!-- C310 with mount removed -->
-    <!-- <Webcam name="webcam" serialNumber="7B2F4FD0" /> -->
+    <!-- C920 with mount removed -->
+    <Webcam name="webcam" serialNumber="7187943F" />
 
     <!-- Control Hub #1 -->
 
