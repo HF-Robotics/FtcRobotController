@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2024 The Tech Ninja Team (https://ftc9929.com)
+ Copyright (c) 2025 The Tech Ninja Team (https://ftc9929.com)
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -32,8 +32,8 @@ import com.ftc9929.metrics.StatsdMetricsReporter;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
 import com.hfrobots.tnt.season2324.Shared;
-import com.hfrobots.tnt.season2526.Offseason2025Drivebase;
-import com.hfrobots.tnt.season2526.Offseason2025DriverControls;
+import com.hfrobots.tnt.season2526.DecodeDrivebase;
+import com.hfrobots.tnt.season2526.DecodeDriverControls;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -45,9 +45,9 @@ import java.util.List;
 public class DecodeLargeDriverControlled extends OpMode {
     private final boolean emitMetrics = false;
 
-    private Offseason2025Drivebase drivebase;
+    private DecodeDrivebase drivebase;
 
-    private Offseason2025DriverControls driverControls;
+    private DecodeDriverControls driverControls;
 
     private DecodeLargeOperatorControls operatorControls;
 
@@ -64,11 +64,11 @@ public class DecodeLargeDriverControlled extends OpMode {
         Shared.withBetterErrorHandling(() -> {
             final Ticker ticker = Ticker.systemTicker();
 
-            drivebase = new Offseason2025Drivebase(hardwareMap);
+            drivebase = new DecodeDrivebase(hardwareMap);
 
             NinjaGamePad driversGamepad = new NinjaGamePad(gamepad1);
 
-            driverControls = Offseason2025DriverControls.builder()
+            driverControls = DecodeDriverControls.builder()
                     .driversGamepad(driversGamepad)
                     .kinematics(drivebase).build();
 
