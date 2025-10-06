@@ -28,16 +28,17 @@ import android.util.Log;
 import android.util.Size;
 
 import com.ftc9929.corelib.control.NinjaGamePad;
+import com.ftc9929.corelib.state.SequenceOfStates;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
 import com.ftc9929.corelib.state.StopwatchDelayState;
-import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
-import com.hfrobots.tnt.corelib.drive.mecanum.RoadRunnerMecanumDriveBase;
 import com.hfrobots.tnt.season2324.Shared;
-import com.hfrobots.tnt.season2425.IntoTheDeepDriveConstants;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -47,16 +48,17 @@ import org.firstinspires.ftc.vision.VisionPortal;
 
 import java.util.concurrent.TimeUnit;
 
+import lombok.Getter;
+
 @Autonomous(name = "00 DECODE Auto", preselectTeleOp = DecodeDriverControlled.OP_MODE_NAME)
 public class DecodeAuto extends OpMode {
     private Ticker ticker;
-
-    private RoadRunnerMecanumDriveBase driveBase;
 
     private StateMachine stateMachine;
 
     // FIXME: The tasks our robot knows how to do - rename these to
     //  something meaningful for the season!
+    @Getter
     private enum Task {
         ROUTE_1("Route 1");
 
@@ -66,14 +68,11 @@ public class DecodeAuto extends OpMode {
             this.description = description;
         }
 
-        public String getDescription() {
-            return description;
-        }
     }
 
     private int selectedTaskIndex = 0;
 
-    private Task[] possibleTaskChoices = Task.values();
+    private final Task[] possibleTaskChoices = Task.values();
 
     // Which alliance are we? (the robot is programmed from the point-of-view of the red alliance
     // but we can also have it run the blue one if selected
@@ -98,6 +97,8 @@ public class DecodeAuto extends OpMode {
             //setupVisionPortal(hardwareMap);
 
             // driveTeamSignal = new IntoTheDeepDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
+
+            pedroFollower = DecodeSmallDrivebasePedroConstants.createFollower(hardwareMap);
 
             stateMachine = new StateMachine(telemetry);
         });
@@ -143,8 +144,6 @@ public class DecodeAuto extends OpMode {
 
     private boolean configLocked = false;
 
-    private Stopwatch unstallArmTimer = Stopwatch.createUnstarted();
-
     @Override
     public void init_loop() {
         doAutoConfig();
@@ -180,8 +179,6 @@ public class DecodeAuto extends OpMode {
         });
     }
 
-    private boolean stateMachineSetup = false;
-
     @Override
     public void loop() {
         try {
@@ -209,15 +206,13 @@ public class DecodeAuto extends OpMode {
     }
 
     private void setupStateMachine() {
-    /* We have not configured the state machine yet, do so from the options
-     selected during init_loop() */
-
         Task selectedTask = possibleTaskChoices[selectedTaskIndex];
 
         // FIXME: Change the methods in the switch() below to align with
         // the name of each task
         switch (selectedTask) {
             case ROUTE_1:
+                setupSimplePath();
                 break;
             default:
                 stateMachine.addSequential(newDoneState("Default done"));
@@ -245,8 +240,7 @@ public class DecodeAuto extends OpMode {
             public State doStuffAndGetNextState() {
                 // FIXME: Stop everything on the robot here
                 if (!issuedStop) {
-                    driveBase.setMotorPowers(0, 0, 0, 0);
-
+                    pedroFollower.pausePathFollowing();
                     issuedStop = true;
                 }
 
@@ -331,5 +325,24 @@ public class DecodeAuto extends OpMode {
                         }
                     }
                 }).build();
+    }
+
+    private void setupSimplePath() {
+        final SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
+
+        final Pose startPose = new Pose(0, 0, Math.toRadians(180)); // Start Pose of our robot.
+        final Pose scorePose = new Pose(24, 0, Math.toRadians(135)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+
+        /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
+        final Path scorePreload = new Path(new BezierLine(startPose, scorePose));
+        scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
+
+        pedroFollower.setStartingPose(startPose);
+
+        PedroFollowerState scorePathState = new PedroFollowerState("Score preload", telemetry, pedroFollower, scorePreload);
+
+        sequenceOfStates.addSequential(scorePathState);
+        sequenceOfStates.addSequential(newDoneState("Done!"));
+        stateMachine.addSequence(sequenceOfStates);
     }
 }

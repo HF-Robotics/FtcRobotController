@@ -22,12 +22,11 @@
 
 package com.hfrobots.tnt.season2526;
 
-import android.util.Log;
-
 import static com.ftc9929.corelib.Constants.LOG_TAG;
 
+import android.util.Log;
+
 import com.ftc9929.corelib.state.State;
-import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.google.common.base.Ticker;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.paths.Path;
@@ -35,31 +34,27 @@ import com.pedropathing.paths.PathChain;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-import java.util.concurrent.TimeUnit;
-
 import lombok.NonNull;
 
-public class PedroFollowerState extends StopwatchTimeoutSafetyState {
+public class PedroFollowerState extends State {
     private final Follower follower;
 
     private final PathChain pathChain;
 
     private boolean followerHasStarted = false;
 
-    public PedroFollowerState(@NonNull String name, Telemetry telemetry, @NonNull Ticker ticker, final Follower follower, final Path path) {
-        this(name, telemetry, ticker, follower, new PathChain(path));
+    public PedroFollowerState(@NonNull String name, Telemetry telemetry, final Follower follower, final Path path) {
+        this(name, telemetry, follower, new PathChain(path));
     }
 
-    public PedroFollowerState(@NonNull String name, Telemetry telemetry, @NonNull Ticker ticker, final Follower follower, final PathChain pathChain) {
-        super(name, telemetry, ticker, TimeUnit.SECONDS.toMillis(30));
+    public PedroFollowerState(@NonNull String name, Telemetry telemetry, final Follower follower, final PathChain pathChain) {
+        super(name, telemetry);
         this.follower = follower;
         this.pathChain = pathChain;
     }
 
     @Override
     public void resetToStart() {
-        super.resetToStart();
-
         followerHasStarted = false;
     }
 
@@ -70,6 +65,8 @@ public class PedroFollowerState extends StopwatchTimeoutSafetyState {
 
             follower.followPath(pathChain);
 
+            followerHasStarted = true;
+
             return this;
         }
 
@@ -77,15 +74,6 @@ public class PedroFollowerState extends StopwatchTimeoutSafetyState {
 
         if (follower.isBusy()) {
             return this;
-        }
-
-        if (isTimedOut()) {
-            Log.e(LOG_TAG, String.format("State %s timed out after %d ms, returning next state", name, safetyTimeoutMillis));
-
-            // FIXME: Stop the follower, but how?
-            resetToStart();
-
-            return nextState;
         }
 
         return nextState;
