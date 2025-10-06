@@ -25,6 +25,7 @@ import com.google.common.base.Stopwatch;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import java.util.HashMap;
 import java.util.List;
@@ -42,7 +43,7 @@ import java.util.concurrent.TimeUnit;
  */
 @TeleOp(name="Motor Tester", group="Utilities")
 public class MotorTester extends OpMode {
-    private List<NamedDeviceMap.NamedDevice<DcMotor>> namedMotors;
+    private List<NamedDeviceMap.NamedDevice<DcMotorEx>> namedMotors;
     private Map<DcMotor, String> motorsToNames = new HashMap<>();
     private int currentListPosition;
     private int desiredPosition;
@@ -63,14 +64,10 @@ public class MotorTester extends OpMode {
 
     private double encoderClicksPerSec;
 
-    private int lastEncoderCount = 0;
-
-    private Stopwatch stopwatch = Stopwatch.createUnstarted();
-
     @Override
     public void init() {
         NamedDeviceMap namedDeviceMap = new NamedDeviceMap(hardwareMap);
-        namedMotors = namedDeviceMap.getAll(DcMotor.class);
+        namedMotors = namedDeviceMap.getAll(DcMotorEx.class);
         currentListPosition = 0;
 
         NinjaGamePad ninjaGamePad = new NinjaGamePad(gamepad1);
@@ -99,8 +96,8 @@ public class MotorTester extends OpMode {
 
         desiredPosition += (int)(-gamepad1.right_stick_y);
 
-        NamedDeviceMap.NamedDevice<DcMotor> namedDcMotor = namedMotors.get(currentListPosition);
-        DcMotor currentMotor = namedDcMotor.getDevice();
+        NamedDeviceMap.NamedDevice<DcMotorEx> namedDcMotor = namedMotors.get(currentListPosition);
+        DcMotorEx currentMotor = namedDcMotor.getDevice();
         String motorName = namedDcMotor.getName();
 
         if (runningTimedTest) {
@@ -157,24 +154,7 @@ public class MotorTester extends OpMode {
         }
 
         currentMotor.setZeroPowerBehavior(powerBehavior);
-
-        if (!stopwatch.isRunning()) {
-            stopwatch.start();
-            lastEncoderCount = motorCurrentPosition;
-        }
-
-        long elapsedMs = stopwatch.elapsed(TimeUnit.MILLISECONDS);
-
-        if (elapsedMs > 100) {
-            stopwatch.reset();
-            stopwatch.start();
-
-            int deltaEncoderCount = motorCurrentPosition - lastEncoderCount;
-            lastEncoderCount = motorCurrentPosition;
-
-            encoderClicksPerSec = (double)deltaEncoderCount / elapsedMs * TimeUnit.SECONDS.toMillis(1);
-
-        }
+        encoderClicksPerSec = currentMotor.getVelocity();
 
         updateTelemetry(currentMotor, motorName, leftStickYPosition, powerBehavior);
     }
