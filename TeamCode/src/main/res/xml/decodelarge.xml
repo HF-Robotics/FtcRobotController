@@ -29,20 +29,22 @@ SOFTWARE.
         <LynxModule name="Main Hub" port="173">
             <LynxEmbeddedIMU name="imu" port="0" bus="0" />
 
-            <!-- FIXME - This did *not* get wired correctly with respect
-            to orientation of the OTOS sensor -->
 
-            <!--  leftEncoder -> "rightFrontDriveMotor"
-                  rightEncoder -> "leftRearDriveMotor"
-                  strafeEncoder -> "rightRearDriveMotor"
+            <!--  leftEncoder -> "leftFrontDriveMotor" (Red)
+                  rightEncoder -> "rightRearDriveMotor" (Green)
+                  strafeEncoder -> "rightFrontDriveMotor" (Yellow)
             -->
-            <Motor name="rightFrontDriveMotor"  port="0" /> <!-- Red    -->
-            <Motor name="rightRearDriveMotor"   port="1" /> <!-- Orange -->
-            <Motor name="leftFrontDriveMotor" port="2" /> <!-- Yellow -->
-            <Motor name="leftRearDriveMotor"  port="3" /> <!-- Green  -->
+            <Motor name="leftFrontDriveMotor"  port="0" /> <!-- Red    -->
+            <Motor name="leftRearDriveMotor"   port="1" /> <!-- Orange -->
+            <Motor name="rightFrontDriveMotor" port="2" /> <!-- Yellow -->
+            <Motor name="rightRearDriveMotor"  port="3" /> <!-- Green  -->
         </LynxModule>
         <LynxModule name="Expansion Hub 5" port="5">
-            <Motor name="intakeMotor"        port="0" /> <!-- Red    -->
+            <Motor name="launcherMotor"        port="0" /> <!-- Red    -->
+            <Motor name="intakeMotor"          port="1" /> <!-- Orange -->
+
+            <Servo name="kickerServo"          port="0" /> <!-- Red -->
+
         </LynxModule>
     </LynxUsbDevice>
 </Robot>

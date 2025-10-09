@@ -48,6 +48,8 @@ public class DecodeDriverControlled extends OpMode {
 
     private DecodeDriverControls driverControls;
 
+    private DecodeOperatorControls operatorControls;
+
     private StatsDMetricSampler legacyMetricsSampler;
 
     private RobotMetricsSampler newMetricsSampler;;
@@ -69,7 +71,27 @@ public class DecodeDriverControlled extends OpMode {
                     .driversGamepad(driversGamepad)
                     .kinematics(drivebase).build();
 
-            NinjaGamePad operatorGamepad = new NinjaGamePad(gamepad2);
+            RollerIntake intake;
+
+            try {
+                intake = new RollerIntake(hardwareMap);
+            } catch (IllegalArgumentException ex) {
+                intake = null;
+            }
+
+            WheeledLauncher launcher;
+            try {
+                launcher = new WheeledLauncher(hardwareMap);
+            } catch (IllegalArgumentException ex) {
+                launcher = null;
+            }
+
+            final NinjaGamePad operatorGamepad = new NinjaGamePad(gamepad2);
+
+            operatorControls = DecodeOperatorControls.builder()
+                    .operatorGamepad(operatorGamepad)
+                    .intake(intake)
+                    .launcher(launcher).build();
 
             setupMetricsSampler(driversGamepad, operatorGamepad);
 
@@ -129,6 +151,7 @@ public class DecodeDriverControlled extends OpMode {
             clearHubsBulkCaches(); // important, do not remove this line, or reads from robot break!
 
             driverControls.periodicTask();
+            operatorControls.periodicTask();
 
             if (emitMetrics) {
                 if (useLegacyMetricsSampler) {

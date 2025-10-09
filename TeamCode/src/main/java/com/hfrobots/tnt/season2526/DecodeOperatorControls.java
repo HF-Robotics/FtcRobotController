@@ -20,23 +20,21 @@
  SOFTWARE.
  */
 
-package com.hfrobots.tnt.season2526.large;
+package com.hfrobots.tnt.season2526;
 
 import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.control.OnOffButton;
-import com.ftc9929.corelib.control.ParametricScaledRangeInput;
 import com.ftc9929.corelib.control.RangeInput;
 import com.ftc9929.corelib.control.RangeInputButton;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import lombok.Builder;
 
 // FIXME: Copy this class into the season package, and rename it to include the season name
 // to avoid referencing controls of prior seasons, e.e. CenterstageOperatorControls,
 // PowerplayOperatorControls, etc.
-public class DecodeLargeOperatorControls implements PeriodicTask {
+public class DecodeOperatorControls implements PeriodicTask {
     protected RangeInput leftStickX;
 
     protected RangeInput leftStickY;
@@ -75,38 +73,54 @@ public class DecodeLargeOperatorControls implements PeriodicTask {
 
     private OnOffButton unsafe;
 
-    private OnOffButton sampleIntakeButton;
+    // FIXME: Add "derived" controls here by name, as they relate to things they control
+    // on the robot
 
-    private OnOffButton sampleOuttakeButton;
+    private DebouncedButton launchSpeedFar;
+
+    private DebouncedButton launchSpeedMed;
+
+    private DebouncedButton launchSpeedClose;
+
+    private DebouncedButton launchSpeedStop;
+
+    private OnOffButton launchTrigger;
+
+    private OnOffButton intakeIn;
+
+    private OnOffButton intakeOut;
 
     // FIXME: Add all of the mechanisms controlled by the operator here, and add them to
     // the constructor, and set them there from the constructor arguments
 
-    DcMotorEx intakeMotor;
+    private RollerIntake intake;
+
+    private WheeledLauncher launcher;
 
     @Builder
-    private DecodeLargeOperatorControls(RangeInput leftStickX,
-                                        RangeInput leftStickY,
-                                        RangeInput rightStickX,
-                                        RangeInput rightStickY,
-                                        OnOffButton dpadUp,
-                                        OnOffButton dpadDown,
-                                        OnOffButton dpadLeft,
-                                        OnOffButton dpadRight,
-                                        OnOffButton dpadUpRaw,
-                                        OnOffButton dpadDownRaw,
-                                        OnOffButton dpadLeftRaw,
-                                        OnOffButton dpadRightRaw,
-                                        OnOffButton xBlueButton,
-                                        OnOffButton bRedButton,
-                                        OnOffButton yYellowButton,
-                                        OnOffButton aGreenButton,
-                                        OnOffButton rightBumper,
-                                        OnOffButton leftBumper,
-                                        RangeInput leftTrigger,
-                                        RangeInput rightTrigger,
-                                        NinjaGamePad operatorGamepad,
-                                        DcMotorEx intakeMotor) {
+    private DecodeOperatorControls(RangeInput leftStickX,
+                                   RangeInput leftStickY,
+                                   RangeInput rightStickX,
+                                   RangeInput rightStickY,
+                                   OnOffButton dpadUp,
+                                   OnOffButton dpadDown,
+                                   OnOffButton dpadLeft,
+                                   OnOffButton dpadRight,
+                                   OnOffButton dpadUpRaw,
+                                   OnOffButton dpadDownRaw,
+                                   OnOffButton dpadLeftRaw,
+                                   OnOffButton dpadRightRaw,
+                                   OnOffButton xBlueButton,
+                                   OnOffButton bRedButton,
+                                   OnOffButton yYellowButton,
+                                   OnOffButton aGreenButton,
+                                   OnOffButton rightBumper,
+                                   OnOffButton leftBumper,
+                                   RangeInput leftTrigger,
+                                   RangeInput rightTrigger,
+                                   NinjaGamePad operatorGamepad,
+                                   RollerIntake intake,
+                                   WheeledLauncher launcher) {
         if (operatorGamepad != null) {
             this.operatorGamepad = operatorGamepad;
             setupFromGamepad();
@@ -134,7 +148,8 @@ public class DecodeLargeOperatorControls implements PeriodicTask {
         // FIXME: Make sure that mechanisms are setup here, before "wiring" them to
         // controls
 
-        this.intakeMotor = intakeMotor;
+        this.intake = intake;
+        this.launcher = launcher;
 
         wireControlsToOperatorsMechanisms();
     }
@@ -168,11 +183,21 @@ public class DecodeLargeOperatorControls implements PeriodicTask {
     // It's easier, later on in periodicTask(), to think about the inputs based on functional
     // names.
     private void setupDerivedControls() {
-        unsafe = new RangeInputButton( leftTrigger, 0.65f);
-        final RangeInput armThrottleCurve = ParametricScaledRangeInput.builder()
-                .throttleExponent(13).throttleGain(0.7F).rawInput(leftStickY).build();
-        sampleIntakeButton = leftBumper;
-        sampleOuttakeButton = rightBumper;
+        unsafe = leftBumper;
+
+        launchSpeedFar = dpadUp.debounced();
+
+        launchSpeedMed = dpadLeft.debounced();
+
+        launchSpeedClose = dpadDown.debounced();
+
+        launchSpeedStop = bRedButton.debounced();
+
+        launchTrigger = rightBumper;
+
+        intakeIn = new RangeInputButton( rightTrigger, 0.65f);
+
+        intakeOut = new RangeInputButton( leftTrigger, 0.65f);
     }
 
     // FIXME: As-needed, set controls to setters on scoring mechanisms that have
@@ -183,13 +208,39 @@ public class DecodeLargeOperatorControls implements PeriodicTask {
 
     @Override
     public void periodicTask() {
+        // FIXME: Here is where we ask the various mechanisms to respond to operator input
 
-        if (sampleIntakeButton.isPressed()) {
-            intakeMotor.setPower(1);
-        } else if (sampleOuttakeButton.isPressed()) {
-            intakeMotor.setPower(-1);
-        } else {
-            intakeMotor.setPower(0);
+        if (intake != null) {
+
+            if (intakeIn.isPressed()) {
+                intake.intake();
+            } else if (intakeOut.isPressed()) {
+                intake.outtake();
+            } else {
+                intake.stop();
+            }
+        }
+
+        if (launcher != null) {
+            if (launchSpeedFar.getRise()) {
+                launcher.farLaunchVelocity();
+            } else if (launchSpeedMed.getRise()) {
+                launcher.mediumLaunchVelocity();
+            } else if (launchSpeedClose.getRise()) {
+                launcher.closeLaunchVelocity();
+            } else if (launchSpeedStop.getRise()) {
+                launcher.stopLauncher();
+            }
+
+            if (launchTrigger.isPressed()) {
+                if (unsafe.isPressed()) {
+                    launcher.raiseKickerNoMatterWhat();
+                } else {
+                    launcher.safelyRaiseKicker();
+                }
+            } else {
+                launcher.lowerKicker();
+            }
         }
     }
 }
