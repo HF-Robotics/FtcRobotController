@@ -22,9 +22,12 @@
 
 package com.hfrobots.tnt.season2526;
 
+import com.ftc9929.corelib.control.RangeInput;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class WheeledLauncher {
 
@@ -44,12 +47,34 @@ public class WheeledLauncher {
 
     private final Servo kickerServo;
 
+    private final DcMotorEx carouselMotor;
+
     private double requestedVelocity = 0;
 
     public WheeledLauncher(final HardwareMap hardwareMap) {
         launcherMotor = hardwareMap.get(DcMotorEx.class, "launcherMotor");
 
+        carouselMotor = hardwareMap.get(DcMotorEx.class, "carouselMotor");
+
         kickerServo = hardwareMap.get(Servo.class, "kickerServo");
+    }
+
+    public void updateTelemetry(final Telemetry telemetry) {
+        telemetry.addData("Launcher",  "req_vel %s - cur_vel %s",
+                Double.toString(requestedVelocity),
+                Double.toString(launcherMotor.getVelocity()));
+    }
+
+    public void adjustCarousel(final RangeInput carouselThrottle) {
+        carouselMotor.setPower(carouselThrottle.getPosition());
+    }
+
+    public void adjustVelocity(final RangeInput adjustmentThrottle) {
+        double adjustmentAmount = -adjustmentThrottle.getPosition();
+
+        if (adjustmentAmount != 0) {
+            maybeSetLaunchVelocity(requestedVelocity + (adjustmentAmount * 4.0));
+        }
     }
 
     public void closeLaunchVelocity() {

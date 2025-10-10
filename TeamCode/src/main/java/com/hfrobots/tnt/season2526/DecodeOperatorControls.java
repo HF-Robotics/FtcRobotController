@@ -90,6 +90,10 @@ public class DecodeOperatorControls implements PeriodicTask {
 
     private OnOffButton intakeOut;
 
+    private RangeInput carouselThrottle;
+
+    private RangeInput launcherSpeedAdjust;
+
     // FIXME: Add all of the mechanisms controlled by the operator here, and add them to
     // the constructor, and set them there from the constructor arguments
 
@@ -195,6 +199,10 @@ public class DecodeOperatorControls implements PeriodicTask {
 
         launchTrigger = rightBumper;
 
+        launcherSpeedAdjust = leftStickY;
+
+        carouselThrottle = rightStickX;
+
         intakeIn = new RangeInputButton( rightTrigger, 0.65f);
 
         intakeOut = new RangeInputButton( leftTrigger, 0.65f);
@@ -231,6 +239,11 @@ public class DecodeOperatorControls implements PeriodicTask {
             } else if (launchSpeedStop.getRise()) {
                 launcher.stopLauncher();
             }
+
+            launcher.adjustVelocity(launcherSpeedAdjust);
+
+            // FIXME: This eventually needs to be handled with a state machine
+            launcher.adjustCarousel(carouselThrottle);
 
             if (launchTrigger.isPressed()) {
                 if (unsafe.isPressed()) {

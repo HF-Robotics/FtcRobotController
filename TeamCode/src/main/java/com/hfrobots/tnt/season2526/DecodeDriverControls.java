@@ -89,7 +89,7 @@ public class DecodeDriverControls implements PeriodicTask {
 
     protected OnOffButton driveInvertedButton;
 
-    protected OnOffButton driveFastButton;
+    protected OnOffButton driveSlowButton;
 
     private NinjaGamePad driversGamepad;
 
@@ -202,7 +202,7 @@ public class DecodeDriverControls implements PeriodicTask {
     }
 
     private void setupDerivedControls() {
-        driveFastButton = new RangeInputButton(leftTrigger, 0.65f);
+        driveSlowButton = new RangeInputButton(leftTrigger, 0.65f);
         driveInvertedButton = new RangeInputButton(rightTrigger, 0.65f);
     }
 
@@ -217,7 +217,7 @@ public class DecodeDriverControls implements PeriodicTask {
             double y = -driveForwardReverse.getPosition();
             double rot = driveRotate.getPosition(); // positive robot z rotation (human-normal) is negative joystick x axis
 
-            if (!(driveFastButton.isPressed())) {
+            if (driveSlowButton.isPressed()) {
                 y /= 2;
                 x /= 2;
                 rot /= 2;

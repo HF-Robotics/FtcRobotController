@@ -58,6 +58,8 @@ public class DecodeDriverControlled extends OpMode {
 
     private List<LynxModule> allHubs;
 
+    private WheeledLauncher launcher;
+
     @Override
     public void init() {
         Shared.withBetterErrorHandling(() -> {
@@ -79,7 +81,6 @@ public class DecodeDriverControlled extends OpMode {
                 intake = null;
             }
 
-            WheeledLauncher launcher;
             try {
                 launcher = new WheeledLauncher(hardwareMap);
             } catch (IllegalArgumentException ex) {
@@ -119,7 +120,6 @@ public class DecodeDriverControlled extends OpMode {
                             .hardwareMap(hardwareMap)
                             .driverControls(driversGamepad)
                             .operatorControls(operatorGamepad).build();
-
                 }
             } catch (Exception ex) {
                 Log.w(LOG_TAG, "Unable to setup metrics sampler", ex);
@@ -165,6 +165,7 @@ public class DecodeDriverControlled extends OpMode {
                 }
             }
 
+            launcher.updateTelemetry(telemetry);
             telemetry.update();
         });
     }
