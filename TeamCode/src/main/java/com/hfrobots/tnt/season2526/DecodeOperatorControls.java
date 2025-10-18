@@ -92,6 +92,8 @@ public class DecodeOperatorControls implements PeriodicTask {
 
     private RangeInput carouselThrottle;
 
+    private DebouncedButton carouselIntakeNextIndex;
+
     private RangeInput launcherSpeedAdjust;
 
     // FIXME: Add all of the mechanisms controlled by the operator here, and add them to
@@ -100,6 +102,7 @@ public class DecodeOperatorControls implements PeriodicTask {
     private RollerIntake intake;
 
     private WheeledLauncher launcher;
+    private DebouncedButton carouselLaunchNextIndex;
 
     @Builder
     private DecodeOperatorControls(RangeInput leftStickX,
@@ -206,6 +209,10 @@ public class DecodeOperatorControls implements PeriodicTask {
         intakeIn = new RangeInputButton( rightTrigger, 0.65f);
 
         intakeOut = new RangeInputButton( leftTrigger, 0.65f);
+
+        carouselIntakeNextIndex = yYellowButton.debounced();
+
+        carouselLaunchNextIndex = aGreenButton.debounced();
     }
 
     // FIXME: As-needed, set controls to setters on scoring mechanisms that have
@@ -243,7 +250,14 @@ public class DecodeOperatorControls implements PeriodicTask {
             launcher.adjustVelocity(launcherSpeedAdjust);
 
             // FIXME: This eventually needs to be handled with a state machine
-            launcher.adjustCarousel(carouselThrottle);
+
+            if (carouselIntakeNextIndex.getRise()) {
+                launcher.indexCarouselForIntake();
+            } else if (carouselLaunchNextIndex.getRise()) {
+                launcher.indexCarouselForLaunch();
+            } else {
+                launcher.adjustCarousel(carouselThrottle);
+            }
 
             if (launchTrigger.isPressed()) {
                 if (unsafe.isPressed()) {

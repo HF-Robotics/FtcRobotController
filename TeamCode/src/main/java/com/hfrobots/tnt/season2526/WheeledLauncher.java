@@ -23,7 +23,9 @@
 package com.hfrobots.tnt.season2526;
 
 import com.ftc9929.corelib.control.RangeInput;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -31,6 +33,9 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class WheeledLauncher {
 
+    public static final double ONE_FULL_REV = 751.8;
+    public static final double ONE_THIRD_REV = ONE_FULL_REV / 3;
+    public static final double ONE_SIXTH_REV = ONE_THIRD_REV / 2;
     // These constants are the tunables for our launcher.
     private static final double KICKER_SERVO_RAISED_POSITION = 1;
 
@@ -38,7 +43,7 @@ public class WheeledLauncher {
 
     private static final double FAR_LAUNCH_VELOCITY = 2200;
 
-    private static final double MEDIUM_LAUNCH_VELOCITY = 1880;
+    private static final double MEDIUM_LAUNCH_VELOCITY = 2060;
 
     private static final double CLOSE_LAUNCH_VELOCITY = 1780;
 
@@ -49,14 +54,19 @@ public class WheeledLauncher {
 
     private final DcMotorEx carouselMotor;
 
+    private final DigitalChannel carouselHomeLimit;
+
     private double requestedVelocity = 0;
 
     public WheeledLauncher(final HardwareMap hardwareMap) {
         launcherMotor = hardwareMap.get(DcMotorEx.class, "launcherMotor");
 
         carouselMotor = hardwareMap.get(DcMotorEx.class, "carouselMotor");
+        carouselMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         kickerServo = hardwareMap.get(Servo.class, "kickerServo");
+
+        carouselHomeLimit = hardwareMap.get(DigitalChannel.class, "carouselHome");
     }
 
     public void updateTelemetry(final Telemetry telemetry) {
@@ -65,8 +75,70 @@ public class WheeledLauncher {
                 Double.toString(launcherMotor.getVelocity()));
     }
 
+    private int currentIntakeIndex = 0;
+
+    private int currentLaunchIndex = 0;
+
+    public void indexCarouselForIntake() {
+        currentIntakeIndex = currentIntakeIndex + 1;
+
+        if (currentIntakeIndex > 2) {
+            currentIntakeIndex = 0;
+        }
+
+        double oneFullRev = 751.8;
+        double oneThirdRev = oneFullRev / 3;
+
+        double targetPos = currentIntakeIndex * oneThirdRev;
+
+        carouselMotor.setTargetPosition((int)(targetPos));
+        carouselMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        carouselMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        carouselMotor.setPower(0.2);
+    }
+
+    private double[] launchPositions = {
+            0 + ONE_SIXTH_REV,
+            ONE_SIXTH_REV + ONE_THIRD_REV,
+            ONE_SIXTH_REV + ONE_THIRD_REV + ONE_THIRD_REV
+    };
+
+    public void indexCarouselForLaunch() {
+        currentLaunchIndex = currentLaunchIndex + 1;
+
+        if (currentLaunchIndex > 2) {
+            currentLaunchIndex = 0;
+        }
+
+        double targetPos = launchPositions[currentLaunchIndex];
+
+        carouselMotor.setTargetPosition((int)(targetPos));
+        carouselMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        carouselMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        carouselMotor.setPower(0.2);
+    }
+
     public void adjustCarousel(final RangeInput carouselThrottle) {
-        carouselMotor.setPower(carouselThrottle.getPosition());
+        float carouselThrottlePosition = carouselThrottle.getPosition();
+
+        if (carouselThrottlePosition != 0) {
+            carouselMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            carouselMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        } else if (carouselMotor.isBusy()) {
+            return;
+        }
+
+        carouselThrottlePosition /= 9;
+
+        if (carouselThrottlePosition < 0) {
+            if (!carouselHomeLimit.getState()) {
+                carouselMotor.setPower(0);
+
+                return;
+            }
+        }
+
+        carouselMotor.setPower(carouselThrottlePosition);
     }
 
     public void adjustVelocity(final RangeInput adjustmentThrottle) {
