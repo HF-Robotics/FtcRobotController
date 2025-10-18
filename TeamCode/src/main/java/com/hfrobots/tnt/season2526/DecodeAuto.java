@@ -53,7 +53,14 @@ import lombok.Getter;
 
 @Autonomous(name = "00 DECODE Auto", preselectTeleOp = DecodeDriverControlled.OP_MODE_NAME)
 public class DecodeAuto extends OpMode {
+    // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    public static final Pose RED_SCORE_POSE = new Pose(53.5, 144 - 59, Math.toRadians(225 - 90));// Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    public static final Pose BLUE_SCORE_POSE = new Pose(53.5, 59, Math.toRadians(225));
+
+    public static final double SCORE_POSE_LAUNCHER_VELOCITY = 2060;
+    
     private Ticker ticker;
+
 
     private StateMachine stateMachine;
 
@@ -61,7 +68,8 @@ public class DecodeAuto extends OpMode {
     //  something meaningful for the season!
     @Getter
     private enum Task {
-        ROUTE_1("Route 1");
+        WALL_AND_GOAL("Wall and goal"),
+        GOAL_AND_45("Goal and 45");
 
         final String description;
 
@@ -212,8 +220,11 @@ public class DecodeAuto extends OpMode {
         // FIXME: Change the methods in the switch() below to align with
         // the name of each task
         switch (selectedTask) {
-            case ROUTE_1:
-                setupSimplePath();
+            case WALL_AND_GOAL:
+                setupGoalAndWallPath();
+                break;
+            case GOAL_AND_45:
+                setupGoalFortyFivePath();
                 break;
             default:
                 stateMachine.addSequential(newDoneState("Default done"));
@@ -328,11 +339,59 @@ public class DecodeAuto extends OpMode {
                 }).build();
     }
 
-    private void setupSimplePath() {
+    private void setupGoalAndWallPath() {
         final SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
 
-        final Pose startPose = new Pose(0, 0, Math.toRadians(180)); // Start Pose of our robot.
-        final Pose scorePose = new Pose(24, 0, Math.toRadians(135)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+        final double startPosY;
+        final Pose scorePose;
+
+        if (currentAlliance == Constants.Alliance.BLUE) {
+            startPosY = 33 - 14; // FIXME - We don't understand this starting position!
+            scorePose = BLUE_SCORE_POSE;
+        } else {
+            startPosY = 144 - (33 - 14); // FIXME
+            scorePose = RED_SCORE_POSE;
+        }
+
+        final Pose startPose = new Pose(0, startPosY, Math.toRadians(180)); // Start Pose of our robot.
+
+        /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
+        final Path scorePreload = new Path(new BezierLine(startPose, scorePose));
+        scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
+
+        pedroFollower.setStartingPose(startPose);
+
+        PedroFollowerState scorePathState = new PedroFollowerState("Score preload", telemetry, pedroFollower, scorePreload);
+
+        sequenceOfStates.addSequential(scorePathState);
+        sequenceOfStates.addSequential(newDoneState("Done!"));
+        stateMachine.addSequence(sequenceOfStates);
+    }
+
+    private void setupGoalFortyFivePath() {
+        final SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
+
+        final double startAngle;
+        final double startPosY;
+        final double startPosX;
+
+        final Pose scorePose;
+
+        if (currentAlliance == Constants.Alliance.BLUE) {
+            startPosY = 22;
+            startPosX = 16.5;
+            startAngle = Math.toRadians(225);
+
+            scorePose = BLUE_SCORE_POSE;
+        } else {
+            startAngle = Math.toRadians(225 - 90);
+            startPosY = 144 - 22; // FIXME
+            startPosX = 16.5;
+
+            scorePose = RED_SCORE_POSE;
+        }
+
+        final Pose startPose = new Pose(startPosX, startPosY, startAngle); // Start Pose of our robot.
 
         /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
         final Path scorePreload = new Path(new BezierLine(startPose, scorePose));
