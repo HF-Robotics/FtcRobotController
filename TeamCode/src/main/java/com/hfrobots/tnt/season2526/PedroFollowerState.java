@@ -34,12 +34,14 @@ import com.pedropathing.paths.PathChain;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+import java.util.function.Supplier;
+
 import lombok.NonNull;
 
 public class PedroFollowerState extends State {
     private final Follower follower;
 
-    private final PathChain pathChain;
+    private final Supplier<PathChain> pathChainSupplier;
 
     private boolean followerHasStarted = false;
 
@@ -48,9 +50,18 @@ public class PedroFollowerState extends State {
     }
 
     public PedroFollowerState(@NonNull String name, Telemetry telemetry, final Follower follower, final PathChain pathChain) {
+        this(name, telemetry, follower, () -> pathChain);
+    }
+
+    /**
+     * Use this when you need to dynamically create the path/patch chain based on the robot's current
+     * state while running auto, not something you can pre-plan (for example, when the beginning
+     * of the path needs to be from the current pose).
+     */
+    public PedroFollowerState(@NonNull String name, Telemetry telemetry, final Follower follower, final Supplier<PathChain> pathChainSupplier) {
         super(name, telemetry);
         this.follower = follower;
-        this.pathChain = pathChain;
+        this.pathChainSupplier = pathChainSupplier;
     }
 
     @Override
@@ -61,6 +72,8 @@ public class PedroFollowerState extends State {
     @Override
     public State doStuffAndGetNextState() {
         if (!followerHasStarted) {
+            final PathChain pathChain = pathChainSupplier.get();
+
             Log.d(LOG_TAG, String.format("Starting to follow %s, for state %s", pathChain, name));
 
             follower.followPath(pathChain);
