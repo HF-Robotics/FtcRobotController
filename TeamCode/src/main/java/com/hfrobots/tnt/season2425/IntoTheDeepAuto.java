@@ -49,6 +49,7 @@ import com.hfrobots.tnt.corelib.state.ReadyCheckable;
 import com.hfrobots.tnt.season2324.Shared;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -64,6 +65,7 @@ import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
 
 @Autonomous(name = "00 ITDEEP Auto", preselectTeleOp = ITDEEP_TELE_OP)
+@Disabled
 public class IntoTheDeepAuto extends OpMode {
     private Ticker ticker;
 

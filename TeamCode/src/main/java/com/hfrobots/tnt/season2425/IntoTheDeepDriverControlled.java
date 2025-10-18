@@ -33,12 +33,14 @@ import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
 import com.hfrobots.tnt.season2324.Shared;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import java.util.List;
 
 @TeleOp(name = IntoTheDeepDriverControlled.ITDEEP_TELE_OP)
+@Disabled
 public class IntoTheDeepDriverControlled extends OpMode {
     public static final String ITDEEP_TELE_OP = "00 ITDeep TeleOp";
 
