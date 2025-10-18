@@ -38,6 +38,7 @@ public class DelayState extends State {
         long elapsedMs = now - startTime;
 
         if (elapsedMs > thresholdTimeMs) {
+            resetToStart();
             return nextState;
         }
 
