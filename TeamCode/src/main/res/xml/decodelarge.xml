@@ -19,7 +19,7 @@ SOFTWARE.
 -->
 <Robot type="FirstInspires-FTC">
     <!-- C920 with mount removed -->
-    <Webcam name="webcam" serialNumber="115A5D15F" /> -->
+    <Webcam name="webcam" serialNumber="11A5D15F" /> -->
 
     <!-- Control Hub #1 -->
 
@@ -45,6 +45,7 @@ SOFTWARE.
             <Motor name="carouselMotor"        port="2" /> <!-- Yellow -->
             <Servo name="kickerServo"          port="0" /> <!-- Red -->
 
+            <DigitalDevice name="carouselHome" port="0" />
         </LynxModule>
     </LynxUsbDevice>
 </Robot>
