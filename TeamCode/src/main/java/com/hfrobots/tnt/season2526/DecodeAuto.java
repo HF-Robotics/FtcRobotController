@@ -58,7 +58,7 @@ public class DecodeAuto extends OpMode {
     public static final Pose BLUE_SCORE_POSE = new Pose(53.5, 59, Math.toRadians(225));
 
     public static final double SCORE_POSE_LAUNCHER_VELOCITY = 2060;
-    
+
     private Ticker ticker;
 
 
