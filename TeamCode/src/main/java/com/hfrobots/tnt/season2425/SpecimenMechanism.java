@@ -113,6 +113,7 @@ public class SpecimenMechanism extends LinearLiftController {
         currentState = attachSpecimenHighState;
     }
 
+    /*
     public static SpecimenMechanism.SpecimenMechanismBuilder builderFromHardwareMap(
             final HardwareMap hardwareMap,
             final Telemetry telemetry) {
@@ -129,6 +130,7 @@ public class SpecimenMechanism extends LinearLiftController {
                 .lowerLiftLimit(lowerLimit)
                 .telemetry(telemetry);
     }
+     */
 
     @Override
     protected State preHandleButtons() {

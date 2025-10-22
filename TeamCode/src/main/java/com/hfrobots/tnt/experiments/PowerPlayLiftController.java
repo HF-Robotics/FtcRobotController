@@ -36,6 +36,7 @@ public class PowerPlayLiftController extends LinearLiftController {
 
     private final Gripper gripper;
 
+    /*
     public static PowerPlayLiftController.PowerPlayLiftControllerBuilder builderFromHardwareMap(final HardwareMap hardwareMap,
                                                                             final Telemetry telemetry) {
         DigitalChannel lowerLimit = hardwareMap.get(DigitalChannel.class, "lowLimitSwitch");
@@ -48,7 +49,7 @@ public class PowerPlayLiftController extends LinearLiftController {
                 .lowerLiftLimit(lowerLimit)
                 .upperLiftLimit(higherLimit)
                 .telemetry(telemetry);
-    }
+    }*/
 
     @Override
     protected void setupStateMachine(Telemetry telemetry) {

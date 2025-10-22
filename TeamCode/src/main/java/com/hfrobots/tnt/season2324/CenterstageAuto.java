@@ -157,7 +157,7 @@ public class CenterstageAuto extends OpMode {
 
             hanger = new Hanger(hardwareMap);
 
-            scoringMechanism = ScoringMechanism.builderFromHardwareMap(hardwareMap, telemetry).build();
+            scoringMechanism = null; // ScoringMechanism.builderFromHardwareMap(hardwareMap, telemetry).build();
 
             driveTeamSignal = new CenterstageDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 

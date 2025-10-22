@@ -80,7 +80,7 @@ public class IntoTheDeepDriverControlled extends OpMode {
             // FIXME: Add mechanisms when they exist
             final IntoTheDeepScoringMech scoringMech = new IntoTheDeepScoringMech(hardwareMap, telemetry);
 
-            final SpecimenMechanism specimenMechanism = SpecimenMechanism.builderFromHardwareMap(hardwareMap, telemetry).build();
+            final SpecimenMechanism specimenMechanism = null; // SpecimenMechanism.builderFromHardwareMap(hardwareMap, telemetry).build();
 
             operatorControls = IntoTheDeepOperatorControls.builder().operatorGamepad(operatorGamepad)
                     .scoringMech(scoringMech)

@@ -129,7 +129,7 @@ public class IntoTheDeepAuto extends OpMode {
 
             unstallArmTimer.start();
 
-            specimenMechanism = SpecimenMechanism.builderFromHardwareMap(hardwareMap, telemetry).build();
+            specimenMechanism = null; // SpecimenMechanism.builderFromHardwareMap(hardwareMap, telemetry).build();
 
             setupDriverControls();
             setupOperatorControls();

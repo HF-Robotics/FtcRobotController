@@ -174,8 +174,8 @@ public class PowerPlayAuto extends OpMode {
 
         gripper = new Gripper(gripperServo);
 
-        liftMechanism = LiftMechanism.builderFromHardwareMap(hardwareMap, telemetry)
-                .gripper(gripper).build();
+        liftMechanism = null; // LiftMechanism.builderFromHardwareMap(hardwareMap, telemetry)
+                // .gripper(gripper).build();
     }
 
     private com.hfrobots.tnt.corelib.vision.EasyOpenCvPipelineAndCamera pipelineAndCamera;
