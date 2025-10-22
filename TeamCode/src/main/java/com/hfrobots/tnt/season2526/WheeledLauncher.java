@@ -52,21 +52,11 @@ public class WheeledLauncher {
 
     private final Servo kickerServo;
 
-    private final DcMotorEx carouselMotor;
-
-    private final DigitalChannel carouselHomeLimit;
-
     private double requestedVelocity = 0;
 
     public WheeledLauncher(final HardwareMap hardwareMap) {
-        launcherMotor = hardwareMap.get(DcMotorEx.class, "launcherMotor");
-
-        carouselMotor = hardwareMap.get(DcMotorEx.class, "carouselMotor");
-        carouselMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
         kickerServo = hardwareMap.get(Servo.class, "kickerServo");
-
-        carouselHomeLimit = hardwareMap.get(DigitalChannel.class, "carouselHome");
+        launcherMotor = hardwareMap.get(DcMotorEx.class, "launcherMotor");
     }
 
     public void updateTelemetry(final Telemetry telemetry) {
@@ -78,68 +68,6 @@ public class WheeledLauncher {
     private int currentIntakeIndex = 0;
 
     private int currentLaunchIndex = 0;
-
-    public void indexCarouselForIntake() {
-        currentIntakeIndex = currentIntakeIndex + 1;
-
-        if (currentIntakeIndex > 2) {
-            currentIntakeIndex = 0;
-        }
-
-        double oneFullRev = 751.8;
-        double oneThirdRev = oneFullRev / 3;
-
-        double targetPos = currentIntakeIndex * oneThirdRev;
-
-        carouselMotor.setTargetPosition((int)(targetPos));
-        carouselMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        carouselMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        carouselMotor.setPower(0.2);
-    }
-
-    private double[] launchPositions = {
-            0 + ONE_SIXTH_REV,
-            ONE_SIXTH_REV + ONE_THIRD_REV,
-            ONE_SIXTH_REV + ONE_THIRD_REV + ONE_THIRD_REV
-    };
-
-    public void indexCarouselForLaunch() {
-        currentLaunchIndex = currentLaunchIndex + 1;
-
-        if (currentLaunchIndex > 2) {
-            currentLaunchIndex = 0;
-        }
-
-        double targetPos = launchPositions[currentLaunchIndex];
-
-        carouselMotor.setTargetPosition((int)(targetPos));
-        carouselMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        carouselMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        carouselMotor.setPower(0.2);
-    }
-
-    public void adjustCarousel(final RangeInput carouselThrottle) {
-        float carouselThrottlePosition = carouselThrottle.getPosition();
-
-        if (carouselThrottlePosition != 0) {
-            carouselMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            carouselMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        } else if (carouselMotor.isBusy()) {
-            return;
-        }
-
-        carouselThrottlePosition /= 9;
-
-        if (carouselThrottlePosition < 0) {
-            if (!carouselHomeLimit.getState()) {
-                carouselMotor.setPower(0);
-
-                return;
-            }
-        }
-
-        carouselMotor.setPower(carouselThrottlePosition);
-    }
 
     public void adjustVelocity(final RangeInput adjustmentThrottle) {
         double adjustmentAmount = -adjustmentThrottle.getPosition();
@@ -172,7 +100,7 @@ public class WheeledLauncher {
     public boolean isAtTargetVelocity() {
         double currentVelocity = launcherMotor.getVelocity();
 
-        return Math.abs(requestedVelocity - currentVelocity) < 200;
+        return Math.abs(requestedVelocity - currentVelocity) < 400;
     }
 
     public void lowerKicker() {

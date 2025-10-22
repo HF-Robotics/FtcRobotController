@@ -35,6 +35,8 @@ import lombok.Builder;
 // to avoid referencing controls of prior seasons, e.e. CenterstageOperatorControls,
 // PowerplayOperatorControls, etc.
 public class DecodeOperatorControls implements PeriodicTask {
+    private final Carousel carousel;
+
     protected RangeInput leftStickX;
 
     protected RangeInput leftStickY;
@@ -127,7 +129,8 @@ public class DecodeOperatorControls implements PeriodicTask {
                                    RangeInput rightTrigger,
                                    NinjaGamePad operatorGamepad,
                                    RollerIntake intake,
-                                   WheeledLauncher launcher) {
+                                   WheeledLauncher launcher,
+                                   Carousel carousel) {
         if (operatorGamepad != null) {
             this.operatorGamepad = operatorGamepad;
             setupFromGamepad();
@@ -157,6 +160,7 @@ public class DecodeOperatorControls implements PeriodicTask {
 
         this.intake = intake;
         this.launcher = launcher;
+        this.carousel = carousel;
 
         wireControlsToOperatorsMechanisms();
     }
@@ -249,16 +253,6 @@ public class DecodeOperatorControls implements PeriodicTask {
 
             launcher.adjustVelocity(launcherSpeedAdjust);
 
-            // FIXME: This eventually needs to be handled with a state machine
-
-            if (carouselIntakeNextIndex.getRise()) {
-                launcher.indexCarouselForIntake();
-            } else if (carouselLaunchNextIndex.getRise()) {
-                launcher.indexCarouselForLaunch();
-            } else {
-                launcher.adjustCarousel(carouselThrottle);
-            }
-
             if (launchTrigger.isPressed()) {
                 if (unsafe.isPressed()) {
                     launcher.raiseKickerNoMatterWhat();
@@ -268,6 +262,17 @@ public class DecodeOperatorControls implements PeriodicTask {
             } else {
                 launcher.lowerKicker();
             }
+        }
+
+        // FIXME: This eventually needs to be handled with a state machine
+        if (carousel != null) {
+        }
+        if (carouselIntakeNextIndex.getRise()) {
+            carousel.nextIndexForIntake();
+        } else if (carouselLaunchNextIndex.getRise()) {
+            carousel.nextIndexForLaunch();
+        } else {
+            carousel.manuallyAdjust(carouselThrottle, !unsafe.isPressed());
         }
     }
 }
