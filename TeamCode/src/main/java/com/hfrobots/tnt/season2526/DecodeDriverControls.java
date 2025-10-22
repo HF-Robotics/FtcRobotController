@@ -271,7 +271,7 @@ public class DecodeDriverControls implements PeriodicTask {
         }
     }
 
-    interface InitLoopConfigTask {
+    public interface InitLoopConfigTask {
         void chooseBlueAlliance();
 
         void chooseRedAlliance();
