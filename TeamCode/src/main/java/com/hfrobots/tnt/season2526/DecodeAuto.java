@@ -44,6 +44,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
 
@@ -61,6 +62,9 @@ public class DecodeAuto extends OpMode {
 
     private Ticker ticker;
 
+    private WheeledLauncher launcher;
+
+    private Carousel carousel;
 
     private StateMachine stateMachine;
 
@@ -106,6 +110,10 @@ public class DecodeAuto extends OpMode {
             //setupVisionPortal(hardwareMap);
 
             // driveTeamSignal = new IntoTheDeepDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
+
+            launcher = new WheeledLauncher(hardwareMap);
+
+            carousel = new Carousel(hardwareMap);
 
             pedroFollower = DecodeLargeDrivebasePedroConstants.createFollower(hardwareMap);
 
@@ -253,6 +261,8 @@ public class DecodeAuto extends OpMode {
                 // FIXME: Stop everything on the robot here
                 if (!issuedStop) {
                     pedroFollower.pausePathFollowing();
+                    launcher.stopLauncher();
+                    launcher.lowerKicker(); // make sure this is lowered so it doesn't lower when we start tele-op!
                     issuedStop = true;
                 }
 
@@ -364,6 +374,11 @@ public class DecodeAuto extends OpMode {
         PedroFollowerState scorePathState = new PedroFollowerState("Score preload", telemetry, pedroFollower, scorePreload);
 
         sequenceOfStates.addSequential(scorePathState);
+
+        addLaunchSteps(sequenceOfStates);
+
+        // FIXME: Need to move out of the launch zone for points!
+
         sequenceOfStates.addSequential(newDoneState("Done!"));
         stateMachine.addSequence(sequenceOfStates);
     }
@@ -402,7 +417,55 @@ public class DecodeAuto extends OpMode {
         PedroFollowerState scorePathState = new PedroFollowerState("Score preload", telemetry, pedroFollower, scorePreload);
 
         sequenceOfStates.addSequential(scorePathState);
+
+        addLaunchSteps(sequenceOfStates);
+
+        // FIXME: Need to move out of the launch zone for points!
+
         sequenceOfStates.addSequential(newDoneState("Done!"));
         stateMachine.addSequence(sequenceOfStates);
+    }
+
+    private void addLaunchSteps(final SequenceOfStates sequenceOfStates) {
+        State carouselHomeState = carousel.new HomeLocationState(telemetry, ticker);
+
+        // FIXME: We need a hard stop for this to really work
+        //sequenceOfStates.addSequential(carouselHomeState);
+
+        LauncherToSpeedState toSpeedState = new LauncherToSpeedState(telemetry);
+
+        State carouselNextLaunchIndexState = carousel.new NextLaunchIndexState(telemetry, ticker);
+
+        // FIXME: This gives us *one* launch sequence - which is what Shannon worked out - how do we get *three*?
+
+        sequenceOfStates.addSequential(carouselNextLaunchIndexState);
+        sequenceOfStates.addSequential(toSpeedState);
+        sequenceOfStates.addRunnableStep("Raise kicker", () -> launcher.raiseKickerNoMatterWhat());
+        sequenceOfStates.addWaitStep("Wait raise kicker", 1500, TimeUnit.MILLISECONDS);
+        sequenceOfStates.addRunnableStep("Lower kicker", () -> launcher.lowerKicker());
+        sequenceOfStates.addWaitStep("Wait lower kicker", 300, TimeUnit.MILLISECONDS);
+    }
+
+    class LauncherToSpeedState extends State {
+
+        protected LauncherToSpeedState(Telemetry telemetry) {
+            super("Speeding up", telemetry);
+        }
+
+        @Override
+        public State doStuffAndGetNextState() {
+            launcher.farLaunchVelocity();
+
+            if (launcher.isAtTargetVelocity()) {
+                return nextState;
+            }
+
+            return this;
+        }
+
+        @Override
+        public void resetToStart() {
+
+        }
     }
 }
