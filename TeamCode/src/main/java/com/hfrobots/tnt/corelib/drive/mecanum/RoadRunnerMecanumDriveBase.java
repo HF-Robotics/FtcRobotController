@@ -1,12 +1,7 @@
 package com.hfrobots.tnt.corelib.drive.mecanum;
 
-import static com.ftc9929.corelib.Constants.LOG_TAG;
-
-import android.util.Log;
-
 import androidx.annotation.NonNull;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.drive.DriveSignal;
 import com.acmerobotics.roadrunner.drive.MecanumDrive;
 import com.acmerobotics.roadrunner.followers.HolonomicPIDVAFollower;
@@ -24,7 +19,6 @@ import com.google.common.base.Optional;
 import com.hfrobots.tnt.corelib.drive.mecanum.trajectorysequence.TrajectorySequence;
 import com.hfrobots.tnt.corelib.drive.mecanum.trajectorysequence.TrajectorySequenceBuilder;
 import com.hfrobots.tnt.corelib.drive.mecanum.trajectorysequence.TrajectorySequenceRunner;
-import com.hfrobots.tnt.corelib.drive.mecanum.util.AxisDirection;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -45,7 +39,6 @@ import java.util.List;
 /*
  * Simple mecanum drive hardware implementation for REV hardware.
  */
-@Config
 public class RoadRunnerMecanumDriveBase extends MecanumDrive {
     private static final boolean RUN_USING_ENCODER = true;
 

@@ -22,11 +22,9 @@
 
 package com.hfrobots.tnt.season2425;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.hfrobots.tnt.corelib.drive.mecanum.DriveConstants;
 
-@Config
 public class IntoTheDeepDriveConstants extends DriveConstants {
 
     private static final double INTO_THE_DEEP_TICKS_PER_REV = 537.6;

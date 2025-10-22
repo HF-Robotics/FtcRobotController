@@ -1,6 +1,5 @@
 package com.hfrobots.tnt.corelib.drive.mecanum;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
@@ -9,7 +8,6 @@ import lombok.Value;
 /*
  * Constants shared between multiple drive types.
  */
-@Config
 public abstract class DriveConstants {
     @Value
     public static class DriveConstraints {

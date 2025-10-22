@@ -2,10 +2,6 @@ package com.hfrobots.tnt.corelib.drive.mecanum.trajectorysequence;
 
 import androidx.annotation.Nullable;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.canvas.Canvas;
-import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.acmerobotics.roadrunner.control.PIDFController;
 import com.acmerobotics.roadrunner.drive.DriveSignal;
@@ -19,14 +15,12 @@ import com.hfrobots.tnt.corelib.drive.mecanum.trajectorysequence.sequencesegment
 import com.hfrobots.tnt.corelib.drive.mecanum.trajectorysequence.sequencesegment.TrajectorySegment;
 import com.hfrobots.tnt.corelib.drive.mecanum.trajectorysequence.sequencesegment.TurnSegment;
 import com.hfrobots.tnt.corelib.drive.mecanum.trajectorysequence.sequencesegment.WaitSegment;
-import com.hfrobots.tnt.corelib.drive.mecanum.util.DashboardUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-@Config
 public class TrajectorySequenceRunner {
     public static String COLOR_INACTIVE_TRAJECTORY = "#4caf507a";
     public static String COLOR_INACTIVE_TURN = "#7c4dff7a";
@@ -53,7 +47,6 @@ public class TrajectorySequenceRunner {
 
     List<TrajectoryMarker> remainingMarkers = new ArrayList<>();
 
-    private final FtcDashboard dashboard;
     private final LinkedList<Pose2d> poseHistory = new LinkedList<>();
 
     public TrajectorySequenceRunner(TrajectoryFollower follower, PIDCoefficients headingPIDCoefficients) {
@@ -63,9 +56,6 @@ public class TrajectorySequenceRunner {
         turnController.setInputBounds(0, 2 * Math.PI);
 
         clock = NanoClock.system();
-
-        dashboard = FtcDashboard.getInstance();
-        dashboard.setTelemetryTransmissionInterval(25);
     }
 
     public void followTrajectorySequenceAsync(TrajectorySequence trajectorySequence) {
@@ -79,9 +69,6 @@ public class TrajectorySequenceRunner {
     DriveSignal update(Pose2d poseEstimate, Pose2d poseVelocity) {
         Pose2d targetPose = null;
         DriveSignal driveSignal = null;
-
-        TelemetryPacket packet = new TelemetryPacket();
-        Canvas fieldOverlay = packet.fieldOverlay();
 
         SequenceSegment currentSegment = null;
 
@@ -183,83 +170,7 @@ public class TrajectorySequenceRunner {
             poseHistory.removeFirst();
         }
 
-        packet.put("x", poseEstimate.getX());
-        packet.put("y", poseEstimate.getY());
-        packet.put("heading (deg)", Math.toDegrees(poseEstimate.getHeading()));
-
-        packet.put("xError", getLastPoseError().getX());
-        packet.put("yError", getLastPoseError().getY());
-        packet.put("headingError (deg)", Math.toDegrees(getLastPoseError().getHeading()));
-
-        draw(fieldOverlay, currentTrajectorySequence, currentSegment, targetPose, poseEstimate);
-
-        dashboard.sendTelemetryPacket(packet);
-
         return driveSignal;
-    }
-
-    private void draw(
-            Canvas fieldOverlay,
-            TrajectorySequence sequence, SequenceSegment currentSegment,
-            Pose2d targetPose, Pose2d poseEstimate
-    ) {
-        if (sequence != null) {
-            for (int i = 0; i < sequence.size(); i++) {
-                SequenceSegment segment = sequence.get(i);
-
-                if (segment instanceof TrajectorySegment) {
-                    fieldOverlay.setStrokeWidth(1);
-                    fieldOverlay.setStroke(COLOR_INACTIVE_TRAJECTORY);
-
-                    DashboardUtil.drawSampledPath(fieldOverlay, ((TrajectorySegment) segment).getTrajectory().getPath());
-                } else if (segment instanceof TurnSegment) {
-                    Pose2d pose = segment.getStartPose();
-
-                    fieldOverlay.setFill(COLOR_INACTIVE_TURN);
-                    fieldOverlay.fillCircle(pose.getX(), pose.getY(), 2);
-                } else if (segment instanceof WaitSegment) {
-                    Pose2d pose = segment.getStartPose();
-
-                    fieldOverlay.setStrokeWidth(1);
-                    fieldOverlay.setStroke(COLOR_INACTIVE_WAIT);
-                    fieldOverlay.strokeCircle(pose.getX(), pose.getY(), 3);
-                }
-            }
-        }
-
-        if (currentSegment != null) {
-            if (currentSegment instanceof TrajectorySegment) {
-                Trajectory currentTrajectory = ((TrajectorySegment) currentSegment).getTrajectory();
-
-                fieldOverlay.setStrokeWidth(1);
-                fieldOverlay.setStroke(COLOR_ACTIVE_TRAJECTORY);
-
-                DashboardUtil.drawSampledPath(fieldOverlay, currentTrajectory.getPath());
-            } else if (currentSegment instanceof TurnSegment) {
-                Pose2d pose = currentSegment.getStartPose();
-
-                fieldOverlay.setFill(COLOR_ACTIVE_TURN);
-                fieldOverlay.fillCircle(pose.getX(), pose.getY(), 3);
-            } else if (currentSegment instanceof WaitSegment) {
-                Pose2d pose = currentSegment.getStartPose();
-
-                fieldOverlay.setStrokeWidth(1);
-                fieldOverlay.setStroke(COLOR_ACTIVE_WAIT);
-                fieldOverlay.strokeCircle(pose.getX(), pose.getY(), 3);
-            }
-        }
-
-        if (targetPose != null) {
-            fieldOverlay.setStrokeWidth(1);
-            fieldOverlay.setStroke("#4CAF50");
-            DashboardUtil.drawRobot(fieldOverlay, targetPose);
-        }
-
-        fieldOverlay.setStroke("#3F51B5");
-        DashboardUtil.drawPoseHistory(fieldOverlay, poseHistory);
-
-        fieldOverlay.setStroke("#3F51B5");
-        DashboardUtil.drawRobot(fieldOverlay, poseEstimate);
     }
 
     public Pose2d getLastPoseError() {

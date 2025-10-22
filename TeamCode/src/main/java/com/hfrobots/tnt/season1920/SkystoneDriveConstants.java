@@ -1,11 +1,9 @@
 package com.hfrobots.tnt.season1920;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 
 import com.hfrobots.tnt.corelib.drive.mecanum.DriveConstants;
 
-@Config
 public class SkystoneDriveConstants extends DriveConstants {
 
     private static DriveConstraints DRIVE_CONSTRAINTS = new DriveConstraints(80, 30.0, 0.0,

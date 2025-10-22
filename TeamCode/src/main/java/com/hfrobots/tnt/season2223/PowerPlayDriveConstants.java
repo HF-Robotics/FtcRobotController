@@ -22,11 +22,9 @@
 
 package com.hfrobots.tnt.season2223;
 
-import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.control.PIDCoefficients;
 import com.hfrobots.tnt.corelib.drive.mecanum.DriveConstants;
 
-@Config
 public class PowerPlayDriveConstants extends DriveConstants {
 
     private static DriveConstraints DRIVE_CONSTRAINTS = new DriveConstraints(80, 30.0, 0.0,
