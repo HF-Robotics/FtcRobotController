@@ -26,14 +26,10 @@ import static com.ftc9929.corelib.Constants.LOG_TAG;
 
 import android.util.Log;
 
-import com.ftc9929.corelib.control.NinjaGamePad;
-import com.ftc9929.corelib.state.RunnableState;
+import com.ftc9929.corelib.state.SequenceOfStates;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
-import com.ftc9929.metrics.RobotMetricsSampler;
-import com.ftc9929.metrics.StatsdMetricsReporter;
 import com.google.common.base.Ticker;
-import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
 import com.hfrobots.tnt.corelib.state.DelayState;
 import com.hfrobots.tnt.season2324.Shared;
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -45,29 +41,15 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import lombok.NonNull;
-
 @TeleOp(name = AutoLauncher.OP_MODE_NAME, group = "util")
 public class AutoLauncher extends OpMode {
     public static final String OP_MODE_NAME = "00 Auto launcher demo";
 
-    private final boolean emitMetrics = false;
-
-    private DecodeDrivebase drivebase;
-
-    private DecodeDriverControls driverControls;
-
-    private DecodeOperatorControls operatorControls;
-
-    private StatsDMetricSampler legacyMetricsSampler;
-
-    private RobotMetricsSampler newMetricsSampler;;
-
-    private final boolean useLegacyMetricsSampler = true;
-
     private List<LynxModule> allHubs;
 
     private WheeledLauncher launcher;
+
+    private Carousel carousel;
 
     private StateMachine launcherStateMachine;
 
@@ -76,36 +58,8 @@ public class AutoLauncher extends OpMode {
         Shared.withBetterErrorHandling(() -> {
             final Ticker ticker = Ticker.systemTicker();
 
-            drivebase = new DecodeDrivebase(hardwareMap);
-
-            NinjaGamePad driversGamepad = new NinjaGamePad(gamepad1);
-
-            driverControls = DecodeDriverControls.builder()
-                    .driversGamepad(driversGamepad)
-                    .kinematics(drivebase).build();
-
-            RollerIntake intake;
-
-            try {
-                intake = new RollerIntake(hardwareMap);
-            } catch (IllegalArgumentException ex) {
-                intake = null;
-            }
-
-            try {
-                launcher = new WheeledLauncher(hardwareMap);
-            } catch (IllegalArgumentException ex) {
-                launcher = null;
-            }
-
-            final NinjaGamePad operatorGamepad = new NinjaGamePad(gamepad2);
-
-            operatorControls = DecodeOperatorControls.builder()
-                    .operatorGamepad(operatorGamepad)
-                    .intake(intake)
-                    .launcher(launcher).build();
-
-            setupMetricsSampler(driversGamepad, operatorGamepad);
+            launcher = new WheeledLauncher(hardwareMap);
+            carousel = new Carousel(hardwareMap);
 
             allHubs = hardwareMap.getAll(LynxModule.class);
 
@@ -116,49 +70,57 @@ public class AutoLauncher extends OpMode {
 
             launcherStateMachine = new StateMachine(telemetry);
 
-            LauncherToSpeedState toSpeedState = new LauncherToSpeedState(telemetry);
-            State raiseKickerState = new RunnableState("Raise kicker", telemetry,
-                    () -> {
-                launcher.raiseKickerNoMatterWhat();
-                    });
-            State waitForKickerToRaiseState = new DelayState("wait a bit", telemetry, 1500, TimeUnit.MILLISECONDS);
+            // FIXME: Think about how to optimize the spin up time once this is
+            //        wired into full auto
+            final SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
 
-            State lowerKickerState = new RunnableState("Lower kicker", telemetry,
-                    () -> {
-                        launcher.lowerKicker();
-                    });
+            State carouselHomeState = carousel.new HomeLocationState(telemetry, ticker);
 
-            State waitForKickerToLowerState = new DelayState("wait a bit", telemetry, 1500, TimeUnit.MILLISECONDS);
+            //sequenceOfStates.addSequential(carouselHomeState);
 
-            toSpeedState.setNextState(raiseKickerState);
-            raiseKickerState.setNextState(waitForKickerToRaiseState);
-            waitForKickerToRaiseState.setNextState(lowerKickerState);
-            lowerKickerState.setNextState(waitForKickerToLowerState);
-            waitForKickerToLowerState.setNextState(toSpeedState);
-            launcherStateMachine.setFirstState(toSpeedState);
+            addOneIndexAndLaunchIteration(sequenceOfStates, ticker);
+            addOneIndexAndLaunchIteration(sequenceOfStates, ticker);
+            addOneIndexAndLaunchIteration(sequenceOfStates, ticker);
+
+            sequenceOfStates.addSequential(newDoneState("Done!"));
+
+            launcherStateMachine.addSequence(sequenceOfStates);
         });
     }
 
-    private void setupMetricsSampler(NinjaGamePad driversGamepad, NinjaGamePad operatorGamepad) {
-        if (emitMetrics) {
-            try {
-                if (useLegacyMetricsSampler) {
-                    legacyMetricsSampler = new StatsDMetricSampler(hardwareMap, driversGamepad, operatorGamepad);
-                } else {
-                    StatsdMetricsReporter metricsReporter = StatsdMetricsReporter.builder()
-                            .metricsServerHost("192.168.43.78").
-                            metricsServerPortNumber(8126).build();
+    protected State newDoneState(String name) {
+        return new State(name, telemetry) {
+            private boolean issuedStop = false;
 
-                    newMetricsSampler = RobotMetricsSampler.builder()
-                            .metricsReporter(metricsReporter)
-                            .hardwareMap(hardwareMap)
-                            .driverControls(driversGamepad)
-                            .operatorControls(operatorGamepad).build();
+            @Override
+            public State doStuffAndGetNextState() {
+                // FIXME: Stop everything on the robot here
+                if (!issuedStop) {
+                    launcher.stopLauncher();
+                    issuedStop = true;
                 }
-            } catch (Exception ex) {
-                Log.w(LOG_TAG, "Unable to setup metrics sampler", ex);
+
+                return this;
             }
-        }
+
+            @Override
+            public void resetToStart() {
+                issuedStop = false;
+            }
+        };
+    }
+
+    private void addOneIndexAndLaunchIteration(final SequenceOfStates sequenceOfStates, final Ticker ticker) {
+        LauncherToSpeedState toSpeedState = new LauncherToSpeedState(telemetry);
+
+        State carouselNextLaunchIndexState = carousel.new NextLaunchIndexState(telemetry, ticker);
+
+        sequenceOfStates.addSequential(carouselNextLaunchIndexState);
+        sequenceOfStates.addSequential(toSpeedState);
+        sequenceOfStates.addRunnableStep("Raise kicker", () -> launcher.raiseKickerNoMatterWhat());
+        sequenceOfStates.addWaitStep("Wait raise kicker", 1500, TimeUnit.MILLISECONDS);
+        sequenceOfStates.addRunnableStep("Lower kicker", () -> launcher.lowerKicker());
+        sequenceOfStates.addWaitStep("Wait lower kicker", 300, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -184,21 +146,7 @@ public class AutoLauncher extends OpMode {
         Shared.withBetterErrorHandling(() -> {
             clearHubsBulkCaches(); // important, do not remove this line, or reads from robot break!
 
-            driverControls.periodicTask();
-            //operatorControls.periodicTask();
             launcherStateMachine.doOneStateLoop();
-
-            if (emitMetrics) {
-                if (useLegacyMetricsSampler) {
-                    if (legacyMetricsSampler != null) {
-                        legacyMetricsSampler.doSamples();
-                    }
-                } else {
-                    if (newMetricsSampler != null) {
-                        newMetricsSampler.doSamples();
-                    }
-                }
-            }
 
             launcher.updateTelemetry(telemetry);
             telemetry.update();
