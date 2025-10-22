@@ -20,7 +20,7 @@
  SOFTWARE.
  */
 
-package com.hfrobots.tnt.season2526;
+package com.hfrobots.tnt.season2526.small;
 
 import static com.ftc9929.corelib.Constants.LOG_TAG;
 
@@ -35,12 +35,15 @@ import com.ftc9929.corelib.state.StopwatchDelayState;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.season2324.Shared;
-import com.hfrobots.tnt.season2526.small.DecodeSmallDrivebasePedroConstants;
+import com.hfrobots.tnt.season2526.DecodeDriverControlled;
+import com.hfrobots.tnt.season2526.DecodeDriverControls;
+import com.hfrobots.tnt.season2526.PedroFollowerState;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -51,8 +54,9 @@ import java.util.concurrent.TimeUnit;
 
 import lombok.Getter;
 
-@Autonomous(name = "00 DECODE Auto", preselectTeleOp = DecodeDriverControlled.OP_MODE_NAME)
-public class DecodeAuto extends OpMode {
+@Autonomous(name = "00 DECODE Auto Small", preselectTeleOp = DecodeDriverControlled.OP_MODE_NAME)
+@Disabled
+public class DecodeAutoSmall extends OpMode {
     // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     public static final Pose RED_SCORE_POSE = new Pose(53.5, 144 - 59, Math.toRadians(225 - 90));// Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     public static final Pose BLUE_SCORE_POSE = new Pose(53.5, 59, Math.toRadians(225));
@@ -107,7 +111,7 @@ public class DecodeAuto extends OpMode {
 
             // driveTeamSignal = new IntoTheDeepDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
-            pedroFollower = DecodeLargeDrivebasePedroConstants.createFollower(hardwareMap);
+            pedroFollower = DecodeSmallDrivebasePedroConstants.createFollower(hardwareMap);
 
             stateMachine = new StateMachine(telemetry);
         });
