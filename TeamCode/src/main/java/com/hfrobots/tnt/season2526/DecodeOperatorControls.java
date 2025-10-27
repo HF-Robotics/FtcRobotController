@@ -266,13 +266,13 @@ public class DecodeOperatorControls implements PeriodicTask {
 
         // FIXME: This eventually needs to be handled with a state machine
         if (carousel != null) {
-        }
-        if (carouselIntakeNextIndex.getRise()) {
-            carousel.nextIndexForIntake();
-        } else if (carouselLaunchNextIndex.getRise()) {
-            carousel.nextIndexForLaunch();
-        } else {
-            carousel.manuallyAdjust(carouselThrottle, !unsafe.isPressed());
+            if (carouselIntakeNextIndex.getRise()) {
+                carousel.nextIndexForIntake();
+            } else if (carouselLaunchNextIndex.getRise()) {
+                carousel.nextIndexForLaunch();
+            } else {
+                carousel.manuallyAdjust(carouselThrottle, !unsafe.isPressed());
+            }
         }
     }
 }

@@ -34,7 +34,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -104,48 +103,56 @@ public class Carousel {
         runToPosition(targetPos);
     }
 
+    private boolean runningToPosition = false;
+
     private void runToPosition(double targetPos) {
         carouselMotor.setTargetPosition((int) targetPos);
         carouselMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         carouselMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         carouselMotor.setPower(AUTOMATED_POWER);
+        runningToPosition = true;
     }
 
-    public void manuallyAdjust(final RangeInput carouselThrottle, final boolean useEncoders) {
-        manuallyAdjust(carouselThrottle.getPosition(), useEncoders);
+    public void manuallyAdjust(final RangeInput carouselThrottle, final boolean unsafeIsPressed) {
+        manuallyAdjust(carouselThrottle.getPosition(), unsafeIsPressed);
     }
 
-    private void manuallyAdjust(float carouselThrottlePosition, final boolean useEncoders) {
+    private void manuallyAdjust(float carouselThrottlePosition, final boolean unsafeIsPressed) {
         if (carouselThrottlePosition != 0) {
-            if (carouselMotor.isBusy()) {
-                carouselMotor.setPower(0);
+            if (runningToPosition) {
+                runningToPosition = false;
 
-                if (useEncoders) {
+                if (!unsafeIsPressed) {
                     carouselMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                 } else {
                     carouselMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                 }
-
-                return; // Let next time through loop set the power
             }
         }
 
-        if (carouselMotor.isBusy()) {
+        // Are we attempting to automatically position?
+        if (runningToPosition) {
             return;
         }
 
-        carouselThrottlePosition /= 4;
+        carouselThrottlePosition /= MANUAL_ADJUST_SPEED_REDUCTION;
 
         if (carouselThrottlePosition < 0) {
-            if (!carouselHomeLimit.getState()) {
-                carouselMotor.setPower(0);
-                carouselMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            if (!unsafeIsPressed) {
+                if (!carouselHomeLimit.getState()) {
+                    Log.d(LOG_TAG, "Carousel is at home and throttle is " + carouselThrottlePosition);
 
-                return;
+                    carouselMotor.setPower(0);
+                    carouselMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+                    return;
+                }
+            } else {
+                Log.d(LOG_TAG, "Unsafe pressed, not auto-homing");
             }
         }
 
-        if (useEncoders) {
+        if (!unsafeIsPressed) {
             maybeSetRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
         } else {
             maybeSetRunMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
