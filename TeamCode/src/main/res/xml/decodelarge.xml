@@ -43,8 +43,10 @@ SOFTWARE.
             <Motor name="launcherMotor"        port="0" /> <!-- Red    -->
             <Motor name="intakeMotor"          port="1" /> <!-- Orange -->
             <Motor name="carouselMotor"        port="2" /> <!-- Yellow -->
-            <Servo name="kickerServo"          port="0" /> <!-- Red -->
 
+            <Servo name="kickerServo"          port="0" /> <!-- Red -->
+            <Servo name="ledIndicatorBack"    port="2" /> <!-- Yellow -->
+            <Servo name="ledIndicatorFront"    port="5" /> <!-- Purple -->
             <DigitalDevice name="carouselHome" port="0" />
         </LynxModule>
     </LynxUsbDevice>

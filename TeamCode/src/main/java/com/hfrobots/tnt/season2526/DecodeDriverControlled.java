@@ -24,8 +24,6 @@ package com.hfrobots.tnt.season2526;
 
 import static com.ftc9929.corelib.Constants.LOG_TAG;
 
-import static java.lang.Thread.sleep;
-
 import android.util.Log;
 
 import com.ftc9929.corelib.control.NinjaGamePad;
@@ -38,15 +36,11 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.ExposureControl;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.controls.GainControl;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @TeleOp(name = DecodeDriverControlled.OP_MODE_NAME)
 public class DecodeDriverControlled extends OpMode {
@@ -71,6 +65,8 @@ public class DecodeDriverControlled extends OpMode {
     private WheeledLauncher launcher;
 
     private Carousel carousel;
+
+    private DecodeDriveTeamSignal driveTeamSignal;
 
     @Override
     public void init() {
@@ -114,6 +110,8 @@ public class DecodeDriverControlled extends OpMode {
                     .launcher(launcher).build();
 
             setupMetricsSampler(driversGamepad, operatorGamepad);
+
+            driveTeamSignal = new DecodeDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
             try {
                 initAprilTag();
@@ -168,6 +166,8 @@ public class DecodeDriverControlled extends OpMode {
     public void start() {
         Shared.withBetterErrorHandling(() -> {
             super.start();
+
+            driveTeamSignal.startMatch();
         });
     }
 
@@ -178,6 +178,7 @@ public class DecodeDriverControlled extends OpMode {
 
             driverControls.periodicTask();
             operatorControls.periodicTask();
+            driveTeamSignal.periodicTask();
 
             if (emitMetrics) {
                 if (useLegacyMetricsSampler) {
@@ -223,45 +224,4 @@ public class DecodeDriverControlled extends OpMode {
     }
 
     boolean canUseAprilTags = false;
-
-    boolean exposureHasBeenSet = false;
-
-    /*
-    Manually set the camera gain and exposure.
-    This can only be called AFTER calling initAprilTag(), and only works for Webcams;
-   */
-    private void maybeSetManualExposure() {
-        // Wait for the camera to be open, then use the controls
-
-        final int exposureMS = 6;
-        final int gain = 250;
-
-        if (exposureHasBeenSet) {
-            return;
-        }
-
-        if (visionPortal == null) {
-            return;
-        }
-
-        // Make sure camera is streaming before we try to set the exposure controls
-        if (visionPortal.getCameraState() != VisionPortal.CameraState.STREAMING) {
-            telemetry.addData("Camera", "Waiting");
-        }
-
-        if (visionPortal.getCameraState() == VisionPortal.CameraState.STREAMING) {
-            ExposureControl exposureControl = visionPortal.getCameraControl(ExposureControl.class);
-
-            if (exposureControl.getMode() != ExposureControl.Mode.Manual) {
-                exposureControl.setMode(ExposureControl.Mode.Manual);
-            }
-
-            exposureControl.setExposure((long) exposureMS, TimeUnit.MILLISECONDS);
-
-            GainControl gainControl = visionPortal.getCameraControl(GainControl.class);
-            gainControl.setGain(gain);
-
-            exposureHasBeenSet = true;
-        }
-    }
 }

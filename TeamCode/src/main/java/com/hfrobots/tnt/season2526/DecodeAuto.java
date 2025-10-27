@@ -40,6 +40,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
+import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -72,8 +73,8 @@ public class DecodeAuto extends OpMode {
     //  something meaningful for the season!
     @Getter
     private enum Task {
-        WALL_AND_GOAL("Wall and goal"),
-        GOAL_AND_45("Goal and 45");
+        WALL_AND_GOAL("(2) Wall and goal"),
+        GOAL_AND_45("(1) Goal and 45");
 
         final String description;
 
@@ -100,6 +101,8 @@ public class DecodeAuto extends OpMode {
 
     private VisionPortal visionPortal;
 
+    private DecodeDriveTeamSignal driveTeamSignal;
+
     @Override
     public void init() {
         Shared.withBetterErrorHandling(() -> {
@@ -109,7 +112,7 @@ public class DecodeAuto extends OpMode {
 
             //setupVisionPortal(hardwareMap);
 
-            // driveTeamSignal = new IntoTheDeepDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
+             driveTeamSignal = new DecodeDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
             launcher = new WheeledLauncher(hardwareMap);
 
@@ -144,6 +147,8 @@ public class DecodeAuto extends OpMode {
             if (visionPortal != null) {
                 visionPortal.stopLiveView();
             }
+
+            launcher.mediumLaunchVelocity();
 
             setupStateMachine();
         });
@@ -193,6 +198,8 @@ public class DecodeAuto extends OpMode {
             telemetry.addData("01", "Alliance: %s", currentAlliance);
             telemetry.addData("02", "Task: %s", possibleTaskChoices[selectedTaskIndex].getDescription());
             telemetry.addData("03", "Delay %d sec", initialDelaySeconds);
+            driveTeamSignal.setAlliance(currentAlliance);
+            driveTeamSignal.periodicTask();
         });
     }
 
@@ -410,6 +417,7 @@ public class DecodeAuto extends OpMode {
 
         /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
         final Path scorePreload = new Path(new BezierLine(startPose, scorePose));
+
         scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
 
         pedroFollower.setStartingPose(startPose);
@@ -432,16 +440,21 @@ public class DecodeAuto extends OpMode {
         // FIXME: We need a hard stop for this to really work
         //sequenceOfStates.addSequential(carouselHomeState);
 
+
+        addOneLaunch(sequenceOfStates);
+        addOneLaunch(sequenceOfStates);
+        addOneLaunch(sequenceOfStates);
+    }
+
+    private void addOneLaunch(SequenceOfStates sequenceOfStates) {
         LauncherToSpeedState toSpeedState = new LauncherToSpeedState(telemetry);
 
         State carouselNextLaunchIndexState = carousel.new NextLaunchIndexState(telemetry, ticker);
 
-        // FIXME: This gives us *one* launch sequence - which is what Shannon worked out - how do we get *three*?
-
         sequenceOfStates.addSequential(carouselNextLaunchIndexState);
         sequenceOfStates.addSequential(toSpeedState);
         sequenceOfStates.addRunnableStep("Raise kicker", () -> launcher.raiseKickerNoMatterWhat());
-        sequenceOfStates.addWaitStep("Wait raise kicker", 1500, TimeUnit.MILLISECONDS);
+        sequenceOfStates.addWaitStep("Wait raise kicker", 750, TimeUnit.MILLISECONDS);
         sequenceOfStates.addRunnableStep("Lower kicker", () -> launcher.lowerKicker());
         sequenceOfStates.addWaitStep("Wait lower kicker", 300, TimeUnit.MILLISECONDS);
     }
@@ -454,7 +467,7 @@ public class DecodeAuto extends OpMode {
 
         @Override
         public State doStuffAndGetNextState() {
-            launcher.farLaunchVelocity();
+            launcher.mediumLaunchVelocity();
 
             if (launcher.isAtTargetVelocity()) {
                 return nextState;
