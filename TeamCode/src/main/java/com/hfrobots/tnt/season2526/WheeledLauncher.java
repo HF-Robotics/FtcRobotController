@@ -41,11 +41,11 @@ public class WheeledLauncher {
 
     private static final double KICKER_SERVO_LOWERED_POSITION = 0;
 
-    private static final double FAR_LAUNCH_VELOCITY = 2200;
+    private static final double FAR_LAUNCH_VELOCITY = 1620;
 
-    private static final double MEDIUM_LAUNCH_VELOCITY = 2060;
+    private static final double MEDIUM_LAUNCH_VELOCITY = 1420;
 
-    private static final double CLOSE_LAUNCH_VELOCITY = 1780;
+    private static final double CLOSE_LAUNCH_VELOCITY = 1154;
 
     // These are the components of our launcher
     private final DcMotorEx launcherMotor;
@@ -72,9 +72,15 @@ public class WheeledLauncher {
     public void adjustVelocity(final RangeInput adjustmentThrottle) {
         double adjustmentAmount = -adjustmentThrottle.getPosition();
 
+        if (requestedVelocity < 0) {
+            return;
+        }
+
         if (adjustmentAmount != 0) {
             maybeSetLaunchVelocity(requestedVelocity + (adjustmentAmount * 4.0));
         }
+
+
     }
 
     public void closeLaunchVelocity() {
