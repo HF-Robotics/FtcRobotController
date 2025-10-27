@@ -222,12 +222,12 @@ public class Carousel {
         }
 
         protected HomeLocationState(final Telemetry telemetry, @NonNull final Ticker ticker) {
-            super("Carousel homing", telemetry, ticker, 10_000);
+            super("Carousel homing", telemetry, ticker, 7_000);
         }
 
         @Override
         public State doStuffAndGetNextState() {
-            manuallyAdjust(-.2F, true); // head towards hard stop
+            manuallyAdjust(-.2F, false); // head towards hard stop
 
             if (!isAtHomePosition()) {
                 return this;
