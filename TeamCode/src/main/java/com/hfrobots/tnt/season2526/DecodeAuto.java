@@ -73,8 +73,8 @@ public class DecodeAuto extends OpMode {
     //  something meaningful for the season!
     @Getter
     private enum Task {
-        WALL_AND_GOAL("(2) Wall and goal"),
-        GOAL_AND_45("(1) Goal and 45");
+        GOAL_AND_45("(1) Goal and 45"),
+        WALL_AND_GOAL("(2) Wall and goal");
 
         final String description;
 
@@ -437,9 +437,7 @@ public class DecodeAuto extends OpMode {
     private void addLaunchSteps(final SequenceOfStates sequenceOfStates) {
         State carouselHomeState = carousel.new HomeLocationState(telemetry, ticker);
 
-        // FIXME: We need a hard stop for this to really work
-        //sequenceOfStates.addSequential(carouselHomeState);
-
+        sequenceOfStates.addSequential(carouselHomeState);
 
         addOneLaunch(sequenceOfStates);
         addOneLaunch(sequenceOfStates);
