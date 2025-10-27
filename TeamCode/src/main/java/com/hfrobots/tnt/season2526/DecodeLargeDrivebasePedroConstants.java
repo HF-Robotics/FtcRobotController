@@ -33,8 +33,10 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class DecodeLargeDrivebasePedroConstants {
+    public static final double X_VELOCITY = 38.63697;
+    public static final double Y_VELOCITY = 29.13538;
     public static MecanumConstants driveConstants = new MecanumConstants()
-            .maxPower(1)
+            .maxPower(1.0)
             .rightFrontMotorName("rightFrontDriveMotor")
             .rightRearMotorName("rightRearDriveMotor")
             .leftRearMotorName("leftRearDriveMotor")
@@ -43,9 +45,8 @@ public class DecodeLargeDrivebasePedroConstants {
             .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .xVelocity(38.63697)
-            .yVelocity(29.13538)
-            ;
+            .xVelocity(X_VELOCITY)
+            .yVelocity(Y_VELOCITY);
 
     public static ThreeWheelConstants localizerConstants = new ThreeWheelConstants()
             .forwardTicksToInches(.001997896808)
