@@ -44,7 +44,7 @@ public class DecodeDriveTeamSignal implements PeriodicTask {
     private final Servo ledIndicatorBack;
     private final static int MATCH_DURATION_SECONDS = 120;
 
-    private final static int END_GAME_SECONDS = MATCH_DURATION_SECONDS - 30;
+    private final static int END_GAME_SECONDS = MATCH_DURATION_SECONDS - 20;
 
     private final static int GO_TO_END_GAME_SECONDS = END_GAME_SECONDS - 10;
 
