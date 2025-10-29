@@ -106,7 +106,7 @@ public class WheeledLauncher {
     public boolean isAtTargetVelocity() {
         double currentVelocity = launcherMotor.getVelocity();
 
-        return Math.abs(requestedVelocity - currentVelocity) < 400;
+        return Math.abs(requestedVelocity - currentVelocity) < 100;
     }
 
     public void lowerKicker() {

@@ -32,6 +32,7 @@ import com.ftc9929.corelib.state.SequenceOfStates;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
 import com.ftc9929.corelib.state.StopwatchDelayState;
+import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.season2324.Shared;
@@ -56,10 +57,12 @@ import lombok.Getter;
 @Autonomous(name = "00 DECODE Auto", preselectTeleOp = DecodeDriverControlled.OP_MODE_NAME)
 public class DecodeAuto extends OpMode {
     // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    public static final Pose RED_SCORE_POSE = new Pose(53.5, 144 - 59, Math.toRadians(225 - 90));// Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    public static final Pose BLUE_SCORE_POSE = new Pose(53.5, 59, Math.toRadians(225));
+    public static final Pose RED_SCORE_POSE = new Pose(29.5, 144 - 33, Math.toRadians(225 - 90));// Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    public static final Pose BLUE_SCORE_POSE = new Pose(29.5, 33, Math.toRadians(225));
 
-    public static final double SCORE_POSE_LAUNCHER_VELOCITY = 2060;
+    public static final Pose RED_END_POSE = new Pose(72, 144 - 40, Math.toRadians(225 - 90 - 45));
+
+    public static final Pose BLUE_END_POSE = new Pose(72, 40, Math.toRadians(225 + 45));
 
     private Ticker ticker;
 
@@ -361,16 +364,19 @@ public class DecodeAuto extends OpMode {
 
         final double startPosY;
         final Pose scorePose;
+        final Pose endPose;
 
         if (currentAlliance == Constants.Alliance.BLUE) {
-            startPosY = 33 - 14; // FIXME - We don't understand this starting position!
+            startPosY = 24 + 7.5; // FIXME - We don't understand this starting position!
             scorePose = BLUE_SCORE_POSE;
+            endPose = BLUE_END_POSE;
         } else {
-            startPosY = 144 - (33 - 14); // FIXME
+            startPosY = 144 - (24 + 7.5); // FIXME
             scorePose = RED_SCORE_POSE;
+            endPose = RED_END_POSE;
         }
 
-        final Pose startPose = new Pose(0, startPosY, Math.toRadians(180)); // Start Pose of our robot.
+        final Pose startPose = new Pose(8.5, startPosY, Math.toRadians(180)); // Start Pose of our robot.
 
         /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
         final Path scorePreload = new Path(new BezierLine(startPose, scorePose));
@@ -384,7 +390,13 @@ public class DecodeAuto extends OpMode {
 
         addLaunchSteps(sequenceOfStates);
 
-        // FIXME: Need to move out of the launch zone for points!
+        final Path toEndPosePath = new Path(new BezierLine(scorePose, endPose));
+
+        toEndPosePath.setLinearHeadingInterpolation(scorePose.getHeading(), endPose.getHeading());
+
+        PedroFollowerState endPathState = new PedroFollowerState("End pose", telemetry, pedroFollower, toEndPosePath);
+
+        sequenceOfStates.addSequential(endPathState);
 
         sequenceOfStates.addSequential(newDoneState("Done!"));
         stateMachine.addSequence(sequenceOfStates);
@@ -398,6 +410,7 @@ public class DecodeAuto extends OpMode {
         final double startPosX;
 
         final Pose scorePose;
+        final Pose endPose;
 
         if (currentAlliance == Constants.Alliance.BLUE) {
             startPosY = 22;
@@ -405,12 +418,14 @@ public class DecodeAuto extends OpMode {
             startAngle = Math.toRadians(225);
 
             scorePose = BLUE_SCORE_POSE;
+            endPose = BLUE_END_POSE;
         } else {
             startAngle = Math.toRadians(225 - 90);
             startPosY = 144 - 22; // FIXME
             startPosX = 16.5;
 
             scorePose = RED_SCORE_POSE;
+            endPose = RED_END_POSE;
         }
 
         final Pose startPose = new Pose(startPosX, startPosY, startAngle); // Start Pose of our robot.
@@ -428,7 +443,13 @@ public class DecodeAuto extends OpMode {
 
         addLaunchSteps(sequenceOfStates);
 
-        // FIXME: Need to move out of the launch zone for points!
+        final Path toEndPosePath = new Path(new BezierLine(scorePose, endPose));
+
+        toEndPosePath.setLinearHeadingInterpolation(scorePose.getHeading(), endPose.getHeading());
+
+        PedroFollowerState endPathState = new PedroFollowerState("End pose", telemetry, pedroFollower, toEndPosePath);
+
+        sequenceOfStates.addSequential(endPathState);
 
         sequenceOfStates.addSequential(newDoneState("Done!"));
         stateMachine.addSequence(sequenceOfStates);
@@ -445,7 +466,7 @@ public class DecodeAuto extends OpMode {
     }
 
     private void addOneLaunch(SequenceOfStates sequenceOfStates) {
-        LauncherToSpeedState toSpeedState = new LauncherToSpeedState(telemetry);
+        LauncherToSpeedState toSpeedState = new LauncherToSpeedState(telemetry, ticker);
 
         State carouselNextLaunchIndexState = carousel.new NextLaunchIndexState(telemetry, ticker);
 
@@ -457,17 +478,25 @@ public class DecodeAuto extends OpMode {
         sequenceOfStates.addWaitStep("Wait lower kicker", 300, TimeUnit.MILLISECONDS);
     }
 
-    class LauncherToSpeedState extends State {
+    class LauncherToSpeedState extends StopwatchTimeoutSafetyState {
 
-        protected LauncherToSpeedState(Telemetry telemetry) {
-            super("Speeding up", telemetry);
+        protected LauncherToSpeedState(final Telemetry telemetry, final Ticker ticker) {
+            super("Speeding up", telemetry, ticker, 5_000);
         }
 
         @Override
         public State doStuffAndGetNextState() {
-            launcher.mediumLaunchVelocity();
+            launcher.closeLaunchVelocity();
 
             if (launcher.isAtTargetVelocity()) {
+                resetToStart();
+
+                return nextState;
+            }
+
+            if (isTimedOut()) {
+                resetToStart();
+
                 return nextState;
             }
 
