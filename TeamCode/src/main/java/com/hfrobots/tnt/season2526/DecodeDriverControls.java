@@ -95,6 +95,7 @@ public class DecodeDriverControls implements PeriodicTask {
 
     private OpenLoopMecanumKinematics kinematics;
 
+
     private final float throttleGain = 0.4F;
 
     private final float throttleExponent = 5; // MUST BE AN ODD NUMBER!
