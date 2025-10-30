@@ -111,7 +111,11 @@ public class DecodeDriverControlled extends OpMode {
 
             setupMetricsSampler(driversGamepad, operatorGamepad);
 
-            driveTeamSignal = new DecodeDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
+            try {
+                driveTeamSignal = new DecodeDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
+            } catch (IllegalArgumentException ex) {
+                driveTeamSignal = null;
+            }
 
             try {
                 initAprilTag();
@@ -167,7 +171,9 @@ public class DecodeDriverControlled extends OpMode {
         Shared.withBetterErrorHandling(() -> {
             super.start();
 
-            driveTeamSignal.startMatch();
+            if (driveTeamSignal != null) {
+                driveTeamSignal.startMatch();
+            }
         });
     }
 
@@ -178,7 +184,10 @@ public class DecodeDriverControlled extends OpMode {
 
             driverControls.periodicTask();
             operatorControls.periodicTask();
-            driveTeamSignal.periodicTask();
+
+            if (driveTeamSignal != null) {
+                driveTeamSignal.periodicTask();
+            }
 
             if (emitMetrics) {
                 if (useLegacyMetricsSampler) {
@@ -192,7 +201,10 @@ public class DecodeDriverControlled extends OpMode {
                 }
             }
 
-            launcher.updateTelemetry(telemetry);
+            if (launcher != null) {
+                launcher.updateTelemetry(telemetry);
+            }
+
             telemetry.update();
         });
     }
