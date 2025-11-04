@@ -75,10 +75,17 @@ public class DecodeDriverControlled extends OpMode {
 
             drivebase = new DecodeDrivebase(hardwareMap);
 
+            try {
+                launcher = new WheeledLauncher(hardwareMap);
+            } catch (IllegalArgumentException ex) {
+                launcher = null;
+            }
+
             NinjaGamePad driversGamepad = new NinjaGamePad(gamepad1);
 
             driverControls = DecodeDriverControls.builder()
                     .driversGamepad(driversGamepad)
+                    .launcher(launcher)
                     .kinematics(drivebase).build();
 
             RollerIntake intake;
@@ -87,12 +94,6 @@ public class DecodeDriverControlled extends OpMode {
                 intake = new RollerIntake(hardwareMap);
             } catch (IllegalArgumentException ex) {
                 intake = null;
-            }
-
-            try {
-                launcher = new WheeledLauncher(hardwareMap);
-            } catch (IllegalArgumentException ex) {
-                launcher = null;
             }
 
             try {

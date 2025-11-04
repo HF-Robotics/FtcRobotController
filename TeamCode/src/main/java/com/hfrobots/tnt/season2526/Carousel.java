@@ -40,7 +40,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import lombok.NonNull;
 
 public class Carousel {
-    public static final double AUTOMATED_POWER = 0.2;
+    public static final double AUTOMATED_POWER = 0.3;
     public static final int MANUAL_ADJUST_SPEED_REDUCTION = 4;
     private final DcMotorEx carouselMotor;
 

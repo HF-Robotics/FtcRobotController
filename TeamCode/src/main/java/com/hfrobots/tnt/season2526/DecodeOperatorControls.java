@@ -214,9 +214,9 @@ public class DecodeOperatorControls implements PeriodicTask {
 
         intakeOut = new RangeInputButton( leftTrigger, 0.65f);
 
-        carouselIntakeNextIndex = yYellowButton.debounced();
+        carouselIntakeNextIndex = aGreenButton.debounced();
 
-        carouselLaunchNextIndex = aGreenButton.debounced();
+        carouselLaunchNextIndex = yYellowButton.debounced();
     }
 
     // FIXME: As-needed, set controls to setters on scoring mechanisms that have

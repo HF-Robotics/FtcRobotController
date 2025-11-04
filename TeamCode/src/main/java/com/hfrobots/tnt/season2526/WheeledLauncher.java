@@ -41,9 +41,9 @@ public class WheeledLauncher {
 
     private static final double KICKER_SERVO_LOWERED_POSITION = 0;
 
-    private static final double FAR_LAUNCH_VELOCITY = 1620;
+    private static final double FAR_LAUNCH_VELOCITY = 1950;
 
-    private static final double MEDIUM_LAUNCH_VELOCITY = 1420;
+    private static final double MEDIUM_LAUNCH_VELOCITY = 1576;
 
     private static final double CLOSE_LAUNCH_VELOCITY = 1154;
 

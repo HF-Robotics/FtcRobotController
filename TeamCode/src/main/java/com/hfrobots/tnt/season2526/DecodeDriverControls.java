@@ -95,6 +95,7 @@ public class DecodeDriverControls implements PeriodicTask {
 
     private OpenLoopMecanumKinematics kinematics;
 
+    private WheeledLauncher launcher;
 
     private final float throttleGain = 0.4F;
 
@@ -103,6 +104,14 @@ public class DecodeDriverControls implements PeriodicTask {
     private final float throttleDeadband = 0;
 
     private final float lowPassFilterFactor = 1.0F;
+
+    private DebouncedButton launchSpeedFar;
+
+    private DebouncedButton launchSpeedMed;
+
+    private DebouncedButton launchSpeedClose;
+
+    private DebouncedButton launchSpeedStop;
 
     @Builder
     private DecodeDriverControls(RangeInput leftStickX,
@@ -127,7 +136,8 @@ public class DecodeDriverControls implements PeriodicTask {
                                  RangeInput rightTrigger,
                                  NinjaGamePad driversGamepad,
                                  OpenLoopMecanumKinematics kinematics,
-                                 InitLoopConfigTask autoConfigTask)  {
+                                 InitLoopConfigTask autoConfigTask,
+                                 WheeledLauncher launcher)  {
         if (driversGamepad != null) {
             this.driversGamepad = driversGamepad;
             setupFromGamepad();
@@ -157,6 +167,7 @@ public class DecodeDriverControls implements PeriodicTask {
 
         this.kinematics = kinematics;
         this.autoConfigTask = autoConfigTask;
+        this.launcher = launcher;
     }
 
     private void setupCurvesAndFilters() {
@@ -205,6 +216,14 @@ public class DecodeDriverControls implements PeriodicTask {
     private void setupDerivedControls() {
         driveSlowButton = new RangeInputButton(leftTrigger, 0.65f);
         driveInvertedButton = new RangeInputButton(rightTrigger, 0.65f);
+
+        launchSpeedFar = dpadUp;
+
+        launchSpeedMed = dpadLeft;
+
+        launchSpeedClose = dpadDown;
+
+        launchSpeedStop = bRedButton;
     }
 
     private boolean gripUpFirstTime = false;
@@ -237,6 +256,18 @@ public class DecodeDriverControls implements PeriodicTask {
             double rotateScaled = rot;
 
             kinematics.driveCartesian(xScaled, yScaled, rotateScaled, driveInverted);
+        }
+
+        if (launcher != null) {
+            if (launchSpeedFar.getRise()) {
+                launcher.farLaunchVelocity();
+            } else if (launchSpeedMed.getRise()) {
+                launcher.mediumLaunchVelocity();
+            } else if (launchSpeedClose.getRise()) {
+                launcher.closeLaunchVelocity();
+            } else if (launchSpeedStop.getRise()) {
+                launcher.stopLauncher();
+            }
         }
     }
 
