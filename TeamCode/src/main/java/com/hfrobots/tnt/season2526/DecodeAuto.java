@@ -36,12 +36,10 @@ import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.season2324.Shared;
-import com.hfrobots.tnt.season2526.small.DecodeSmallDrivebasePedroConstants;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
-import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -77,7 +75,8 @@ public class DecodeAuto extends OpMode {
     @Getter
     private enum Task {
         GOAL_AND_45("(1) Goal and 45"),
-        WALL_AND_GOAL("(2) Wall and goal");
+        WALL_AND_GOAL("(2) Wall and goal"),
+        SIMPLE_LEAVE("(3) Simple leave");
 
         final String description;
 
@@ -243,6 +242,9 @@ public class DecodeAuto extends OpMode {
                 break;
             case GOAL_AND_45:
                 setupGoalFortyFivePath();
+                break;
+            case SIMPLE_LEAVE:
+                setupSimpleLeavePath();
                 break;
             default:
                 stateMachine.addSequential(newDoneState("Default done"));
@@ -455,6 +457,25 @@ public class DecodeAuto extends OpMode {
         stateMachine.addSequence(sequenceOfStates);
     }
 
+    private void setupSimpleLeavePath() {
+        final SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
+
+        final Pose endPose = new Pose(144 - 36, 0, Math.toRadians(180));;
+
+        final Pose startPose = new Pose(144, 0, Math.toRadians(180)); // Start Pose of our robot.
+
+        final Path driveForward = new Path(new BezierLine(startPose, endPose));
+        driveForward.setLinearHeadingInterpolation(startPose.getHeading(), endPose.getHeading());
+
+        pedroFollower.setStartingPose(startPose);
+
+        PedroFollowerState driveForwardPathState = new PedroFollowerState("Drive forward", telemetry, pedroFollower, driveForward);
+
+        sequenceOfStates.addSequential(driveForwardPathState);
+
+        sequenceOfStates.addSequential(newDoneState("Done!"));
+        stateMachine.addSequence(sequenceOfStates);
+    }
     private void addLaunchSteps(final SequenceOfStates sequenceOfStates) {
         State carouselHomeState = carousel.new HomeLocationState(telemetry, ticker);
 
