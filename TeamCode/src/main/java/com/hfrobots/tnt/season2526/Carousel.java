@@ -214,6 +214,49 @@ public class Carousel {
         }
     }
 
+    public class NextIntakeIndexState extends StopwatchTimeoutSafetyState {
+        private boolean initialized = false;
+        protected NextIntakeIndexState(final Telemetry telemetry, @NonNull final Ticker ticker) {
+            super("Carousel indexing", telemetry, ticker, 10_000);
+        }
+
+        @Override
+        public State doStuffAndGetNextState() {
+            if (!initialized) {
+                nextIndexForIntake();
+                initialized = true;
+
+                return this;
+            }
+
+            if (isTimedOut()) {
+                Log.e(LOG_TAG, "Timed out waiting to index, moving to next state");
+
+                manuallyAdjust(0, true);
+                resetToStart();
+
+                return nextState;
+            }
+
+            if (!isBusyIndexing()) {
+                Log.d(LOG_TAG, "Indexing complete, moving to next state");
+
+                resetToStart();
+
+                return nextState;
+            }
+
+            return this;
+        }
+
+        @Override
+        public void resetToStart() {
+            super.resetToStart();
+
+            initialized = false;
+        }
+    }
+
     public class HomeLocationState extends StopwatchTimeoutSafetyState {
         @Override
         public void resetToStart() {

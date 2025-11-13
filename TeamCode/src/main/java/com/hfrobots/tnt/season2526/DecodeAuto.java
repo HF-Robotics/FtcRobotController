@@ -55,12 +55,12 @@ import lombok.Getter;
 @Autonomous(name = "00 DECODE Auto", preselectTeleOp = DecodeDriverControlled.OP_MODE_NAME)
 public class DecodeAuto extends OpMode {
     // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    public static final Pose RED_SCORE_POSE = new Pose(29.5, 144 - 33, Math.toRadians(225 - 90));// Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    public static final Pose RED_SCORE_POSE = new Pose(29.5, 144 - 33, Math.toRadians(225 - 90));
     public static final Pose BLUE_SCORE_POSE = new Pose(29.5, 33, Math.toRadians(225));
 
-    public static final Pose RED_END_POSE = new Pose(72, 144 - 40, Math.toRadians(225 - 90 - 45));
+    public static final Pose RED_END_POSE = new Pose(82, 144 - 40, Math.toRadians(225 - 90 - 45));
 
-    public static final Pose BLUE_END_POSE = new Pose(72, 40, Math.toRadians(225 + 45));
+    public static final Pose BLUE_END_POSE = new Pose(82, 40, Math.toRadians(225 + 45));
 
     private Ticker ticker;
 
@@ -70,10 +70,13 @@ public class DecodeAuto extends OpMode {
 
     private StateMachine stateMachine;
 
+    private RollerIntake intake;
+
     // FIXME: The tasks our robot knows how to do - rename these to
     //  something meaningful for the season!
     @Getter
     private enum Task {
+        PACMAN("(0) PACMAN"),
         GOAL_AND_45("(1) Goal and 45"),
         WALL_AND_GOAL("(2) Wall and goal"),
         SIMPLE_LEAVE("(3) Simple leave");
@@ -119,6 +122,8 @@ public class DecodeAuto extends OpMode {
             launcher = new WheeledLauncher(hardwareMap);
 
             carousel = new Carousel(hardwareMap);
+
+            intake = new RollerIntake(hardwareMap);
 
             pedroFollower = DecodeLargeDrivebasePedroConstants.createFollower(hardwareMap);
 
@@ -246,6 +251,9 @@ public class DecodeAuto extends OpMode {
             case SIMPLE_LEAVE:
                 setupSimpleLeavePath();
                 break;
+            case PACMAN:
+                setupPacmanPath();
+                break;
             default:
                 stateMachine.addSequential(newDoneState("Default done"));
                 break;
@@ -365,20 +373,24 @@ public class DecodeAuto extends OpMode {
         final SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
 
         final double startPosY;
+        final double startPoseX = 8.5;
         final Pose scorePose;
         final Pose endPose;
+        final double startAndScoreHeadingDegrees;
 
         if (currentAlliance == Constants.Alliance.BLUE) {
             startPosY = 24 + 7.5; // FIXME - We don't understand this starting position!
-            scorePose = BLUE_SCORE_POSE;
+            startAndScoreHeadingDegrees = 270;
+            scorePose = new Pose(startPoseX+1, startPosY+24, Math.toRadians(startAndScoreHeadingDegrees-10));
             endPose = BLUE_END_POSE;
         } else {
             startPosY = 144 - (24 + 7.5); // FIXME
-            scorePose = RED_SCORE_POSE;
+            startAndScoreHeadingDegrees = 90;
+            scorePose = new Pose(startPoseX+1, startPosY-24,  Math.toRadians(startAndScoreHeadingDegrees+10));
             endPose = RED_END_POSE;
         }
 
-        final Pose startPose = new Pose(8.5, startPosY, Math.toRadians(180)); // Start Pose of our robot.
+        final Pose startPose = new Pose(startPoseX, startPosY, Math.toRadians(startAndScoreHeadingDegrees)); // Start Pose of our robot.
 
         /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
         final Path scorePreload = new Path(new BezierLine(startPose, scorePose));
@@ -399,6 +411,50 @@ public class DecodeAuto extends OpMode {
         PedroFollowerState endPathState = new PedroFollowerState("End pose", telemetry, pedroFollower, toEndPosePath);
 
         sequenceOfStates.addSequential(endPathState);
+
+        sequenceOfStates.addSequential(newDoneState("Done!"));
+        stateMachine.addSequence(sequenceOfStates);
+    }
+
+    private void setupPacmanPath() {
+            final SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
+
+
+            final Pose startPose = RED_END_POSE; // Start Pose of our robot.
+            final Pose toFirstArtifact = new Pose(startPose.getX(), startPose.getY()+2, startPose.getHeading());
+            final Path intakeFirstArtifact = new Path(new BezierLine(startPose, toFirstArtifact));
+            intakeFirstArtifact.setLinearHeadingInterpolation(startPose.getHeading(), toFirstArtifact.getHeading());
+
+            pedroFollower.setStartingPose(startPose);
+
+            PedroFollowerState intakeFirstArtifactState = new PedroFollowerState("Intake first artifact", telemetry, pedroFollower, intakeFirstArtifact);
+
+            State nextIntakeIndexState = carousel.new NextIntakeIndexState(telemetry, ticker);
+            sequenceOfStates.addRunnableStep("Intake on", () -> intake.intake());
+
+            sequenceOfStates.addSequential(nextIntakeIndexState);
+            sequenceOfStates.addSequential(intakeFirstArtifactState);
+            sequenceOfStates.addWaitStep("No jam", 500, TimeUnit.MILLISECONDS);
+
+            final Pose toSecondArtifact = new Pose(toFirstArtifact.getX(), toFirstArtifact.getY()+5, toFirstArtifact.getHeading());
+            final Path intakeSecondArtifact = new Path(new BezierLine(toFirstArtifact, toSecondArtifact));
+            intakeSecondArtifact.setLinearHeadingInterpolation(toFirstArtifact.getHeading(), toSecondArtifact.getHeading());
+            PedroFollowerState intakeSecondArtifactState = new PedroFollowerState("Intake Second artifact", telemetry, pedroFollower, intakeSecondArtifact);
+
+            nextIntakeIndexState = carousel.new NextIntakeIndexState(telemetry, ticker);
+            sequenceOfStates.addSequential(nextIntakeIndexState);
+            sequenceOfStates.addSequential(intakeSecondArtifactState);
+        sequenceOfStates.addWaitStep("No jam", 500, TimeUnit.MILLISECONDS);
+
+        final Pose toThirdArtifact = new Pose(toSecondArtifact.getX(), toSecondArtifact.getY()+5, toSecondArtifact.getHeading());
+        final Path intakeThirdArtifact = new Path(new BezierLine(toSecondArtifact, toThirdArtifact));
+        intakeThirdArtifact.setLinearHeadingInterpolation(toSecondArtifact.getHeading(), toThirdArtifact.getHeading());
+        PedroFollowerState intakeThirdArtifactState = new PedroFollowerState("Intake Third artifact", telemetry, pedroFollower, intakeThirdArtifact);
+
+        nextIntakeIndexState = carousel.new NextIntakeIndexState(telemetry, ticker);
+        sequenceOfStates.addSequential(nextIntakeIndexState);
+        sequenceOfStates.addSequential(intakeThirdArtifactState);
+        sequenceOfStates.addWaitStep("No jam", 500, TimeUnit.MILLISECONDS);
 
         sequenceOfStates.addSequential(newDoneState("Done!"));
         stateMachine.addSequence(sequenceOfStates);
