@@ -48,7 +48,7 @@ public class WheeledLauncher {
     private static final double CLOSE_LAUNCH_VELOCITY = 1154;
 
     // These are the components of our launcher
-    private final DcMotorEx launcherMotor;
+    protected final DcMotorEx launcherMotor;
 
     private final Servo kickerServo;
 
