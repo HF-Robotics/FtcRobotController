@@ -38,6 +38,17 @@ public class WebcamManualControlSetup implements PeriodicTask {
         states.addSequential(setExposureState);
         states.addSequential(setGainState);
         states.addRunnableStep("Set camera enabled", () -> cameraIsSetup = true);
+        states.addSequential(new State("exposure set done", telemetry) {
+            @Override
+            public State doStuffAndGetNextState() {
+                return this;
+            }
+
+            @Override
+            public void resetToStart() {
+
+            }
+        });
 
         stateMachine = new StateMachine(telemetry);
         stateMachine.addSequence(states);
