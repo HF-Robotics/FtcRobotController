@@ -395,7 +395,7 @@ public class DecodeAuto extends OpMode {
         /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
         final Path scorePreload = new Path(new BezierLine(startPose, scorePose));
         scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
-        
+
         pedroFollower.setStartingPose(startPose);
 
         PedroFollowerState scorePathState = new PedroFollowerState("Score preload", telemetry, pedroFollower, scorePreload);
@@ -424,11 +424,6 @@ public class DecodeAuto extends OpMode {
         pedroFollower.setStartingPose(startPose);
         sequenceOfStates.addRunnableStep("Intake on", () -> intake.intake());
 
-        Pose nextStartPose = addOneAutoIntakeCycle(sequenceOfStates, startPose);
-        nextStartPose = addOneAutoIntakeCycle(sequenceOfStates, nextStartPose);
-        nextStartPose = addOneAutoIntakeCycle(sequenceOfStates, nextStartPose);
-
-        /*
         final Pose toFirstArtifact = new Pose(startPose.getX(), startPose.getY()+2, startPose.getHeading());
         final Path intakeFirstArtifact = new Path(new BezierLine(startPose, toFirstArtifact));
         intakeFirstArtifact.setLinearHeadingInterpolation(startPose.getHeading(), toFirstArtifact.getHeading());
@@ -461,27 +456,11 @@ public class DecodeAuto extends OpMode {
         sequenceOfStates.addSequential(nextIntakeIndexState);
         sequenceOfStates.addSequential(intakeThirdArtifactState);
         sequenceOfStates.addWaitStep("No jam", 500, TimeUnit.MILLISECONDS);
-*/
+
         sequenceOfStates.addRunnableStep("Intake off", () -> intake.stop());
         sequenceOfStates.addSequential(newDoneState("Done!"));
 
         stateMachine.addSequence(sequenceOfStates);
-    }
-
-    private Pose addOneAutoIntakeCycle(final SequenceOfStates sequenceOfStates, final Pose startPose) {
-        final Pose toNextArtifact = new Pose(startPose.getX(), startPose.getY() + 2, startPose.getHeading());
-        final Path intakeNexttArtifactPath = new Path(new BezierLine(startPose, toNextArtifact));
-        intakeNexttArtifactPath.setLinearHeadingInterpolation(startPose.getHeading(), toNextArtifact.getHeading());
-
-        PedroFollowerState intakeFirstArtifactState = new PedroFollowerState("Intake artifact", telemetry, pedroFollower, intakeNexttArtifactPath);
-
-        State nextIntakeIndexState = carousel.new NextIntakeIndexState(telemetry, ticker);
-
-        sequenceOfStates.addSequential(nextIntakeIndexState);
-        sequenceOfStates.addSequential(intakeFirstArtifactState);
-        sequenceOfStates.addWaitStep("No jam", 750, TimeUnit.MILLISECONDS);
-
-        return toNextArtifact;
     }
 
     private void setupGoalFortyFivePath() {

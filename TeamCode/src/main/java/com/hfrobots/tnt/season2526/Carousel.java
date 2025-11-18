@@ -80,6 +80,10 @@ public class Carousel {
     }
 
     public void nextIndexForIntake() {
+        nextIndexForIntake(false);
+    }
+
+    public void nextIndexForIntake(boolean slow) {
         currentIntakeIndex = currentIntakeIndex + 1;
 
         if (currentIntakeIndex > 2) {
@@ -88,7 +92,11 @@ public class Carousel {
 
         double targetPos = INDEX_POSITIONS[currentIntakeIndex];
 
-        runToPosition(targetPos);
+        if (!slow) {
+            runToPosition(targetPos);
+        } else {
+            runToPositionSlow(targetPos);
+        }
     }
 
     public void nextIndexForLaunch() {
@@ -110,6 +118,14 @@ public class Carousel {
         carouselMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         carouselMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         carouselMotor.setPower(AUTOMATED_POWER);
+        runningToPosition = true;
+    }
+
+    private void runToPositionSlow(double targetPos) {
+        carouselMotor.setTargetPosition((int) targetPos);
+        carouselMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        carouselMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        carouselMotor.setPower(AUTOMATED_POWER * 0.6);
         runningToPosition = true;
     }
 
@@ -223,7 +239,7 @@ public class Carousel {
         @Override
         public State doStuffAndGetNextState() {
             if (!initialized) {
-                nextIndexForIntake();
+                nextIndexForIntake(true);
                 initialized = true;
 
                 return this;
