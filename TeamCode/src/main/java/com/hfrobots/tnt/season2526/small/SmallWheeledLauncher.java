@@ -37,4 +37,18 @@ public class SmallWheeledLauncher extends WheeledLauncher {
         super(hardwareMap);
         launcherMotor.setDirection(DcMotorSimple.Direction.REVERSE);
     }
+
+    public void lowerKicker() {
+        kickerServo.setPosition(KICKER_SERVO_RAISED_POSITION);
+    }
+
+    public void safelyRaiseKicker() {
+        // if (isMoving() && isAtTargetVelocity()) {
+        kickerServo.setPosition(KICKER_SERVO_LOWERED_POSITION);
+        // }
+    }
+
+    public void raiseKickerNoMatterWhat() {
+        kickerServo.setPosition(KICKER_SERVO_LOWERED_POSITION);
+    }
 }

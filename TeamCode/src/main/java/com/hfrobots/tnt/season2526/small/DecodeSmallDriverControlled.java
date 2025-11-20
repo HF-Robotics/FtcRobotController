@@ -23,6 +23,7 @@
 package com.hfrobots.tnt.season2526.small;
 
 import static com.ftc9929.corelib.Constants.LOG_TAG;
+import static com.hfrobots.tnt.season2526.small.DecodeSmallDriverControlled.OP_MODE_NAME;
 
 import android.util.Log;
 
@@ -49,9 +50,9 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
 
-@TeleOp(name = "Decode small")
+@TeleOp(name = OP_MODE_NAME, group = "Utility")
 public class DecodeSmallDriverControlled extends OpMode {
-    public static final String OP_MODE_NAME = "00 DECODE";
+    public static final String OP_MODE_NAME = "Decode small";
 
     private final boolean emitMetrics = false;
 
