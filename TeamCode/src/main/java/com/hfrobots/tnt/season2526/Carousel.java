@@ -133,7 +133,7 @@ public class Carousel {
         manuallyAdjust(carouselThrottle.getPosition(), unsafeIsPressed);
     }
 
-    private void manuallyAdjust(float carouselThrottlePosition, final boolean unsafeIsPressed) {
+    protected void manuallyAdjust(float carouselThrottlePosition, final boolean unsafeIsPressed) {
         if (carouselThrottlePosition != 0) {
             if (runningToPosition) {
                 runningToPosition = false;

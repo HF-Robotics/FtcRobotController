@@ -37,9 +37,9 @@ public class WheeledLauncher {
     public static final double ONE_THIRD_REV = ONE_FULL_REV / 3;
     public static final double ONE_SIXTH_REV = ONE_THIRD_REV / 2;
     // These constants are the tunables for our launcher.
-    private static final double KICKER_SERVO_RAISED_POSITION = 1;
+    protected static final double KICKER_SERVO_RAISED_POSITION = 1;
 
-    private static final double KICKER_SERVO_LOWERED_POSITION = 0;
+    protected static final double KICKER_SERVO_LOWERED_POSITION = 0;
 
     private static final double FAR_LAUNCH_VELOCITY = 1950;
 
@@ -50,7 +50,7 @@ public class WheeledLauncher {
     // These are the components of our launcher
     protected final DcMotorEx launcherMotor;
 
-    private final Servo kickerServo;
+    protected final Servo kickerServo;
 
     private double requestedVelocity = 0;
 

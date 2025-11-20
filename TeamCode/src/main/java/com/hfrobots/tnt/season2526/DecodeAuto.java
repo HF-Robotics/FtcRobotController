@@ -37,6 +37,7 @@ import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.season2324.Shared;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
@@ -48,6 +49,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import lombok.Getter;
@@ -155,7 +157,7 @@ public class DecodeAuto extends OpMode {
                 visionPortal.stopLiveView();
             }
 
-            launcher.mediumLaunchVelocity();
+            launcher.closeLaunchVelocity();
 
             setupStateMachine();
         });
@@ -252,7 +254,7 @@ public class DecodeAuto extends OpMode {
                 setupSimpleLeavePath();
                 break;
             case PACMAN:
-                setupPacmanPath();
+                //setupPacmanPath();
                 break;
             default:
                 stateMachine.addSequential(newDoneState("Default done"));
@@ -404,7 +406,12 @@ public class DecodeAuto extends OpMode {
 
         addLaunchSteps(sequenceOfStates);
 
-        final Path toEndPosePath = new Path(new BezierLine(scorePose, endPose));
+        // See if this works for now. As a bonus, it will run async as we move
+        sequenceOfStates.addRunnableStep("Carousel homing", () -> carousel.manuallyAdjust(-.2F, false));
+
+        Pose midpointPose = new Pose(60 + 5, 144 - 60 + 5);
+
+        final Path toEndPosePath = new Path(new BezierCurve(List.of(scorePose, midpointPose, endPose)));
 
         toEndPosePath.setLinearHeadingInterpolation(scorePose.getHeading(), endPose.getHeading());
 
@@ -412,16 +419,12 @@ public class DecodeAuto extends OpMode {
 
         sequenceOfStates.addSequential(endPathState);
 
+        setupPacmanPath(sequenceOfStates, endPose);
         sequenceOfStates.addSequential(newDoneState("Done!"));
         stateMachine.addSequence(sequenceOfStates);
     }
 
-    private void setupPacmanPath() {
-        final SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
-
-        final Pose startPose = RED_END_POSE; // Start Pose of our robot.
-
-        pedroFollower.setStartingPose(startPose);
+    private void setupPacmanPath(final SequenceOfStates sequenceOfStates, final Pose startPose) {
         sequenceOfStates.addRunnableStep("Intake on", () -> intake.intake());
 
         final Pose toFirstArtifact = new Pose(startPose.getX(), startPose.getY()+2, startPose.getHeading());
@@ -458,9 +461,15 @@ public class DecodeAuto extends OpMode {
         sequenceOfStates.addWaitStep("No jam", 500, TimeUnit.MILLISECONDS);
 
         sequenceOfStates.addRunnableStep("Intake off", () -> intake.stop());
-        sequenceOfStates.addSequential(newDoneState("Done!"));
 
-        stateMachine.addSequence(sequenceOfStates);
+        final Path scorePreload = new Path(new BezierLine(toThirdArtifact, RED_SCORE_POSE));
+
+        scorePreload.setLinearHeadingInterpolation(toThirdArtifact.getHeading(), RED_SCORE_POSE.getHeading());
+
+        PedroFollowerState scorePathState = new PedroFollowerState("Score again!", telemetry, pedroFollower, scorePreload);
+        sequenceOfStates.addSequential(scorePathState);
+
+        addLaunchSteps(sequenceOfStates);
     }
 
     private void setupGoalFortyFivePath() {
