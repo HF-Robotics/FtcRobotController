@@ -147,6 +147,9 @@ public class SensorTester extends OpMode {
         }
 
         switch (currentMode) {
+            case REV_COLOR_V3:
+                doRevColorSensorV3Loop();
+                break;
             case LYNX_COLOR:
                 doLynxColorSensorLoop();
                 break;
