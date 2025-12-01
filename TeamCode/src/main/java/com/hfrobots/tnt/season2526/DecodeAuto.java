@@ -78,7 +78,7 @@ public class DecodeAuto extends OpMode {
     public static final Pose BLUE_CLOSE_LEAVE_POSE = new Pose(38, 17, Math.toRadians(270));
 
     private enum TargetDistance {
-        CLOSE, MEDIUM, FAR;
+        CLOSE, MEDIUM, FAR
     }
 
 
@@ -470,21 +470,7 @@ public class DecodeAuto extends OpMode {
 
             sequenceOfStates.addSequential(leavePathState);
         } else {
-            final Pose leaveEndPose;
-
-            if (currentAlliance == Constants.Alliance.BLUE) {
-                leaveEndPose = BLUE_CLOSE_LEAVE_POSE;
-            } else {
-                leaveEndPose = RED_CLOSE_LEAVE_POSE;
-            }
-
-            final Path toLeavePath = new Path(new BezierLine(scorePose, leaveEndPose));
-
-            toLeavePath.setLinearHeadingInterpolation(scorePose.getHeading(), leaveEndPose.getHeading());
-
-            PedroFollowerState leavePathState = new PedroFollowerState("Leave", telemetry, pedroFollower, toLeavePath);
-
-            sequenceOfStates.addSequential(leavePathState);
+            addCloseLeavePath(scorePose, sequenceOfStates);
         }
 
         sequenceOfStates.addSequential(newDoneState("Done!"));
@@ -493,33 +479,32 @@ public class DecodeAuto extends OpMode {
     }
 
     private Pose setupPacmanPath(final SequenceOfStates sequenceOfStates, final Pose startPose) {
-        // FIXME: This doesn't consider current alliance at *completely*
-        //        Drive +/- when intaking (might need it in the method that sets up the intake seq)
-        //
-        //        Do we want to use the same scoring pose from the first
-        //        scoring attempt, which likely conflicts with alliance partners?
+        final double direction;
+
         final Pose scorePose;
 
         if (currentAlliance == Constants.Alliance.BLUE) {
-            // Do what?
             scorePose = BLUE_SCORE_SECOND_POSE;
+            direction = -1.0;
         } else {
             // Assume RED
             scorePose = RED_SCORE_SECOND_POSE;
+            direction = 1.0;
         }
 
         sequenceOfStates.addRunnableStep("Intake on", () -> intake.intake());
+        sequenceOfStates.addRunnableStep("Pre-warm launcher", () -> launcher.mediumLaunchVelocity());
 
-        Pose nextArtifactPose = addOneArtifactIntakeSequence(sequenceOfStates, startPose);
-        nextArtifactPose = addOneArtifactIntakeSequence(sequenceOfStates, nextArtifactPose);
-        nextArtifactPose = addOneArtifactIntakeSequence(sequenceOfStates, nextArtifactPose);
+        Pose nextArtifactPose = addOneArtifactIntakeSequence(sequenceOfStates, startPose, direction);
+        nextArtifactPose = addOneArtifactIntakeSequence(sequenceOfStates, nextArtifactPose, direction);
+        nextArtifactPose = addOneArtifactIntakeSequence(sequenceOfStates, nextArtifactPose, direction);
 
         // FIXME: Do we want to outtake here in case we ingested more than 3 somehow?
-        //        *or* do we do this on every step in case someething was not completely-ingested?
+        //        *or* do we do this on every step in case something was not completely-ingested?
 
         sequenceOfStates.addRunnableStep("Intake off", () -> intake.stop());
 
-        final Path scorePath = new Path(new BezierLine(nextArtifactPose /* toThirdArtifact */, scorePose));
+        final Path scorePath = new Path(new BezierLine(nextArtifactPose, scorePose));
 
         scorePath.setLinearHeadingInterpolation(nextArtifactPose.getHeading(), scorePose.getHeading());
 
@@ -532,8 +517,8 @@ public class DecodeAuto extends OpMode {
     }
 
     private Pose addOneArtifactIntakeSequence(final SequenceOfStates sequenceOfStates,
-                                              final Pose startFromPose) {
-        final Pose toNextArtifactPose = new Pose(startFromPose.getX(), startFromPose.getY() + 5, startFromPose.getHeading());
+                                              final Pose startFromPose, final double direction) {
+        final Pose toNextArtifactPose = new Pose(startFromPose.getX(), startFromPose.getY() + (direction * 5), startFromPose.getHeading());
         final Path intakeNextArtifactPath = new Path(new BezierLine(startFromPose, toNextArtifactPose));
         intakeNextArtifactPath.setLinearHeadingInterpolation(startFromPose.getHeading(), toNextArtifactPose.getHeading());
         PedroFollowerState intakeNextArtifactPathState = new PedroFollowerState("Intake next artifact", telemetry, pedroFollower, intakeNextArtifactPath);
@@ -621,25 +606,29 @@ public class DecodeAuto extends OpMode {
 
             sequenceOfStates.addSequential(leavePathState);
         } else {
-            final Pose leaveEndPose;
-
-            if (currentAlliance == Constants.Alliance.BLUE) {
-                leaveEndPose = BLUE_CLOSE_LEAVE_POSE;
-            } else {
-                leaveEndPose = RED_CLOSE_LEAVE_POSE;
-            }
-
-            final Path toLeavePath = new Path(new BezierLine(scorePose, leaveEndPose));
-
-            toLeavePath.setLinearHeadingInterpolation(scorePose.getHeading(), leaveEndPose.getHeading());
-
-            PedroFollowerState leavePathState = new PedroFollowerState("Leave", telemetry, pedroFollower, toLeavePath);
-
-            sequenceOfStates.addSequential(leavePathState);
+            addCloseLeavePath(scorePose, sequenceOfStates);
         }
 
         sequenceOfStates.addSequential(newDoneState("Done!"));
         stateMachine.addSequence(sequenceOfStates);
+    }
+
+    private void addCloseLeavePath(Pose scorePose, SequenceOfStates sequenceOfStates) {
+        final Pose leaveEndPose;
+
+        if (currentAlliance == Constants.Alliance.BLUE) {
+            leaveEndPose = BLUE_CLOSE_LEAVE_POSE;
+        } else {
+            leaveEndPose = RED_CLOSE_LEAVE_POSE;
+        }
+
+        final Path toLeavePath = new Path(new BezierLine(scorePose, leaveEndPose));
+
+        toLeavePath.setLinearHeadingInterpolation(scorePose.getHeading(), leaveEndPose.getHeading());
+
+        PedroFollowerState leavePathState = new PedroFollowerState("Leave", telemetry, pedroFollower, toLeavePath);
+
+        sequenceOfStates.addSequential(leavePathState);
     }
 
     private void setupSpaceLaunch() {
@@ -706,7 +695,7 @@ public class DecodeAuto extends OpMode {
     private void setupSimpleLeavePath() {
         final SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
 
-        final Pose endPose = new Pose(144 - 36, 0, Math.toRadians(180));;
+        final Pose endPose = new Pose(144 - 36, 0, Math.toRadians(180));
 
         final Pose startPose = new Pose(144, 0, Math.toRadians(180)); // Start Pose of our robot.
 
@@ -755,7 +744,17 @@ public class DecodeAuto extends OpMode {
 
         @Override
         public State doStuffAndGetNextState() {
-            launcher.closeLaunchVelocity();
+            switch (distance) {
+                case CLOSE:
+                    launcher.closeLaunchVelocity();
+                    break;
+                case MEDIUM:
+                    launcher.mediumLaunchVelocity();
+                    break;
+                case FAR:
+                    launcher.farLaunchVelocity();
+                    break;
+            }
 
             if (launcher.isAtTargetVelocity()) {
                 resetToStart();
