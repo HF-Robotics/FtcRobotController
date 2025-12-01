@@ -68,8 +68,14 @@ public class GenevaCarousel {
 
         launchPositionDetection = hardwareMap.get(DigitalChannel.class, "launchPositionDetection");
 
-        artifactColorSensor1 = hardwareMap.get( LynxI2cColorRangeSensor.class, "artifactColorSensor1");
-        artifactColorSensor2 = hardwareMap.get( LynxI2cColorRangeSensor.class, "artifactColorSensor2");
+        try {
+            artifactColorSensor1 = hardwareMap.get(LynxI2cColorRangeSensor.class, "artifactColorSensor1");
+            artifactColorSensor2 = hardwareMap.get(LynxI2cColorRangeSensor.class, "artifactColorSensor2");
+        } catch (Exception ex) {
+            Log.e(LOG_TAG, "Unable to initialize artifact coor sensors", ex);
+            artifactColorSensor1 = null;
+            artifactColorSensor2 = null;
+        }
     }
 
     public boolean isBusyIndexing() {
@@ -98,6 +104,10 @@ public class GenevaCarousel {
             return;
         }
 
+        if (artifactColorSensor2 == null || artifactColorSensor1 == null) {
+            return;
+        }
+        
         final LynxI2cColorRangeSensor closestColorSensor;
 
         if (artifactColorSensor1.getDistance(DistanceUnit.MM) < artifactColorSensor2.getDistance(DistanceUnit.MM)) {
