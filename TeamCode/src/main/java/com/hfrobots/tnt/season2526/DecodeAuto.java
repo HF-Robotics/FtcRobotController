@@ -86,7 +86,7 @@ public class DecodeAuto extends OpMode {
 
     private WheeledLauncher launcher;
 
-    private Carousel carousel;
+    private GenevaCarousel carousel;
 
     private StateMachine stateMachine;
 
@@ -144,7 +144,7 @@ public class DecodeAuto extends OpMode {
 
             launcher = new WheeledLauncher(hardwareMap);
 
-            carousel = new Carousel(hardwareMap);
+            carousel = new GenevaCarousel(hardwareMap, telemetry);
 
             intake = new RollerIntake(hardwareMap);
 
@@ -440,7 +440,7 @@ public class DecodeAuto extends OpMode {
 
         if (scoreMoreArtifacts) {
             // See if this works for now. As a bonus, it will run async as we move
-            sequenceOfStates.addRunnableStep("Carousel homing", () -> carousel.manuallyAdjust(-.2F, false));
+            // sequenceOfStates.addRunnableStep("Carousel homing", () -> carousel.manuallyAdjust(-.2F, false));
 
             Pose midpointPose = new Pose(60 + 5, 144 - 60 + 5);
 
@@ -578,7 +578,7 @@ public class DecodeAuto extends OpMode {
 
         // Here is where we decide to score more or leave
         if (scoreMoreArtifacts) {
-            sequenceOfStates.addRunnableStep("Carousel homing", () -> carousel.manuallyAdjust(-.2F, false));
+            // sequenceOfStates.addRunnableStep("Carousel homing", () -> carousel.manuallyAdjust(-.2F, false));
 
             final Path toEndPosePath = new Path(new BezierLine(scorePose, startPacmanPose));
 
@@ -712,9 +712,9 @@ public class DecodeAuto extends OpMode {
         stateMachine.addSequence(sequenceOfStates);
     }
     private void addLaunchSteps(final SequenceOfStates sequenceOfStates, final TargetDistance targetDistance) {
-        State carouselHomeState = carousel.new HomeLocationState(telemetry, ticker);
+        // State carouselHomeState = carousel.new HomeLocationState(telemetry, ticker);
 
-        sequenceOfStates.addSequential(carouselHomeState);
+        // sequenceOfStates.addSequential(carouselHomeState);
 
         addOneLaunch(sequenceOfStates, targetDistance);
         addOneLaunch(sequenceOfStates, targetDistance);

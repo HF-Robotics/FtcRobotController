@@ -35,7 +35,7 @@ import lombok.Builder;
 // to avoid referencing controls of prior seasons, e.e. CenterstageOperatorControls,
 // PowerplayOperatorControls, etc.
 public class DecodeOperatorControls implements PeriodicTask {
-    private final Carousel carousel;
+    private final GenevaCarousel carousel;
 
     protected RangeInput leftStickX;
 
@@ -130,7 +130,7 @@ public class DecodeOperatorControls implements PeriodicTask {
                                    NinjaGamePad operatorGamepad,
                                    RollerIntake intake,
                                    WheeledLauncher launcher,
-                                   Carousel carousel) {
+                                   GenevaCarousel carousel) {
         if (operatorGamepad != null) {
             this.operatorGamepad = operatorGamepad;
             setupFromGamepad();

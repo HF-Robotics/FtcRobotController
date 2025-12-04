@@ -115,7 +115,6 @@ public class DecodeSmallDriverControlled extends OpMode {
             operatorControls = DecodeOperatorControls.builder()
                     .operatorGamepad(operatorGamepad)
                     .intake(intake)
-                    .carousel(carousel)
                     .launcher(launcher).build();
 
             setupMetricsSampler(driversGamepad, operatorGamepad);

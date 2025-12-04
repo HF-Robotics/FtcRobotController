@@ -47,7 +47,8 @@ SOFTWARE.
             <Servo name="kickerServo"          port="0" /> <!-- Red -->
             <Servo name="ledIndicatorBack"    port="2" /> <!-- Yellow -->
             <Servo name="ledIndicatorFront"    port="5" /> <!-- Purple -->
-            <DigitalDevice name="carouselHome" port="0" />
+
+            <DigitalDevice name="launchPositionDetection" port="0" />
         </LynxModule>
     </LynxUsbDevice>
 </Robot>

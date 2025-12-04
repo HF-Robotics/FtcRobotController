@@ -36,10 +36,6 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-
 import java.util.List;
 
 @TeleOp(name = DecodeDriverControlled.OP_MODE_NAME)
@@ -64,7 +60,7 @@ public class DecodeDriverControlled extends OpMode {
 
     private WheeledLauncher launcher;
 
-    private Carousel carousel;
+    private GenevaCarousel carousel;
 
     private DecodeDriveTeamSignal driveTeamSignal;
 
@@ -136,7 +132,7 @@ public class DecodeDriverControlled extends OpMode {
         }
 
         try {
-            carousel = new Carousel(hardwareMap);
+            carousel = new GenevaCarousel(hardwareMap, telemetry);
         } catch (IllegalArgumentException ex) {
             carousel = null;
         }

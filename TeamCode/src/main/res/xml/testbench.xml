@@ -38,6 +38,10 @@ SOFTWARE.
             -->
             <Motor name="motor1"  port="0" /> <!-- Red    -->
             <Motor name="motor2"   port="1" /> <!-- Orange -->
+
+            <!-- This is a REV color sensor - use the LynxI2cColorRangeSensor class in your code-->
+            <RevColorSensorV3 name="rev color range" port="1" bus="0" />
+
         </LynxModule>
     </LynxUsbDevice>
 </Robot>

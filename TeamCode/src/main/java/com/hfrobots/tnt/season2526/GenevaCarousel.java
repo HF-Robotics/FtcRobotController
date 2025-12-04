@@ -45,13 +45,17 @@ import java.util.Map;
 import lombok.NonNull;
 
 public class GenevaCarousel {
-    public static final double AUTOMATED_POWER = 0.3;
-    public static final int MANUAL_ADJUST_SPEED_REDUCTION = 4;
+    public static final double AUTOMATED_POWER = 0.5;
+
+    public static final int MANUAL_ADJUST_SPEED_REDUCTION = 2;
+
     private final DcMotorEx carouselMotor;
+
+    private final boolean limitSwitchIsWorking = false;
 
     private final DigitalChannel launchPositionDetection;
 
-    public static final double ONE_FULL_REV = 751.8;
+    public static final double ONE_FULL_REV = 384.5; // Yellow Jacket 435RPM
 
     public enum ArtifactColor { GREEN, PURPLE };
 
@@ -60,8 +64,14 @@ public class GenevaCarousel {
     private LynxI2cColorRangeSensor artifactColorSensor1;
     private LynxI2cColorRangeSensor artifactColorSensor2;
 
-    public GenevaCarousel(final HardwareMap hardwareMap) {
+    private final Telemetry telemetry;
+
+    // FIXME: Must always start in launch position - until we fix limit switch!
+    private boolean isInLaunchPosition = true;
+
+    public GenevaCarousel(final HardwareMap hardwareMap, Telemetry telemetry) {
         carouselMotor = hardwareMap.get(DcMotorEx.class, "carouselMotor");
+        this.telemetry = telemetry;
         carouselMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         carouselMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         carouselMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -72,7 +82,7 @@ public class GenevaCarousel {
             artifactColorSensor1 = hardwareMap.get(LynxI2cColorRangeSensor.class, "artifactColorSensor1");
             artifactColorSensor2 = hardwareMap.get(LynxI2cColorRangeSensor.class, "artifactColorSensor2");
         } catch (Exception ex) {
-            Log.e(LOG_TAG, "Unable to initialize artifact coor sensors", ex);
+            Log.e(LOG_TAG, "Unable to initialize artifact color sensors", ex);
             artifactColorSensor1 = null;
             artifactColorSensor2 = null;
         }
@@ -97,6 +107,8 @@ public class GenevaCarousel {
 
         runToPosition(targetPos);
 
+        isInLaunchPosition = false;
+
     }
 
     private void detectArtifactInCurrentIntake() {
@@ -104,10 +116,12 @@ public class GenevaCarousel {
             return;
         }
 
-        if (artifactColorSensor2 == null || artifactColorSensor1 == null) {
+        if (noUsableColorSensors()) {
+            telemetry.addData("Carousel", "no color sensors!");
+
             return;
         }
-        
+
         final LynxI2cColorRangeSensor closestColorSensor;
 
         if (artifactColorSensor1.getDistance(DistanceUnit.MM) < artifactColorSensor2.getDistance(DistanceUnit.MM)) {
@@ -121,11 +135,18 @@ public class GenevaCarousel {
         if (weSensedAGreenArtifact(closestColorSensor)) {
             // FIXME: We need to "erase" anything we've launched
             artifactsToPositions.put(ArtifactColor.GREEN, currentCarouselPosition);
+            telemetry.addData("Carousel", "Green artifact detected");
         } else if (weSensedAPurpleArtifact(closestColorSensor)) {
             artifactsToPositions.put(ArtifactColor.PURPLE, currentCarouselPosition);
+            telemetry.addData("Carousel", "Purple artifact detected");
         } else {
             // Probably should alert the operator?
+            telemetry.addData("Carousel", "No artifact detected");
         }
+    }
+
+    private boolean noUsableColorSensors() {
+        return artifactColorSensor2 == null || artifactColorSensor1 == null;
     }
 
     private boolean weSensedAPurpleArtifact(LynxI2cColorRangeSensor closestColorSensor) {
@@ -149,7 +170,11 @@ public class GenevaCarousel {
     }
 
     private boolean isInLaunchPosition() {
-        return !launchPositionDetection.getState();
+        if (!limitSwitchIsWorking) {
+            return isInLaunchPosition;
+        }
+
+       return !launchPositionDetection.getState();
     }
 
     public void nextIndexForLaunch() {
@@ -164,6 +189,7 @@ public class GenevaCarousel {
         }
 
         runToPosition(targetPos);
+        isInLaunchPosition = true;
     }
 
     private boolean runningToPosition = false;
@@ -173,14 +199,6 @@ public class GenevaCarousel {
         carouselMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         carouselMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         carouselMotor.setPower(AUTOMATED_POWER);
-        runningToPosition = true;
-    }
-
-    private void runToPositionSlow(double targetPos) {
-        carouselMotor.setTargetPosition((int) targetPos);
-        carouselMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        carouselMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        carouselMotor.setPower(AUTOMATED_POWER * 0.6);
         runningToPosition = true;
     }
 

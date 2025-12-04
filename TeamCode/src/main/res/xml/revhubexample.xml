@@ -60,7 +60,7 @@ SOFTWARE.
             <LynxEmbeddedIMU name="imu" port="0" bus="0" />
 
             <!-- This is a REV color sensor - use the LynxI2cColorRangeSensor class in your code-->
-            <LynxColorSensor name="rev color range" port="0" bus="1" />
+            <LynxColorSensor name="rev color range" port="1" bus="0" />
 
             <ModernRoboticsI2cRangeSensor name="range sensor" port="0" bus="2" />
 
