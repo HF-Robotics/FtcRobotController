@@ -33,7 +33,7 @@ public class RollerIntake {
     }
 
     public void intake() {
-        intakeMotor.setPower(1);
+        intakeMotor.setPower(0.7);
     }
 
     public void outtake() {
