@@ -13,7 +13,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class Constants {
 
     public static MecanumConstants driveConstants = new MecanumConstants()
-            .maxPower(1)
+            .maxPower(1.0)
             .rightFrontMotorName("rightFrontDriveMotor")
             .rightRearMotorName("rightRearDriveMotor")
             .leftRearMotorName("leftRearDriveMotor")
@@ -22,31 +22,36 @@ public class Constants {
             .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .xVelocity(38.63697)
-            .yVelocity(29.13538)
-            ;
+            .xVelocity(50.969)
+            .yVelocity(32.348);
+    ;
 
     public static ThreeWheelConstants localizerConstants = new ThreeWheelConstants()
-            .forwardTicksToInches(.001997896808)
-            .strafeTicksToInches( .001950693882)
-            .turnTicksToInches(   .002009086694)
-            .leftPodY(3.875)
-            .rightPodY(-3.875)
-            .strafePodX(-.75)
-            .leftEncoder_HardwareMapName("leftFrontDriveMotor")
-            .rightEncoder_HardwareMapName("rightRearDriveMotor")
-            .strafeEncoder_HardwareMapName("rightFrontDriveMotor")
-            .leftEncoderDirection(Encoder.REVERSE)
+            .leftPodY(3.54)
+            .rightPodY(-3.54)
+            .strafePodX(-7.6)
+            /*
+            <Motor name="leftFrontDriveMotor"  port="0" /> <!-- Red    -->
+            <Motor name="leftRearDriveMotor"   port="1" /> <!-- Orange -->
+            <Motor name="rightFrontDriveMotor" port="2" /> <!-- Yellow -->
+            <Motor name="rightRearDriveMotor"  port="3" /> <!-- Green  -->
+             */
+            .leftEncoder_HardwareMapName("leftFrontDriveMotor") // red
+            .rightEncoder_HardwareMapName("rightRearDriveMotor") // yellow
+            .strafeEncoder_HardwareMapName("rightFrontDriveMotor") // green
+            .leftEncoderDirection(Encoder.FORWARD)
             .rightEncoderDirection(Encoder.REVERSE)
             .strafeEncoderDirection(Encoder.FORWARD)
-            .forwardTicksToInches(0.002933525)
-            .strafeTicksToInches(0.0029487)
-            .turnTicksToInches(0.00303223333333333);
+            .forwardTicksToInches(0.002933)
+            .strafeTicksToInches(0.002957)
+            .turnTicksToInches( 0.0029474);
+
 
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(10.8)
-            .forwardZeroPowerAcceleration(-35.42870)
-            .lateralZeroPowerAcceleration(-53.50902);
+            .mass(14)
+            .forwardZeroPowerAcceleration(-35.551)
+            .lateralZeroPowerAcceleration(-85.506)
+            ;
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
