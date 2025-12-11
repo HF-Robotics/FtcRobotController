@@ -19,13 +19,10 @@
 
 package com.hfrobots.tnt.season2526;
 
-import static com.qualcomm.hardware.rev.RevBlinkinLedDriver.BlinkinPattern.BREATH_GRAY;
-
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
-import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -36,11 +33,19 @@ import lombok.Setter;
 
 public class DecodeDriveTeamSignal implements PeriodicTask {
     public static final double BLUE_LED = 0.611;
+
     public static final double RED_LED = 0.282;
+
     public static final double GREEN_LED = 0.5;
+
     public static final double ORANGE_LED = 0.333;
+
     public static final double VIOLET_LED = .722;
-    private final Servo ledIndicatorFront;
+
+    private final Servo ledIndicatorFrontRight;
+
+    private final Servo ledIndicatorFrontLeft;
+
     private final Servo ledIndicatorBack;
     private final static int MATCH_DURATION_SECONDS = 120;
 
@@ -72,7 +77,8 @@ public class DecodeDriveTeamSignal implements PeriodicTask {
         this.operatorGamepad = operatorGamepad;
 
         ledIndicatorBack = hardwareMap.get(Servo.class, "ledIndicatorBack");
-        ledIndicatorFront = hardwareMap.get(Servo.class, "ledIndicatorFront");
+        ledIndicatorFrontLeft = hardwareMap.get(Servo.class, "ledIndicatorFrontLeft");
+        ledIndicatorFrontRight = hardwareMap.get(Servo.class, "ledIndicatorFrontRight");
     }
 
     public void startMatch() {
@@ -81,8 +87,6 @@ public class DecodeDriveTeamSignal implements PeriodicTask {
     
     @Override
     public void periodicTask() {
-        RevBlinkinLedDriver.BlinkinPattern blinkinPattern = BREATH_GRAY;
-
         // FIXME: Called every time the OpMode loop()s - do things here that need to happen
         //        during the match
         //
@@ -133,7 +137,8 @@ public class DecodeDriveTeamSignal implements PeriodicTask {
 
     private void setIndicators(double value) {
         ledIndicatorBack.setPosition(value);
-        ledIndicatorFront.setPosition(value);
+        ledIndicatorFrontLeft.setPosition(value);
+        ledIndicatorFrontRight.setPosition(value);
     }
 
     public boolean matchStarted() {

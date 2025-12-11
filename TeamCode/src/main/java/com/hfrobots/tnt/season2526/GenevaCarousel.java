@@ -51,7 +51,7 @@ public class GenevaCarousel {
 
     private final DcMotorEx carouselMotor;
 
-    private final boolean limitSwitchIsWorking = false;
+    private final boolean limitSwitchIsWorking = true;
 
     private final DigitalChannel launchPositionDetection;
 
@@ -93,6 +93,10 @@ public class GenevaCarousel {
     }
 
     public void nextIndexForIntake() {
+        if (notDoneAdvancing()) {
+            return;
+        }
+
         detectArtifactInCurrentIntake();
 
         int currentEncoderPosition = carouselMotor.getCurrentPosition();
@@ -109,6 +113,23 @@ public class GenevaCarousel {
 
         isInLaunchPosition = false;
 
+    }
+
+    private boolean notDoneAdvancing() {
+
+        if (DcMotor.RunMode.RUN_TO_POSITION != carouselMotor.getMode()) {
+            return false;
+        }
+
+        int currentEncoderCount = carouselMotor.getCurrentPosition();
+        int targetEncoderCount = carouselMotor.getTargetPosition();
+        int targetTolerance = carouselMotor.getTargetPositionTolerance();
+
+        int difference = Math.abs(currentEncoderCount - targetEncoderCount);
+
+        Log.d(LOG_TAG, "Geneva drive: ce, te, tt, diff: " + currentEncoderCount + ", " + targetEncoderCount + ", " + targetTolerance + ", " + difference);
+
+        return difference >= targetTolerance;
     }
 
     private void detectArtifactInCurrentIntake() {
@@ -178,6 +199,11 @@ public class GenevaCarousel {
     }
 
     public void nextIndexForLaunch() {
+        if (notDoneAdvancing()) {
+            Log.d(LOG_TAG, "Not done advancing silly puppy, ignoring you");
+            return;
+        }
+
         int currentEncoderPosition = carouselMotor.getCurrentPosition();
 
         final double targetPos;
@@ -195,6 +221,7 @@ public class GenevaCarousel {
     private boolean runningToPosition = false;
 
     private void runToPosition(double targetPos) {
+        Log.d(LOG_TAG, "Attempting to run to position:" + targetPos);
         carouselMotor.setTargetPosition((int) targetPos);
         carouselMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         carouselMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);

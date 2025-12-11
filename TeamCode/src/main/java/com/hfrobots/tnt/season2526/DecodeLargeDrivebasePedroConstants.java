@@ -52,12 +52,18 @@ public class DecodeLargeDrivebasePedroConstants {
             .forwardTicksToInches(.001997896808)
             .strafeTicksToInches( .001950693882)
             .turnTicksToInches(   .002009086694)
-            .leftPodY(3.875)
-            .rightPodY(-3.875)
-            .strafePodX(-.75)
-            .leftEncoder_HardwareMapName("leftFrontDriveMotor")
-            .rightEncoder_HardwareMapName("rightRearDriveMotor")
-            .strafeEncoder_HardwareMapName("rightFrontDriveMotor")
+            .leftPodY(3.54)
+            .rightPodY(-3.54)
+            .strafePodX(-7.6)
+            /*
+            <Motor name="leftFrontDriveMotor"  port="0" /> <!-- Red    -->
+            <Motor name="leftRearDriveMotor"   port="1" /> <!-- Orange -->
+            <Motor name="rightFrontDriveMotor" port="2" /> <!-- Yellow -->
+            <Motor name="rightRearDriveMotor"  port="3" /> <!-- Green  -->
+             */
+            .leftEncoder_HardwareMapName("leftFrontDriveMotor") // red
+            .rightEncoder_HardwareMapName("rightRearDriveMotor") // yellow
+            .strafeEncoder_HardwareMapName("rightFrontDriveMotor") // green
             .leftEncoderDirection(Encoder.REVERSE)
             .rightEncoderDirection(Encoder.REVERSE)
             .strafeEncoderDirection(Encoder.FORWARD)

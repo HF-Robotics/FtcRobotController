@@ -23,6 +23,7 @@
 package com.hfrobots.tnt.season2526;
 
 import com.ftc9929.corelib.control.RangeInput;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
@@ -37,26 +38,31 @@ public class WheeledLauncher {
     public static final double ONE_THIRD_REV = ONE_FULL_REV / 3;
     public static final double ONE_SIXTH_REV = ONE_THIRD_REV / 2;
     // These constants are the tunables for our launcher.
-    protected static final double KICKER_SERVO_RAISED_POSITION = 1;
+    protected static final double KICKER_SERVO_RAISED_POSITION =.95;
 
-    protected static final double KICKER_SERVO_LOWERED_POSITION = 0;
+    protected static final double KICKER_SERVO_LOWERED_POSITION = .6;
 
     private static final double FAR_LAUNCH_VELOCITY = 1950;
 
-    private static final double MEDIUM_LAUNCH_VELOCITY = 1576;
+    private static final double MEDIUM_LAUNCH_VELOCITY = 1850;
 
-    private static final double CLOSE_LAUNCH_VELOCITY = 1154;
+    private static final double CLOSE_LAUNCH_VELOCITY = 1350;
 
     // These are the components of our launcher
     protected final DcMotorEx launcherMotor;
 
     protected final Servo kickerServo;
 
+    protected final CRServo hoodAngleServo;
+
     private double requestedVelocity = 0;
 
     public WheeledLauncher(final HardwareMap hardwareMap) {
         kickerServo = hardwareMap.get(Servo.class, "kickerServo");
         launcherMotor = hardwareMap.get(DcMotorEx.class, "launcherMotor");
+        kickerServo.setPosition(KICKER_SERVO_LOWERED_POSITION);
+
+        hoodAngleServo = hardwareMap.get(CRServo.class, "hoodAngleServo");
     }
 
     public void updateTelemetry(final Telemetry telemetry) {
@@ -68,6 +74,14 @@ public class WheeledLauncher {
     private int currentIntakeIndex = 0;
 
     private int currentLaunchIndex = 0;
+
+    public void adjustHoodAngle(final RangeInput adjustThrottle) {
+        hoodAngleServo.setPower(adjustThrottle.getPosition());
+    }
+
+    public void stopHoodAngleAdjust() {
+        hoodAngleServo.setPower(0);
+    }
 
     public void adjustVelocity(final RangeInput adjustmentThrottle) {
         double adjustmentAmount = -adjustmentThrottle.getPosition();

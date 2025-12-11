@@ -38,15 +38,20 @@ SOFTWARE.
             <Motor name="leftRearDriveMotor"   port="1" /> <!-- Orange -->
             <Motor name="rightFrontDriveMotor" port="2" /> <!-- Yellow -->
             <Motor name="rightRearDriveMotor"  port="3" /> <!-- Green  -->
+
+            <Servo name="ledIndicatorFrontRight"    port="5" /> <!-- Purple -->
+
         </LynxModule>
         <LynxModule name="Expansion Hub 5" port="5">
             <Motor name="launcherMotor"        port="0" /> <!-- Red    -->
             <Motor name="intakeMotor"          port="1" /> <!-- Orange -->
             <Motor name="carouselMotor"        port="2" /> <!-- Yellow -->
+            <Motor name="kickstandMotor"       port="3" /> <!-- Green -->
 
-            <Servo name="kickerServo"          port="0" /> <!-- Red -->
-            <Servo name="ledIndicatorBack"    port="2" /> <!-- Yellow -->
-            <Servo name="ledIndicatorFront"    port="5" /> <!-- Purple -->
+            <Servo name="kickerServo"                       port="0" /> <!-- Red -->
+            <ContinuousRotationServo name="hoodAngleServo"  port="1" /> <!-- Orange -->
+            <Servo name="ledIndicatorFrontLeft"             port="2" /> <!-- Yellow -->
+            <Servo name="ledIndicatorBack"                  port="5" /> <!-- Purple -->
 
             <DigitalDevice name="launchPositionDetection" port="0" />
         </LynxModule>

@@ -76,6 +76,7 @@ public class DecodeAuto extends OpMode {
     public static final Pose RED_CLOSE_LEAVE_POSE = new Pose(38, 144 - 17, Math.toRadians(90));
 
     public static final Pose BLUE_CLOSE_LEAVE_POSE = new Pose(38, 17, Math.toRadians(270));
+    private DecodeOperatorControls operatorControls;
 
     private enum TargetDistance {
         CLOSE, MEDIUM, FAR
@@ -140,7 +141,7 @@ public class DecodeAuto extends OpMode {
 
             //setupVisionPortal(hardwareMap);
 
-             driveTeamSignal = new DecodeDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
+            driveTeamSignal = new DecodeDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
             launcher = new WheeledLauncher(hardwareMap);
 
@@ -150,8 +151,18 @@ public class DecodeAuto extends OpMode {
 
             pedroFollower = DecodeLargeDrivebasePedroConstants.createFollower(hardwareMap);
 
+            setupOperatorControls();
+
             stateMachine = new StateMachine(telemetry);
         });
+    }
+
+    private void setupOperatorControls() {
+        final NinjaGamePad operatorGamepad = new NinjaGamePad(gamepad2);
+
+        operatorControls = DecodeOperatorControls.builder()
+                .operatorGamepad(operatorGamepad)
+                .carousel(carousel).build();
     }
 
     private void setupVisionPortal(final HardwareMap hardwareMap) {
@@ -197,6 +208,7 @@ public class DecodeAuto extends OpMode {
     @Override
     public void init_loop() {
         doAutoConfig();
+        operatorControls.periodicTask();
         updateTelemetry(telemetry);
     }
 

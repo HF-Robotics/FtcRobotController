@@ -98,6 +98,8 @@ public class DecodeOperatorControls implements PeriodicTask {
 
     private RangeInput launcherSpeedAdjust;
 
+    private RangeInput hoodAngleAdjust;
+
     // FIXME: Add all of the mechanisms controlled by the operator here, and add them to
     // the constructor, and set them there from the constructor arguments
 
@@ -208,6 +210,8 @@ public class DecodeOperatorControls implements PeriodicTask {
 
         launcherSpeedAdjust = leftStickY;
 
+        hoodAngleAdjust = leftStickX;
+
         carouselThrottle = rightStickX;
 
         intakeIn = new RangeInputButton( rightTrigger, 0.65f);
@@ -261,6 +265,12 @@ public class DecodeOperatorControls implements PeriodicTask {
                 }
             } else {
                 launcher.lowerKicker();
+            }
+
+            if (unsafe.isPressed()) {
+                launcher.adjustHoodAngle(hoodAngleAdjust);
+            } else {
+                launcher.stopHoodAngleAdjust(); // for safety!?
             }
         }
 
