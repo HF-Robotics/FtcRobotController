@@ -45,7 +45,7 @@ import java.util.Map;
 import lombok.NonNull;
 
 public class GenevaCarousel {
-    public static final double AUTOMATED_POWER = 0.5;
+    public static final double AUTOMATED_POWER = 1;
 
     public static final int MANUAL_ADJUST_SPEED_REDUCTION = 2;
 
@@ -190,7 +190,7 @@ public class GenevaCarousel {
         return sensedGreen;
     }
 
-    private boolean isInLaunchPosition() {
+    public boolean isInLaunchPosition() {
         if (!limitSwitchIsWorking) {
             return isInLaunchPosition;
         }

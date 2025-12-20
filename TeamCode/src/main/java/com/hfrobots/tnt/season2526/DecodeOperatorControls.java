@@ -100,6 +100,8 @@ public class DecodeOperatorControls implements PeriodicTask {
 
     private RangeInput hoodAngleAdjust;
 
+    private OnOffButton kickstandDeploy;
+
     // FIXME: Add all of the mechanisms controlled by the operator here, and add them to
     // the constructor, and set them there from the constructor arguments
 
@@ -107,6 +109,10 @@ public class DecodeOperatorControls implements PeriodicTask {
 
     private WheeledLauncher launcher;
     private DebouncedButton carouselLaunchNextIndex;
+
+    private DecodeDriveTeamSignal driveTeamSignal;
+
+    private Kickstand kickstand;
 
     @Builder
     private DecodeOperatorControls(RangeInput leftStickX,
@@ -132,7 +138,9 @@ public class DecodeOperatorControls implements PeriodicTask {
                                    NinjaGamePad operatorGamepad,
                                    RollerIntake intake,
                                    WheeledLauncher launcher,
-                                   GenevaCarousel carousel) {
+                                   GenevaCarousel carousel,
+                                   Kickstand kickstand,
+                                   DecodeDriveTeamSignal driveTeamSignal) {
         if (operatorGamepad != null) {
             this.operatorGamepad = operatorGamepad;
             setupFromGamepad();
@@ -160,6 +168,8 @@ public class DecodeOperatorControls implements PeriodicTask {
         // FIXME: Make sure that mechanisms are setup here, before "wiring" them to
         // controls
 
+        this.kickstand = kickstand;
+        this.driveTeamSignal = driveTeamSignal;
         this.intake = intake;
         this.launcher = launcher;
         this.carousel = carousel;
@@ -261,7 +271,9 @@ public class DecodeOperatorControls implements PeriodicTask {
                 if (unsafe.isPressed()) {
                     launcher.raiseKickerNoMatterWhat();
                 } else {
-                    launcher.safelyRaiseKicker();
+                    if (carousel.isInLaunchPosition()) {
+                        launcher.safelyRaiseKicker();
+                    }
                 }
             } else {
                 launcher.lowerKicker();
@@ -282,6 +294,19 @@ public class DecodeOperatorControls implements PeriodicTask {
                 carousel.nextIndexForLaunch();
             } else {
                 carousel.manuallyAdjust(carouselThrottle, !unsafe.isPressed());
+            }
+        }
+
+        if (kickstand != null) {
+            if ((driveTeamSignal != null && driveTeamSignal.isEndGame())
+                || unsafe.isPressed()) {
+                // FIXME: Do kickstand stuff!
+//
+//                if (kickstandDeploy != null && kickstandDeploy.isPressed()) {
+//
+//                } else {
+//
+//                }
             }
         }
     }

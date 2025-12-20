@@ -38,13 +38,13 @@ public class WheeledLauncher {
     public static final double ONE_THIRD_REV = ONE_FULL_REV / 3;
     public static final double ONE_SIXTH_REV = ONE_THIRD_REV / 2;
     // These constants are the tunables for our launcher.
-    protected static final double KICKER_SERVO_RAISED_POSITION =.95;
+    protected static final double KICKER_SERVO_RAISED_POSITION =.775;
 
     protected static final double KICKER_SERVO_LOWERED_POSITION = .6;
 
     private static final double FAR_LAUNCH_VELOCITY = 1950;
 
-    private static final double MEDIUM_LAUNCH_VELOCITY = 1850;
+    private static final double MEDIUM_LAUNCH_VELOCITY = 1620;
 
     private static final double CLOSE_LAUNCH_VELOCITY = 1350;
 
@@ -55,6 +55,8 @@ public class WheeledLauncher {
 
     protected final CRServo hoodAngleServo;
 
+    protected final DcMotorEx hoodAngleEncoder;
+
     private double requestedVelocity = 0;
 
     public WheeledLauncher(final HardwareMap hardwareMap) {
@@ -63,12 +65,14 @@ public class WheeledLauncher {
         kickerServo.setPosition(KICKER_SERVO_LOWERED_POSITION);
 
         hoodAngleServo = hardwareMap.get(CRServo.class, "hoodAngleServo");
+        hoodAngleEncoder = hardwareMap.get(DcMotorEx.class, "leftRearDriveMotor");
     }
 
     public void updateTelemetry(final Telemetry telemetry) {
         telemetry.addData("Launcher",  "req_vel %s - cur_vel %s",
                 Double.toString(requestedVelocity),
                 Double.toString(launcherMotor.getVelocity()));
+        telemetry.addData("Hood", "ang: %d", hoodAngleEncoder.getCurrentPosition());
     }
 
     private int currentIntakeIndex = 0;
@@ -114,7 +118,7 @@ public class WheeledLauncher {
     }
 
     public boolean isMoving() {
-        return launcherMotor.getVelocity() < 50;
+        return launcherMotor.getVelocity() > 50;
     }
 
     public boolean isAtTargetVelocity() {
@@ -128,9 +132,9 @@ public class WheeledLauncher {
     }
 
     public void safelyRaiseKicker() {
-        // if (isMoving() && isAtTargetVelocity()) {
+        if (isMoving() && isAtTargetVelocity()) {
             kickerServo.setPosition(KICKER_SERVO_RAISED_POSITION);
-       // }
+       }
     }
 
     public void raiseKickerNoMatterWhat() {

@@ -33,8 +33,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class DecodeLargeDrivebasePedroConstants {
-    public static final double X_VELOCITY = 38.63697;
-    public static final double Y_VELOCITY = 29.13538;
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1.0)
             .rightFrontMotorName("rightFrontDriveMotor")
@@ -45,13 +43,10 @@ public class DecodeLargeDrivebasePedroConstants {
             .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .xVelocity(X_VELOCITY)
-            .yVelocity(Y_VELOCITY);
+            .xVelocity(67.5802)
+            .yVelocity(45.2254);
 
     public static ThreeWheelConstants localizerConstants = new ThreeWheelConstants()
-            .forwardTicksToInches(.001997896808)
-            .strafeTicksToInches( .001950693882)
-            .turnTicksToInches(   .002009086694)
             .leftPodY(3.54)
             .rightPodY(-3.54)
             .strafePodX(-7.6)
@@ -64,17 +59,17 @@ public class DecodeLargeDrivebasePedroConstants {
             .leftEncoder_HardwareMapName("leftFrontDriveMotor") // red
             .rightEncoder_HardwareMapName("rightRearDriveMotor") // yellow
             .strafeEncoder_HardwareMapName("rightFrontDriveMotor") // green
-            .leftEncoderDirection(Encoder.REVERSE)
+            .leftEncoderDirection(Encoder.FORWARD)
             .rightEncoderDirection(Encoder.REVERSE)
             .strafeEncoderDirection(Encoder.FORWARD)
-            .forwardTicksToInches(0.002933525)
-            .strafeTicksToInches(0.0029487)
-            .turnTicksToInches(0.00303223333333333);
+            .forwardTicksToInches(0.002933)
+            .strafeTicksToInches(0.002957)
+            .turnTicksToInches( 0.0029474);
 
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(10.8)
-            .forwardZeroPowerAcceleration(-35.42870)
-            .lateralZeroPowerAcceleration(-53.50902);
+            .mass(14)
+            .forwardZeroPowerAcceleration(-30.424125)
+            .lateralZeroPowerAcceleration(-84.548);
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 

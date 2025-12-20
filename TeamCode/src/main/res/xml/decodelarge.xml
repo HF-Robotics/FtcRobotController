@@ -41,6 +41,8 @@ SOFTWARE.
 
             <Servo name="ledIndicatorFrontRight"    port="5" /> <!-- Purple -->
 
+            <AnalogInput name="rightPresenceDetector" port="0" />
+
         </LynxModule>
         <LynxModule name="Expansion Hub 5" port="5">
             <Motor name="launcherMotor"        port="0" /> <!-- Red    -->
@@ -54,6 +56,11 @@ SOFTWARE.
             <Servo name="ledIndicatorBack"                  port="5" /> <!-- Purple -->
 
             <DigitalDevice name="launchPositionDetection" port="0" />
+
+            <AnalogInput name="leftPresenceDetector" port="2" />
+
+            <LynxColorSensor name="artifactColor1" port="0" bus="1" />
+            <LynxColorSensor name="artifactColor2" port="0" bus="2" />
         </LynxModule>
     </LynxUsbDevice>
 </Robot>

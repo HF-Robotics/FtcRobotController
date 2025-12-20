@@ -97,13 +97,13 @@ public class DecodeAuto extends OpMode {
     //  something meaningful for the season!
     @Getter
     private enum Task {
-        PACMAN("(0) PACMAN"),
+        //PACMAN("(0) PACMAN"),
         GOAL_AND_45("(1) Goal and 45"),
-        GOAL_AND_45_MORE_SCORE("(2) 45 more score"),
-        WALL_AND_GOAL("(3) Wall and goal"),
-        WALL_AND_GOAL_MORE_SCORE("(4) Wall and more score"),
-        SPACE_LAUNCHING("(5) Space Launching"),
-        SIMPLE_LEAVE("(6) Simple leave");
+        //GOAL_AND_45_MORE_SCORE("(2) 45 more score"),
+        WALL_AND_GOAL("(2) Wall and goal"),
+        //WALL_AND_GOAL_MORE_SCORE("(4) Wall and more score"),
+        //SPACE_LAUNCHING("(5) Space Launching"),
+        SIMPLE_LEAVE("(3) Simple leave");
 
         final String description;
 
@@ -278,23 +278,11 @@ public class DecodeAuto extends OpMode {
             case WALL_AND_GOAL:
                 setupGoalAndWallPath(false);
                 break;
-            case WALL_AND_GOAL_MORE_SCORE:
-                setupGoalAndWallPath(true);
-                break;
             case GOAL_AND_45:
                 setupGoalFortyFivePath(false);
                 break;
-            case GOAL_AND_45_MORE_SCORE:
-                setupGoalFortyFivePath(true);
-                break;
-            case SPACE_LAUNCHING:
-                setupSpaceLaunch();
-                break;
             case SIMPLE_LEAVE:
                 setupSimpleLeavePath();
-                break;
-            case PACMAN:
-                //setupPacmanPath();
                 break;
             default:
                 stateMachine.addSequential(newDoneState("Default done"));
@@ -451,9 +439,6 @@ public class DecodeAuto extends OpMode {
         // This is where we need to choose to go pacman - or just leave
 
         if (scoreMoreArtifacts) {
-            // See if this works for now. As a bonus, it will run async as we move
-            // sequenceOfStates.addRunnableStep("Carousel homing", () -> carousel.manuallyAdjust(-.2F, false));
-
             Pose midpointPose = new Pose(60 + 5, 144 - 60 + 5);
 
             final Path toEndPosePath = new Path(new BezierCurve(List.of(scorePose, midpointPose, startPacmanPose)));
@@ -590,8 +575,6 @@ public class DecodeAuto extends OpMode {
 
         // Here is where we decide to score more or leave
         if (scoreMoreArtifacts) {
-            // sequenceOfStates.addRunnableStep("Carousel homing", () -> carousel.manuallyAdjust(-.2F, false));
-
             final Path toEndPosePath = new Path(new BezierLine(scorePose, startPacmanPose));
 
             toEndPosePath.setLinearHeadingInterpolation(scorePose.getHeading(), startPacmanPose.getHeading());

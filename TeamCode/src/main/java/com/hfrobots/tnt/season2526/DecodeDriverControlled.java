@@ -69,6 +69,8 @@ public class DecodeDriverControlled extends OpMode {
     boolean canUseAprilTags = false;
     private RollerIntake intake;
 
+    private Kickstand kickstand;
+
     @Override
     public void init() {
         Shared.withBetterErrorHandling(() -> {
@@ -91,7 +93,8 @@ public class DecodeDriverControlled extends OpMode {
                     .operatorGamepad(operatorGamepad)
                     .intake(intake)
                     .carousel(carousel)
-                    .launcher(launcher).build();
+                    .launcher(launcher)
+                    .kickstand(kickstand).build();
 
             setupMetricsSampler(driversGamepad, operatorGamepad);
 
@@ -135,6 +138,12 @@ public class DecodeDriverControlled extends OpMode {
             carousel = new GenevaCarousel(hardwareMap, telemetry);
         } catch (IllegalArgumentException ex) {
             carousel = null;
+        }
+
+        try {
+            kickstand = new Kickstand(hardwareMap);
+        } catch (IllegalArgumentException ex) {
+            kickstand = null;
         }
     }
 
