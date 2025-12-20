@@ -97,15 +97,14 @@ public class CRServoTester extends OpMode {
         CRServo currentServo = namedDcServo.getDevice();
         String servoName = namedDcServo.getName();
 
+        float leftStickYPosition = -gamepad1.left_stick_y;
+
         if (bButton.isPressed()) {
             currentServo.setPower(1);
         } else if (aButton.isPressed()) {
             currentServo.setPower(-1);
         } else {
-            float leftStickYPosition = -gamepad1.left_stick_y;
-            if (leftStickYPosition != 0) {
-                currentServo.setPower(leftStickYPosition);
-            }
+            currentServo.setPower(leftStickYPosition);
         }
 
         updateTelemetry(currentServo, servoName);
