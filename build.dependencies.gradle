@@ -30,10 +30,10 @@ dependencies {
     testImplementation 'com.google.guava:guava-testlib:27.1-android'
     api 'com.google.guava:guava:27.1-android'
 
-    implementation 'com.ftc9929.TntFtcCore:corelib:05482df'
-    implementation 'com.ftc9929.TntFtcCore:fakeHardware:05482df'
-    implementation 'com.ftc9929.TntFtcCore:metrics:05482df'
-    testImplementation 'com.ftc9929.TntFtcCore:fakeHardware:05482df'
+    implementation 'com.ftc9929.TntFtcCore:corelib:ad01b0db6d'
+    implementation 'com.ftc9929.TntFtcCore:fakeHardware:ad01b0db6d'
+    implementation 'com.ftc9929.TntFtcCore:metrics:ad01b0db6d'
+    testImplementation 'com.ftc9929.TntFtcCore:fakeHardware:ad01b0db6d'
 
     implementation 'org.apache.commons:commons-math3:3.6.1'
 
