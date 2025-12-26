@@ -216,7 +216,6 @@ public class LiftMechanism {
 
     private static final double PID_OUTPUT_LOWER_LIMIT_MAX = 1;
 
-    /*
     public static LiftMechanismBuilder builderFromHardwareMap(final HardwareMap hardwareMap,
                                                 final Telemetry telemetry) {
         DigitalChannel lowerLimit = hardwareMap.get(DigitalChannel.class, "lowLimitSwitch");
@@ -229,7 +228,6 @@ public class LiftMechanism {
                 .upperLiftLimit(higherLimit)
                 .telemetry(telemetry);
     }
-     */
 
     @Setter
     private RangeInput liftThrottle;

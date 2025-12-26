@@ -116,7 +116,6 @@ public class ScoringMechanism extends LinearLiftController {
 //        }
     }
 
-    /*
     public static ScoringMechanism.ScoringMechanismBuilder builderFromHardwareMap(
             final HardwareMap hardwareMap,
             final Telemetry telemetry) {
@@ -133,7 +132,6 @@ public class ScoringMechanism extends LinearLiftController {
                 .lowerLiftLimit(lowerLimit)
                 .telemetry(telemetry);
     }
-     */
 
     @Override
     protected State preHandleButtons() {
