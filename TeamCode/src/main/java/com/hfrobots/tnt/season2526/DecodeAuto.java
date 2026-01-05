@@ -78,10 +78,6 @@ public class DecodeAuto extends OpMode {
     public static final Pose BLUE_CLOSE_LEAVE_POSE = new Pose(38, 17, Math.toRadians(270));
     private DecodeOperatorControls operatorControls;
 
-    private enum TargetDistance {
-        CLOSE, MEDIUM, FAR
-    }
-
 
     private Ticker ticker;
 
@@ -143,7 +139,7 @@ public class DecodeAuto extends OpMode {
 
             driveTeamSignal = new DecodeDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
-            launcher = new WheeledLauncher(hardwareMap);
+            launcher = new WheeledLauncher(hardwareMap, telemetry, ticker);
 
             carousel = new GenevaCarousel(hardwareMap, telemetry);
 
@@ -154,6 +150,11 @@ public class DecodeAuto extends OpMode {
             setupOperatorControls();
 
             stateMachine = new StateMachine(telemetry);
+
+            launcher.homeHood();
+
+            // wait for hood to home, or timeout
+            while (!launcher.isHoodIdle());
         });
     }
 
@@ -434,7 +435,7 @@ public class DecodeAuto extends OpMode {
 
         sequenceOfStates.addSequential(scorePathState);
 
-        addLaunchSteps(sequenceOfStates, TargetDistance.CLOSE);
+        addLaunchSteps(sequenceOfStates, WheeledLauncher.TargetDistance.CLOSE);
 
         // This is where we need to choose to go pacman - or just leave
 
@@ -508,7 +509,7 @@ public class DecodeAuto extends OpMode {
         PedroFollowerState scorePathState = new PedroFollowerState("Score again!", telemetry, pedroFollower, scorePath);
         sequenceOfStates.addSequential(scorePathState);
 
-        addLaunchSteps(sequenceOfStates, TargetDistance.MEDIUM);
+        addLaunchSteps(sequenceOfStates, WheeledLauncher.TargetDistance.MEDIUM);
 
         return scorePose;
     }
@@ -571,7 +572,7 @@ public class DecodeAuto extends OpMode {
 
         sequenceOfStates.addSequential(scorePathState);
 
-        addLaunchSteps(sequenceOfStates, TargetDistance.CLOSE);
+        addLaunchSteps(sequenceOfStates, WheeledLauncher.TargetDistance.CLOSE);
 
         // Here is where we decide to score more or leave
         if (scoreMoreArtifacts) {
@@ -663,7 +664,7 @@ public class DecodeAuto extends OpMode {
 
         sequenceOfStates.addSequential(scorePathState);
 
-        addLaunchSteps(sequenceOfStates, TargetDistance.FAR);
+        addLaunchSteps(sequenceOfStates, WheeledLauncher.TargetDistance.FAR);
 
         // This is where we need to choose to go pacman - or just leave
 
@@ -706,7 +707,7 @@ public class DecodeAuto extends OpMode {
         sequenceOfStates.addSequential(newDoneState("Done!"));
         stateMachine.addSequence(sequenceOfStates);
     }
-    private void addLaunchSteps(final SequenceOfStates sequenceOfStates, final TargetDistance targetDistance) {
+    private void addLaunchSteps(final SequenceOfStates sequenceOfStates, final WheeledLauncher.TargetDistance targetDistance) {
         // State carouselHomeState = carousel.new HomeLocationState(telemetry, ticker);
 
         // sequenceOfStates.addSequential(carouselHomeState);
@@ -716,7 +717,7 @@ public class DecodeAuto extends OpMode {
         addOneLaunch(sequenceOfStates, targetDistance);
     }
 
-    private void addOneLaunch(SequenceOfStates sequenceOfStates, final TargetDistance targetDistance) {
+    private void addOneLaunch(SequenceOfStates sequenceOfStates, final WheeledLauncher.TargetDistance targetDistance) {
         LauncherToSpeedState toSpeedState = new LauncherToSpeedState(telemetry, ticker, targetDistance);
 
         State carouselNextLaunchIndexState = carousel.new NextLaunchIndexState(telemetry, ticker);
@@ -730,9 +731,9 @@ public class DecodeAuto extends OpMode {
     }
 
     class LauncherToSpeedState extends StopwatchTimeoutSafetyState {
-        private final TargetDistance distance;
+        private final WheeledLauncher.TargetDistance distance;
 
-        protected LauncherToSpeedState(final Telemetry telemetry, final Ticker ticker, TargetDistance distance) {
+        protected LauncherToSpeedState(final Telemetry telemetry, final Ticker ticker, WheeledLauncher.TargetDistance distance) {
             super("Speeding up", telemetry, ticker, 5_000);
             this.distance = distance;
         }

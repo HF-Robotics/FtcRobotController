@@ -84,7 +84,7 @@ public class DecodeSmallDriverControlled extends OpMode {
             drivebase = new DecodeDrivebase(hardwareMap);
 
             try {
-                launcher = new SmallWheeledLauncher(hardwareMap);
+                launcher = new SmallWheeledLauncher(hardwareMap, telemetry, ticker);
             } catch (IllegalArgumentException ex) {
                 launcher = null;
             }
@@ -207,10 +207,6 @@ public class DecodeSmallDriverControlled extends OpMode {
                         newMetricsSampler.doSamples();
                     }
                 }
-            }
-
-            if (launcher != null) {
-                launcher.updateTelemetry(telemetry);
             }
 
             telemetry.update();

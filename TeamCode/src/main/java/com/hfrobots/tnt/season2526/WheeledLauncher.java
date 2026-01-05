@@ -23,20 +23,18 @@
 package com.hfrobots.tnt.season2526;
 
 import com.ftc9929.corelib.control.RangeInput;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
+import com.google.common.base.Ticker;
+import com.hfrobots.tnt.corelib.task.PeriodicTask;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-public class WheeledLauncher {
+public class WheeledLauncher implements PeriodicTask {
 
     public static final double ONE_FULL_REV = 751.8;
-    public static final double ONE_THIRD_REV = ONE_FULL_REV / 3;
-    public static final double ONE_SIXTH_REV = ONE_THIRD_REV / 2;
+
     // These constants are the tunables for our launcher.
     protected static final double KICKER_SERVO_RAISED_POSITION =.775;
 
@@ -53,38 +51,46 @@ public class WheeledLauncher {
 
     protected final Servo kickerServo;
 
-    protected final CRServo hoodAngleServo;
-
-    protected final DcMotorEx hoodAngleEncoder;
-
     private double requestedVelocity = 0;
 
-    public WheeledLauncher(final HardwareMap hardwareMap) {
+    private HoodController hoodController;
+
+    private final Telemetry telemetry;
+
+    public WheeledLauncher(final HardwareMap hardwareMap,
+                           final Telemetry telemetry,
+                           final Ticker ticker) {
         kickerServo = hardwareMap.get(Servo.class, "kickerServo");
         launcherMotor = hardwareMap.get(DcMotorEx.class, "launcherMotor");
+        this.telemetry = telemetry;
         kickerServo.setPosition(KICKER_SERVO_LOWERED_POSITION);
-
-        hoodAngleServo = hardwareMap.get(CRServo.class, "hoodAngleServo");
-        hoodAngleEncoder = hardwareMap.get(DcMotorEx.class, "leftRearDriveMotor");
+        setupHoodController(hardwareMap, telemetry, ticker);
     }
 
-    public void updateTelemetry(final Telemetry telemetry) {
-        telemetry.addData("Launcher",  "req_vel %s - cur_vel %s",
-                Double.toString(requestedVelocity),
-                Double.toString(launcherMotor.getVelocity()));
-        telemetry.addData("Hood", "ang: %d", hoodAngleEncoder.getCurrentPosition());
+    protected void setupHoodController(final HardwareMap hardwareMap,
+                                       final Telemetry telemetry,
+                                       final Ticker ticker) {
+        hoodController = new HoodController(hardwareMap, telemetry, ticker);
     }
 
-    private int currentIntakeIndex = 0;
-
-    private int currentLaunchIndex = 0;
-
-    public void adjustHoodAngle(final RangeInput adjustThrottle) {
-        hoodAngleServo.setPower(adjustThrottle.getPosition());
+    public void setHoodAngleAdjust(final RangeInput throttle) {
+        if (hoodController != null) {
+            hoodController.setManualControl(throttle);
+        }
     }
 
-    public void stopHoodAngleAdjust() {
-        hoodAngleServo.setPower(0);
+    public void homeHood() {
+        if (hoodController != null) {
+            hoodController.goHome();
+        }
+    }
+
+    public boolean isHoodIdle() {
+        if (hoodController != null) {
+            return hoodController.isIdle();
+        }
+
+        return true;
     }
 
     public void adjustVelocity(final RangeInput adjustmentThrottle) {
@@ -97,8 +103,6 @@ public class WheeledLauncher {
         if (adjustmentAmount != 0) {
             maybeSetLaunchVelocity(requestedVelocity + (adjustmentAmount * 4.0));
         }
-
-
     }
 
     public void closeLaunchVelocity() {
@@ -146,5 +150,18 @@ public class WheeledLauncher {
             requestedVelocity = velocity;
             launcherMotor.setVelocity(requestedVelocity);
         }
+    }
+
+    @Override
+    public void periodicTask() {
+        telemetry.addData("Launcher",  "req_vel %s - cur_vel %s",
+                Double.toString(requestedVelocity),
+                Double.toString(launcherMotor.getVelocity()));
+
+        hoodController.periodicTask();
+    }
+
+    public enum TargetDistance {
+        CLOSE, MEDIUM, FAR
     }
 }

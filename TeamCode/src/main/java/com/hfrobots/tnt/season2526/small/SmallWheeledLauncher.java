@@ -23,18 +23,29 @@
 package com.hfrobots.tnt.season2526.small;
 
 import com.ftc9929.corelib.control.RangeInput;
+import com.google.common.base.Ticker;
 import com.hfrobots.tnt.season2526.WheeledLauncher;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.apache.commons.math3.util.IterationListener;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class SmallWheeledLauncher extends WheeledLauncher {
 
-    public SmallWheeledLauncher(final HardwareMap hardwareMap) {
-        super(hardwareMap);
+    @Override
+    protected void setupHoodController(final HardwareMap hardwareMap,
+                                       final Telemetry telemetry,
+                                       final Ticker ticker) {
+        // No hood on this robot!
+    }
+
+    public SmallWheeledLauncher(final HardwareMap hardwareMap,
+                                final Telemetry telemetry,
+                                final Ticker ticker) {
+        super(hardwareMap, telemetry, ticker);
         launcherMotor.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 

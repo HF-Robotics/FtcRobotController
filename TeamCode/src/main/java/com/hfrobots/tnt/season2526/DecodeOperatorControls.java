@@ -236,7 +236,9 @@ public class DecodeOperatorControls implements PeriodicTask {
     // FIXME: As-needed, set controls to setters on scoring mechanisms that have
     //        internal state machines that respond to operator control inputs
     public void wireControlsToOperatorsMechanisms() {
-
+        if (launcher != null) {
+            launcher.setHoodAngleAdjust(hoodAngleAdjust);
+        }
     }
 
     @Override
@@ -279,11 +281,7 @@ public class DecodeOperatorControls implements PeriodicTask {
                 launcher.lowerKicker();
             }
 
-            if (unsafe.isPressed()) {
-                launcher.adjustHoodAngle(hoodAngleAdjust);
-            } else {
-                launcher.stopHoodAngleAdjust(); // for safety!?
-            }
+            launcher.periodicTask();
         }
 
         // FIXME: This eventually needs to be handled with a state machine

@@ -71,10 +71,12 @@ public class DecodeDriverControlled extends OpMode {
 
     private Kickstand kickstand;
 
+    private Ticker ticker;
+
     @Override
     public void init() {
         Shared.withBetterErrorHandling(() -> {
-            final Ticker ticker = Ticker.systemTicker();
+            ticker = Ticker.systemTicker();
 
             drivebase = new DecodeDrivebase(hardwareMap);
 
@@ -123,7 +125,7 @@ public class DecodeDriverControlled extends OpMode {
 
     private void setupMechanisms() {
         try {
-            launcher = new WheeledLauncher(hardwareMap);
+            launcher = new WheeledLauncher(hardwareMap, telemetry, ticker);
         } catch (IllegalArgumentException ex) {
             launcher = null;
         }
@@ -188,6 +190,8 @@ public class DecodeDriverControlled extends OpMode {
             if (driveTeamSignal != null) {
                 driveTeamSignal.startMatch();
             }
+
+            launcher.homeHood();
         });
     }
 
@@ -222,10 +226,6 @@ public class DecodeDriverControlled extends OpMode {
                         newMetricsSampler.doSamples();
                     }
                 }
-            }
-
-            if (launcher != null) {
-                launcher.updateTelemetry(telemetry);
             }
 
             telemetry.update();

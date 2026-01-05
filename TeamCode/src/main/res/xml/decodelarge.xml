@@ -56,6 +56,7 @@ SOFTWARE.
             <Servo name="ledIndicatorBack"                  port="5" /> <!-- Purple -->
 
             <DigitalDevice name="launchPositionDetection" port="0" />
+            <DigitalDevice name="hoodLowerLimit" port="6" />
 
             <AnalogInput name="leftPresenceDetector" port="2" />
 
