@@ -100,7 +100,7 @@ public class AprilTagAligner implements PeriodicTask {
 
     private WebcamManualControlSetup manualControlSetup;
 
-    public void aimToDetectedAprilTag() {
+    public Double aimToDetectedAprilTag() {
         if (!manualControlSetup.isCameraIsSetup()) {
             telemetry.addData("Apriltags", "Camera isn't ready");
         }
@@ -160,7 +160,11 @@ public class AprilTagAligner implements PeriodicTask {
             telemetry.addData("Auto", "Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
 
             drivebase.driveCartesian(0 /* -strafe */,0/* drive */, -turn, false);
+
+            return headingError;
         }
+
+        return null;
     }
 
     @Override

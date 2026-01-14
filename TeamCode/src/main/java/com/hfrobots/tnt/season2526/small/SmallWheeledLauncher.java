@@ -46,7 +46,7 @@ public class SmallWheeledLauncher extends WheeledLauncher {
                                 final Telemetry telemetry,
                                 final Ticker ticker) {
         super(hardwareMap, telemetry, ticker);
-        launcherMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        launcherMotor.setDirection(DcMotorSimple.Direction.FORWARD);
     }
 
     public void lowerKicker() {
@@ -55,11 +55,11 @@ public class SmallWheeledLauncher extends WheeledLauncher {
 
     public void safelyRaiseKicker() {
         // if (isMoving() && isAtTargetVelocity()) {
-        kickerServo.setPosition(KICKER_SERVO_LOWERED_POSITION);
+        kickerServo.setPosition(0);
         // }
     }
 
     public void raiseKickerNoMatterWhat() {
-        kickerServo.setPosition(KICKER_SERVO_LOWERED_POSITION);
+        kickerServo.setPosition(0);
     }
 }

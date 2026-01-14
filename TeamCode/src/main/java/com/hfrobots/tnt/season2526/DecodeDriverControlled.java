@@ -137,7 +137,7 @@ public class DecodeDriverControlled extends OpMode {
         }
 
         try {
-            carousel = new GenevaCarousel(hardwareMap, telemetry);
+            carousel = new OGGenevaCarousel(hardwareMap, telemetry);
         } catch (IllegalArgumentException ex) {
             carousel = null;
         }

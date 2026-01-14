@@ -273,7 +273,9 @@ public class DecodeOperatorControls implements PeriodicTask {
                 if (unsafe.isPressed()) {
                     launcher.raiseKickerNoMatterWhat();
                 } else {
-                    if (carousel.isInLaunchPosition()) {
+                    if (carousel != null && carousel.isInLaunchPosition()) {
+                        launcher.safelyRaiseKicker();
+                    } else {
                         launcher.safelyRaiseKicker();
                     }
                 }

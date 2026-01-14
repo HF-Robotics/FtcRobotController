@@ -23,15 +23,16 @@ package com.hfrobots.tnt.season2526;
 
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
 import com.qualcomm.hardware.lynx.LynxI2cColorRangeSensor;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class ArtifactDetector implements PeriodicTask {
-    final LynxI2cColorRangeSensor artifactColor1;
+    final RevColorSensorV3 artifactColor1;
 
-    final LynxI2cColorRangeSensor artifactColor2;
+    final RevColorSensorV3 artifactColor2;
 
     final Servo colorIndicator;
 
@@ -44,9 +45,9 @@ public class ArtifactDetector implements PeriodicTask {
     private int color2green;
     private int color2blue;
     public ArtifactDetector(final HardwareMap hardwareMap, Telemetry telemetry) {
-        artifactColor1 = hardwareMap.get(LynxI2cColorRangeSensor.class, "artifactColor1");
+        artifactColor1 = hardwareMap.get(RevColorSensorV3.class, "artifactColor1");
 
-        artifactColor2 = hardwareMap.get(LynxI2cColorRangeSensor.class, "artifactColor2");
+        artifactColor2 = hardwareMap.get(RevColorSensorV3.class, "artifactColor2");
 
         colorIndicator = hardwareMap.get(Servo.class, "ledIndicatorBack");
 
@@ -65,6 +66,7 @@ public class ArtifactDetector implements PeriodicTask {
         color1red = artifactColor1.red();
         color1green = artifactColor1.green();
         color1blue = artifactColor1.blue();
+
         color2red = artifactColor2.red();
         color2green = artifactColor2.green();
         color2blue = artifactColor2.blue();
@@ -79,6 +81,14 @@ public class ArtifactDetector implements PeriodicTask {
             // It's unknown. turn off the RGB indicator
             colorIndicator.setPosition(0);
         }
+
+        telemetry.addData("Art", "%d %d %d | %d %d %d",
+                color1red,
+                color1green,
+                color1blue,
+                color2red,
+                color2green,
+                color2blue);
 
     }
 }

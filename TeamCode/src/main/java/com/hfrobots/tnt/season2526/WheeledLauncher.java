@@ -22,6 +22,10 @@
 
 package com.hfrobots.tnt.season2526;
 
+import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
+
+import android.util.Log;
+
 import com.ftc9929.corelib.control.RangeInput;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
@@ -33,8 +37,6 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class WheeledLauncher implements PeriodicTask {
 
-    public static final double ONE_FULL_REV = 751.8;
-
     // These constants are the tunables for our launcher.
     protected static final double KICKER_SERVO_RAISED_POSITION =.775;
 
@@ -42,9 +44,9 @@ public class WheeledLauncher implements PeriodicTask {
 
     private static final double FAR_LAUNCH_VELOCITY = 1950;
 
-    private static final double MEDIUM_LAUNCH_VELOCITY = 1620;
+    private static final double MEDIUM_LAUNCH_VELOCITY = 1150;
 
-    private static final double CLOSE_LAUNCH_VELOCITY = 1350;
+    private static final double CLOSE_LAUNCH_VELOCITY = 1080;
 
     // These are the components of our launcher
     protected final DcMotorEx launcherMotor;
@@ -107,14 +109,26 @@ public class WheeledLauncher implements PeriodicTask {
 
     public void closeLaunchVelocity() {
         maybeSetLaunchVelocity(CLOSE_LAUNCH_VELOCITY);
+
+        if (hoodController != null) {
+            hoodController.setPosition(TargetDistance.CLOSE);
+        }
     }
 
     public void mediumLaunchVelocity() {
         maybeSetLaunchVelocity(MEDIUM_LAUNCH_VELOCITY);
+
+        if (hoodController != null) {
+            hoodController.setPosition(TargetDistance.MEDIUM);
+        }
     }
 
     public void farLaunchVelocity() {
         maybeSetLaunchVelocity(FAR_LAUNCH_VELOCITY);
+
+        if (hoodController != null) {
+            hoodController.setPosition(TargetDistance.FAR);
+        }
     }
 
     public void stopLauncher() {
@@ -136,9 +150,14 @@ public class WheeledLauncher implements PeriodicTask {
     }
 
     public void safelyRaiseKicker() {
-        if (isMoving() && isAtTargetVelocity()) {
+        final boolean isMoving = isMoving();
+        final boolean isAtTargetVelocity = isAtTargetVelocity();
+
+        if (isMoving && isAtTargetVelocity) {
             kickerServo.setPosition(KICKER_SERVO_RAISED_POSITION);
-       }
+        } else {
+            Log.i(LOG_TAG, "Not safe to raise kicker: moving: " + isMoving + ", at velocity: " + isAtTargetVelocity);
+        }
     }
 
     public void raiseKickerNoMatterWhat() {
@@ -154,11 +173,14 @@ public class WheeledLauncher implements PeriodicTask {
 
     @Override
     public void periodicTask() {
+        String currentVelocityIndicator = (isAtTargetVelocity() ? "*" : "") + launcherMotor.getVelocity();
         telemetry.addData("Launcher",  "req_vel %s - cur_vel %s",
                 Double.toString(requestedVelocity),
-                Double.toString(launcherMotor.getVelocity()));
+                currentVelocityIndicator);
 
-        hoodController.periodicTask();
+        if (hoodController != null) {
+            hoodController.periodicTask();
+        }
     }
 
     public enum TargetDistance {

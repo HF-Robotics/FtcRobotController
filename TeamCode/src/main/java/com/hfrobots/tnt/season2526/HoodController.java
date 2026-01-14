@@ -32,6 +32,7 @@ import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.drive.PidController;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
+import com.hfrobots.tnt.season2324.Shared;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
@@ -72,20 +73,22 @@ public class HoodController implements PeriodicTask {
 
     private State idleState;
 
-    private State goCloseDistanceState;
+    private GoToPositionState goCloseDistanceState;
 
-    private State goMediumDistanceState;
+    private GoToPositionState goMediumDistanceState;
 
-    private State goFarDistanceState;
+    private GoToPositionState goFarDistanceState;
 
     private State goHomeState;
 
     private void setupStateMachine() {
         goHomeState = new GoHomeState(telemetry);
         idleState = new IdleState(telemetry);
-        goCloseDistanceState = new GoToPositionState("Go-Close", telemetry, 100);
-        goMediumDistanceState = new GoToPositionState("Go-Med", telemetry, 400);
-        goFarDistanceState = new GoToPositionState("Go-Far", telemetry, 800);
+
+        goCloseDistanceState = new GoToPositionState("Go-Close", telemetry, 250);
+
+        goMediumDistanceState = new GoToPositionState("Go-Med", telemetry, 465);
+        goFarDistanceState = new GoToPositionState("Go-Far", telemetry, 501);
 
         goCloseDistanceState.setNextState(idleState);
         goMediumDistanceState.setNextState(idleState);
@@ -123,7 +126,7 @@ public class HoodController implements PeriodicTask {
 
         if (telemetry != null) {
             telemetry.addData("Hood", "ang: %d, st: %s",
-                    hoodAngleEncoder.getCurrentPosition(),
+                    getRelativeEncoderPosition(),
                     currentStateName);
         }
 
@@ -131,18 +134,20 @@ public class HoodController implements PeriodicTask {
     }
 
     private void doOneStateMachineLoop() {
-        State nextState = currentState.doStuffAndGetNextState();
+        Shared.withBetterErrorHandling(() -> {
+            State nextState = currentState.doStuffAndGetNextState();
 
-        if (nextState == null) {
-            nextState = idleState;
-        }
+            if (nextState == null) {
+                nextState = idleState;
+            }
 
-        if (nextState != currentState) {
-            Log.d(LOG_TAG, String.format("Hood state transition from %s to %s", currentState.getClass()
-                    + "(" + currentState.getName() + ")", nextState.getClass() + "(" + nextState.getName() + ")"));
-        }
+            if (nextState != currentState) {
+                Log.d(LOG_TAG, String.format("Hood state transition from %s to %s", currentState.getClass()
+                        + "(" + currentState.getName() + ")", nextState.getClass() + "(" + nextState.getName() + ")"));
+            }
 
-        currentState = nextState;
+            currentState = nextState;
+        });
     }
 
     protected String getCurrentStateName() {
@@ -205,6 +210,8 @@ public class HoodController implements PeriodicTask {
 
         private boolean targetInitialized = false;
 
+        private boolean requireSecondRun = false;
+
         protected GoToPositionState(final String name,
                                     final Telemetry telemetry,
                                     final int targetPosition) {
@@ -217,9 +224,9 @@ public class HoodController implements PeriodicTask {
             //        What kP gives us a slow-down for the right
             //        amount of degrees (1/16 or 1/32 rotation?)
             pidController = PidController.builder().setInstanceName(name)
-                    .setKp(.008)
-                    .setAllowOscillation(false)
-                    .setTolerance(45)
+                    .setKp(.0018)
+                    .setAllowOscillation(true)
+                    .setTolerance(5)
                     .build();
             pidController.setAbsoluteSetPoint(true);
             pidController.setOutputRange(-1, 1);
@@ -230,6 +237,7 @@ public class HoodController implements PeriodicTask {
             super.resetToStart();
             pidController.reset();
             targetInitialized = false;
+            requireSecondRun = false;
         }
 
         @Override
@@ -243,12 +251,23 @@ public class HoodController implements PeriodicTask {
 
             if (!targetInitialized) {
                 pidController.setTarget(targetPosition, getRelativeEncoderPosition());
+
+                final double initialError = pidController.getError();
+
+                // Longer travels need a second run at the PID
+                // for consistency's sake
+                requireSecondRun = Math.abs(initialError) > 100;
+
                 targetInitialized = true;
             }
 
             if (pidController.isOnTarget()) {
                 Log.i(LOG_TAG, "Reached target, going idle");
                 prepareToTransitionToNextState();
+
+                if (requireSecondRun) {
+                    return this;
+                }
 
                 return nextState;
             }
@@ -257,10 +276,34 @@ public class HoodController implements PeriodicTask {
                 Log.i(LOG_TAG, "Timed out before reaching target, going idle");
                 prepareToTransitionToNextState();
 
+                if (requireSecondRun) {
+                    return this;
+                }
+
                 return nextState;
             }
 
             double output = pidController.getOutput(getRelativeEncoderPosition());
+
+            if (output < 0 && isAtLowerLimit()) {
+                Log.e(LOG_TAG, "Huh! Reached lower limit, resetting and starting over");
+                prepareToTransitionToNextState();
+                currentHomePosition = hoodAngleEncoder.getCurrentPosition();
+
+                return this;
+            }
+
+            // There's a periodic lower output limit where the mechanism gets stuck
+            if (output > 0) {
+                if (output < 0.053) {
+                    output = 0.053;
+                }
+            } else if (output < 0) {
+                if (output > -0.053) {
+                    output = -0.053;
+                }
+            }
+
             hoodAngleServo.setPower(output);
 
             return this;
@@ -273,7 +316,7 @@ public class HoodController implements PeriodicTask {
         }
     }
 
-    private double getRelativeEncoderPosition() {
+    private int getRelativeEncoderPosition() {
         return hoodAngleEncoder.getCurrentPosition() - currentHomePosition;
     }
 

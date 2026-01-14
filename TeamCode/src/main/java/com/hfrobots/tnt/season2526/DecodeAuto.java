@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import lombok.Getter;
+import lombok.NonNull;
 
 @Autonomous(name = "00 DECODE Auto", preselectTeleOp = DecodeDriverControlled.OP_MODE_NAME)
 public class DecodeAuto extends OpMode {
@@ -141,7 +142,7 @@ public class DecodeAuto extends OpMode {
 
             launcher = new WheeledLauncher(hardwareMap, telemetry, ticker);
 
-            carousel = new GenevaCarousel(hardwareMap, telemetry);
+            carousel = new OGGenevaCarousel(hardwareMap, telemetry);
 
             intake = new RollerIntake(hardwareMap);
 
@@ -299,32 +300,38 @@ public class DecodeAuto extends OpMode {
         return new StopwatchDelayState(name, telemetry, ticker, numberOfMillis, TimeUnit.MILLISECONDS);
     }
 
+    class DoneState extends HoldPositionState {
+
+        private boolean issuedStop = false;
+
+        public DoneState(@NonNull String name, Telemetry telemetry, Follower follower) {
+            super(name, telemetry, follower);
+        }
+
+        @Override
+        public State doStuffAndGetNextState() {
+            if (!issuedStop) {
+                launcher.stopLauncher();
+                launcher.lowerKicker(); // make sure this is lowered so it doesn't lower when we start tele-op!
+                issuedStop = true;
+            }
+
+            return super.doStuffAndGetNextState();
+        }
+
+        @Override
+        public void resetToStart() {
+            super.resetToStart();
+            issuedStop = false;
+        }
+    }
+
     /**
      * Creates an instance of the "done" state which stops the robot and should be the
      * "end" state of all of our robot's state machines
      */
     protected State newDoneState(String name) {
-        return new State(name, telemetry) {
-            private boolean issuedStop = false;
-
-            @Override
-            public State doStuffAndGetNextState() {
-                // FIXME: Stop everything on the robot here
-                if (!issuedStop) {
-                    pedroFollower.pausePathFollowing();
-                    launcher.stopLauncher();
-                    launcher.lowerKicker(); // make sure this is lowered so it doesn't lower when we start tele-op!
-                    issuedStop = true;
-                }
-
-                return this;
-            }
-
-            @Override
-            public void resetToStart() {
-                issuedStop = false;
-            }
-        };
+        return new DoneState(name, telemetry, pedroFollower);
     }
 
     private void setupDriverControls() {
@@ -521,7 +528,7 @@ public class DecodeAuto extends OpMode {
         intakeNextArtifactPath.setLinearHeadingInterpolation(startFromPose.getHeading(), toNextArtifactPose.getHeading());
         PedroFollowerState intakeNextArtifactPathState = new PedroFollowerState("Intake next artifact", telemetry, pedroFollower, intakeNextArtifactPath);
 
-        final State nextIntakeIndexState = carousel.new NextIntakeIndexState(telemetry, ticker);
+        final State nextIntakeIndexState = carousel.nextIntakeIndexState(telemetry, ticker);
         sequenceOfStates.addSequential(nextIntakeIndexState);
         sequenceOfStates.addSequential(intakeNextArtifactPathState);
 
@@ -720,7 +727,7 @@ public class DecodeAuto extends OpMode {
     private void addOneLaunch(SequenceOfStates sequenceOfStates, final WheeledLauncher.TargetDistance targetDistance) {
         LauncherToSpeedState toSpeedState = new LauncherToSpeedState(telemetry, ticker, targetDistance);
 
-        State carouselNextLaunchIndexState = carousel.new NextLaunchIndexState(telemetry, ticker);
+        State carouselNextLaunchIndexState = carousel.nextLaunchIndexState(telemetry, ticker);
 
         sequenceOfStates.addSequential(carouselNextLaunchIndexState);
         sequenceOfStates.addSequential(toSpeedState);
