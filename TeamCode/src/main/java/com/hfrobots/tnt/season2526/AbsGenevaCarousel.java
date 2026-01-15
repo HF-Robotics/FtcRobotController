@@ -43,9 +43,9 @@ import java.util.Map;
 import lombok.NonNull;
 
 public class AbsGenevaCarousel implements GenevaCarousel {
-    public static final double AUTOMATED_POWER = 1;
+    public static final double AUTOMATED_POWER = .4;
 
-    public static final int MANUAL_ADJUST_SPEED_REDUCTION = 2;
+    public static final double MANUAL_ADJUST_SPEED_REDUCTION = 1.5;
 
     private final DcMotorEx carouselMotor;
 
@@ -83,10 +83,10 @@ public class AbsGenevaCarousel implements GenevaCarousel {
 
     @Override
     public void nextIndexForIntake() {
-        if (notDoneAdvancing()) {
-            Log.d(LOG_TAG, "Not done advancing from previous command, not accepting nextIndexForIntake() command");
-            return;
-        }
+        //if (notDoneAdvancing()) {
+        //    Log.d(LOG_TAG, "Not done advancing from previous command, not accepting nextIndexForIntake() command");
+        //    return;
+        //}
 
         final double targetPos;
 
@@ -97,7 +97,7 @@ public class AbsGenevaCarousel implements GenevaCarousel {
         }
 
         targetPos = currentPosIndex * ONE_FULL_REV;
-        
+
         runToPosition(targetPos);
 
         isInLaunchPosition = false;
@@ -136,10 +136,10 @@ public class AbsGenevaCarousel implements GenevaCarousel {
 
     @Override
     public void nextIndexForLaunch() {
-        if (notDoneAdvancing()) {
-            Log.d(LOG_TAG, "Not done advancing from previous command, not accepting nextIndexForLaunch() command");
-            return;
-        }
+        //if (notDoneAdvancing()) {
+        //    Log.d(LOG_TAG, "Not done advancing from previous command, not accepting nextIndexForLaunch() command");
+        //    return;
+        //}
 
         final double targetPos;
 

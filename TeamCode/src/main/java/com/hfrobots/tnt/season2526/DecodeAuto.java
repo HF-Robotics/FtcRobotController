@@ -142,7 +142,7 @@ public class DecodeAuto extends OpMode {
 
             launcher = new WheeledLauncher(hardwareMap, telemetry, ticker);
 
-            carousel = new OGGenevaCarousel(hardwareMap, telemetry);
+            carousel = new AbsGenevaCarousel(hardwareMap, telemetry);
 
             intake = new RollerIntake(hardwareMap);
 
@@ -152,10 +152,12 @@ public class DecodeAuto extends OpMode {
 
             stateMachine = new StateMachine(telemetry);
 
-            launcher.homeHood();
+            //launcher.homeHood();
 
             // wait for hood to home, or timeout
-            while (!launcher.isHoodIdle());
+            //while (!launcher.isHoodIdle()) {
+            //    launcher.periodicTask();
+            //}
         });
     }
 
@@ -164,7 +166,7 @@ public class DecodeAuto extends OpMode {
 
         operatorControls = DecodeOperatorControls.builder()
                 .operatorGamepad(operatorGamepad)
-                .carousel(carousel).build();
+                .carousel(carousel).launcher(launcher).build();
     }
 
     private void setupVisionPortal(final HardwareMap hardwareMap) {
@@ -287,7 +289,7 @@ public class DecodeAuto extends OpMode {
                 setupSimpleLeavePath();
                 break;
             default:
-                stateMachine.addSequential(newDoneState("Default done"));
+                stateMachine.addSequential(new DoneState("Default done", telemetry));
                 break;
         }
 
@@ -300,12 +302,12 @@ public class DecodeAuto extends OpMode {
         return new StopwatchDelayState(name, telemetry, ticker, numberOfMillis, TimeUnit.MILLISECONDS);
     }
 
-    class DoneState extends HoldPositionState {
+    class DoneState extends State {
 
         private boolean issuedStop = false;
 
-        public DoneState(@NonNull String name, Telemetry telemetry, Follower follower) {
-            super(name, telemetry, follower);
+        public DoneState(@NonNull String name, Telemetry telemetry) {
+            super(name, telemetry);
         }
 
         @Override
@@ -316,12 +318,11 @@ public class DecodeAuto extends OpMode {
                 issuedStop = true;
             }
 
-            return super.doStuffAndGetNextState();
+            return nextState;
         }
 
         @Override
         public void resetToStart() {
-            super.resetToStart();
             issuedStop = false;
         }
     }
@@ -330,8 +331,9 @@ public class DecodeAuto extends OpMode {
      * Creates an instance of the "done" state which stops the robot and should be the
      * "end" state of all of our robot's state machines
      */
-    protected State newDoneState(String name) {
-        return new DoneState(name, telemetry, pedroFollower);
+    protected void commonCompletionStates(final SequenceOfStates sequenceOfStates) {
+        sequenceOfStates.addSequential(new DoneState("Stop mechanisms", telemetry));
+        sequenceOfStates.addSequential(new HoldPositionState("Parked", telemetry, pedroFollower));
     }
 
     private void setupDriverControls() {
@@ -478,7 +480,7 @@ public class DecodeAuto extends OpMode {
             addCloseLeavePath(scorePose, sequenceOfStates);
         }
 
-        sequenceOfStates.addSequential(newDoneState("Done!"));
+        commonCompletionStates(sequenceOfStates);
 
         stateMachine.addSequence(sequenceOfStates);
     }
@@ -612,7 +614,8 @@ public class DecodeAuto extends OpMode {
             addCloseLeavePath(scorePose, sequenceOfStates);
         }
 
-        sequenceOfStates.addSequential(newDoneState("Done!"));
+        commonCompletionStates(sequenceOfStates);
+
         stateMachine.addSequence(sequenceOfStates);
     }
 
@@ -691,7 +694,8 @@ public class DecodeAuto extends OpMode {
 
         sequenceOfStates.addSequential(leavePathState);
 
-        sequenceOfStates.addSequential(newDoneState("Done!"));
+        commonCompletionStates(sequenceOfStates);
+
         stateMachine.addSequence(sequenceOfStates);
     }
 
@@ -711,7 +715,8 @@ public class DecodeAuto extends OpMode {
 
         sequenceOfStates.addSequential(driveForwardPathState);
 
-        sequenceOfStates.addSequential(newDoneState("Done!"));
+        commonCompletionStates(sequenceOfStates);
+
         stateMachine.addSequence(sequenceOfStates);
     }
     private void addLaunchSteps(final SequenceOfStates sequenceOfStates, final WheeledLauncher.TargetDistance targetDistance) {
@@ -760,13 +765,20 @@ public class DecodeAuto extends OpMode {
             }
 
             if (launcher.isAtTargetVelocity()) {
-                resetToStart();
+                Log.d(LOG_TAG, "Launcher speed is ready");
+                if (launcher.isHoodIdle()) {
+                    resetToStart();
 
-                return nextState;
+                    return nextState;
+                } else {
+                    Log.d(LOG_TAG, "Hood is not in position");
+                }
             }
 
             if (isTimedOut()) {
                 resetToStart();
+
+                Log.e(LOG_TAG, "Timed out waiting for speed or hood");
 
                 return nextState;
             }

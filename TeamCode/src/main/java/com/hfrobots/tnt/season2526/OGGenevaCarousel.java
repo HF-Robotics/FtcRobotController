@@ -43,9 +43,9 @@ import java.util.Map;
 import lombok.NonNull;
 
 public class OGGenevaCarousel implements GenevaCarousel {
-    public static final double AUTOMATED_POWER = 0.5;
+    public static final double AUTOMATED_POWER = 0.4;
 
-    public static final int MANUAL_ADJUST_SPEED_REDUCTION = 2;
+    public static final double MANUAL_ADJUST_SPEED_REDUCTION = 1.5;
 
     private final DcMotorEx carouselMotor;
 
