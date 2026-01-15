@@ -152,12 +152,12 @@ public class DecodeAuto extends OpMode {
 
             stateMachine = new StateMachine(telemetry);
 
-            //launcher.homeHood();
+            launcher.homeHood();
 
             // wait for hood to home, or timeout
-            //while (!launcher.isHoodIdle()) {
-            //    launcher.periodicTask();
-            //}
+            while (!launcher.isHoodIdle()) {
+                launcher.periodicTask();
+            }
         });
     }
 
