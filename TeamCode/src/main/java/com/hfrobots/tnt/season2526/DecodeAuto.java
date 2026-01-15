@@ -99,8 +99,8 @@ public class DecodeAuto extends OpMode {
         //GOAL_AND_45_MORE_SCORE("(2) 45 more score"),
         WALL_AND_GOAL("(2) Wall and goal"),
         //WALL_AND_GOAL_MORE_SCORE("(4) Wall and more score"),
-        //SPACE_LAUNCHING("(5) Space Launching"),
-        SIMPLE_LEAVE("(3) Simple leave");
+        SIMPLE_LEAVE("(3) Simple leave"),
+        SPACE_LAUNCHING("(5) Space Launching");
 
         final String description;
 
@@ -288,6 +288,9 @@ public class DecodeAuto extends OpMode {
             case SIMPLE_LEAVE:
                 setupSimpleLeavePath();
                 break;
+            case SPACE_LAUNCHING:
+                setupSpaceLaunch();
+                break;
             default:
                 stateMachine.addSequential(new DoneState("Default done", telemetry));
                 break;
@@ -423,12 +426,12 @@ public class DecodeAuto extends OpMode {
         if (currentAlliance == Constants.Alliance.BLUE) {
             startPosY = 24 + 7.5; // FIXME - We don't understand this starting position!
             startAndScoreHeadingDegrees = 270;
-            scorePose = new Pose(startPoseX+1, startPosY+24, Math.toRadians(startAndScoreHeadingDegrees-10));
+            scorePose = new Pose(startPoseX+1, startPosY+24, Math.toRadians(startAndScoreHeadingDegrees + 2));
             startPacmanPose = BLUE_START_PACMAN_POSE;
         } else {
             startPosY = 144 - (24 + 7.5); // FIXME
             startAndScoreHeadingDegrees = 90;
-            scorePose = new Pose(startPoseX+1, startPosY-24,  Math.toRadians(startAndScoreHeadingDegrees+10));
+            scorePose = new Pose(startPoseX+1, startPosY-24,  Math.toRadians(startAndScoreHeadingDegrees - 2));
             startPacmanPose = RED_START_PACMAN_POSE;
         }
 
@@ -530,7 +533,7 @@ public class DecodeAuto extends OpMode {
         intakeNextArtifactPath.setLinearHeadingInterpolation(startFromPose.getHeading(), toNextArtifactPose.getHeading());
         PedroFollowerState intakeNextArtifactPathState = new PedroFollowerState("Intake next artifact", telemetry, pedroFollower, intakeNextArtifactPath);
 
-        final State nextIntakeIndexState = carousel.nextIntakeIndexState(telemetry, ticker);
+        final State nextIntakeIndexState = carousel.nextIntakeIndexState(telemetry, ticker, false);
         sequenceOfStates.addSequential(nextIntakeIndexState);
         sequenceOfStates.addSequential(intakeNextArtifactPathState);
 
@@ -650,14 +653,16 @@ public class DecodeAuto extends OpMode {
 
         final double scoreHeadingDegrees;
 
+        final double angleTowardsTargetDegrees = 24;
+
         if (currentAlliance == Constants.Alliance.BLUE) {
             startPosY = 60;
             scorePoseY = startPosY;
-            scoreHeadingDegrees = 180 + 21;
+            scoreHeadingDegrees = 180 + angleTowardsTargetDegrees;
         } else {
             startPosY = 84;
             scorePoseY = startPosY;
-            scoreHeadingDegrees = 180 - 21;
+            scoreHeadingDegrees = 180 - angleTowardsTargetDegrees;
         }
 
         final Pose startPose = new Pose(startPoseX, startPosY, Math.toRadians(180)); // Start Pose of our robot.
@@ -681,9 +686,9 @@ public class DecodeAuto extends OpMode {
         final Pose leaveEndPose;
 
         if (currentAlliance == Constants.Alliance.BLUE) {
-            leaveEndPose = new Pose(144-36, BLUE_SCORE_SECOND_POSE.getY(), BLUE_SCORE_SECOND_POSE.getHeading());
+            leaveEndPose = new Pose(144-12, 36, Math.toRadians(180));
         } else {
-            leaveEndPose = new Pose(144-36, RED_SCORE_SECOND_POSE.getY(), RED_SCORE_SECOND_POSE.getHeading());
+            leaveEndPose = new Pose(144-12, 144 - 36, Math.toRadians(180));
         }
 
         final Path toLeavePath = new Path(new BezierLine(scorePose, leaveEndPose));
@@ -702,7 +707,15 @@ public class DecodeAuto extends OpMode {
     private void setupSimpleLeavePath() {
         final SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
 
-        final Pose endPose = new Pose(144 - 36, 0, Math.toRadians(180));
+        final double yPosition;
+
+        if (currentAlliance == Constants.Alliance.BLUE) {
+            yPosition = -24;
+        } else {
+            yPosition = 24;
+        }
+
+        final Pose endPose = new Pose(144 - 2, yPosition, Math.toRadians(180));
 
         final Pose startPose = new Pose(144, 0, Math.toRadians(180)); // Start Pose of our robot.
 
@@ -724,15 +737,15 @@ public class DecodeAuto extends OpMode {
 
         // sequenceOfStates.addSequential(carouselHomeState);
 
-        addOneLaunch(sequenceOfStates, targetDistance);
-        addOneLaunch(sequenceOfStates, targetDistance);
-        addOneLaunch(sequenceOfStates, targetDistance);
+        addOneLaunch(sequenceOfStates, targetDistance, true); // save time for the first launch
+        addOneLaunch(sequenceOfStates, targetDistance, false);
+        addOneLaunch(sequenceOfStates, targetDistance, false);
     }
 
-    private void addOneLaunch(SequenceOfStates sequenceOfStates, final WheeledLauncher.TargetDistance targetDistance) {
+    private void addOneLaunch(SequenceOfStates sequenceOfStates, final WheeledLauncher.TargetDistance targetDistance, final boolean skipMoveIfInPosition) {
         LauncherToSpeedState toSpeedState = new LauncherToSpeedState(telemetry, ticker, targetDistance);
 
-        State carouselNextLaunchIndexState = carousel.nextLaunchIndexState(telemetry, ticker);
+        State carouselNextLaunchIndexState = carousel.nextLaunchIndexState(telemetry, ticker, skipMoveIfInPosition);
 
         sequenceOfStates.addSequential(carouselNextLaunchIndexState);
         sequenceOfStates.addSequential(toSpeedState);
@@ -764,9 +777,18 @@ public class DecodeAuto extends OpMode {
                     break;
             }
 
+            launcher.periodicTask();
+
+            String launcherState = "!";
+            String hoodState = "_";
+
             if (launcher.isAtTargetVelocity()) {
                 Log.d(LOG_TAG, "Launcher speed is ready");
+                launcherState = "G";
+
                 if (launcher.isHoodIdle()) {
+                    hoodState = "/";
+
                     resetToStart();
 
                     return nextState;
@@ -774,6 +796,8 @@ public class DecodeAuto extends OpMode {
                     Log.d(LOG_TAG, "Hood is not in position");
                 }
             }
+
+            telemetry.addData("Launcher", launcherState + ":" + hoodState);
 
             if (isTimedOut()) {
                 resetToStart();

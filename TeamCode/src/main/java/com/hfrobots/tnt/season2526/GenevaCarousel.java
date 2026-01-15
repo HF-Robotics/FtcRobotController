@@ -19,7 +19,7 @@ public interface GenevaCarousel {
 
     void manuallyAdjust(RangeInput carouselThrottle, boolean unsafeIsPressed);
 
-    State nextLaunchIndexState(Telemetry telemetry, @NonNull Ticker ticker);
+    State nextLaunchIndexState(Telemetry telemetry, @NonNull Ticker ticker, boolean skipIfInPosition);
 
-    State nextIntakeIndexState(Telemetry telemetry, @NonNull Ticker ticker);
+    State nextIntakeIndexState(Telemetry telemetry, @NonNull Ticker ticker, boolean skipIfInPosition);
 }

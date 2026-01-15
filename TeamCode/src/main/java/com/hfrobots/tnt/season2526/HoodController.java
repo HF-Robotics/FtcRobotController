@@ -60,6 +60,8 @@ public class HoodController implements PeriodicTask {
 
     private State currentState;
 
+    private WheeledLauncher.TargetDistance currentHoodPosition = null;
+
     public HoodController(final HardwareMap hardwareMap, final Telemetry telemetry, Ticker ticker) {
         hoodAngleServo = hardwareMap.get(CRServo.class, "hoodAngleServo");
         hoodAngleEncoder = hardwareMap.get(DcMotorEx.class, "leftRearDriveMotor");
@@ -85,10 +87,11 @@ public class HoodController implements PeriodicTask {
         goHomeState = new GoHomeState(telemetry);
         idleState = new IdleState(telemetry);
 
-        goCloseDistanceState = new GoToPositionState("Go-Close", telemetry, 250);
+        goCloseDistanceState = new GoToPositionState("Go-Close", telemetry, 250, WheeledLauncher.TargetDistance.CLOSE);
 
-        goMediumDistanceState = new GoToPositionState("Go-Med", telemetry, 465);
-        goFarDistanceState = new GoToPositionState("Go-Far", telemetry, 501);
+        goMediumDistanceState = new GoToPositionState("Go-Med", telemetry, 465, WheeledLauncher.TargetDistance.MEDIUM);
+
+        goFarDistanceState = new GoToPositionState("Go-Far", telemetry, 319, WheeledLauncher.TargetDistance.FAR);
 
         goCloseDistanceState.setNextState(idleState);
         goMediumDistanceState.setNextState(idleState);
@@ -99,6 +102,10 @@ public class HoodController implements PeriodicTask {
     }
 
     public void setPosition(final WheeledLauncher.TargetDistance targetDistance) {
+        if (currentHoodPosition != null && currentHoodPosition == targetDistance) {
+            return;
+        }
+
         switch (targetDistance) {
             case CLOSE:
                 currentState = goCloseDistanceState;
@@ -208,13 +215,15 @@ public class HoodController implements PeriodicTask {
 
         private final int targetPosition;
 
+        private final WheeledLauncher.TargetDistance requestedTargetDistance;
+
         private boolean targetInitialized = false;
 
         private boolean requireSecondRun = false;
 
         protected GoToPositionState(final String name,
                                     final Telemetry telemetry,
-                                    final int targetPosition) {
+                                    final int targetPosition, WheeledLauncher.TargetDistance requestedTargetDistance) {
             super(name, telemetry, ticker, 10_000);
 
             this.targetPosition = targetPosition;
@@ -228,6 +237,7 @@ public class HoodController implements PeriodicTask {
                     .setAllowOscillation(true)
                     .setTolerance(5)
                     .build();
+            this.requestedTargetDistance = requestedTargetDistance;
             pidController.setAbsoluteSetPoint(true);
             pidController.setOutputRange(-1, 1);
         }
@@ -245,6 +255,7 @@ public class HoodController implements PeriodicTask {
 
             if (manualControl != null && manualControl.getPosition() != 0) {
                 prepareToTransitionToNextState();
+                currentHoodPosition = null;
 
                 return idleState;
             }
@@ -265,6 +276,8 @@ public class HoodController implements PeriodicTask {
                 Log.i(LOG_TAG, "Reached target, going idle");
                 prepareToTransitionToNextState();
 
+                currentHoodPosition = requestedTargetDistance;
+
                 if (requireSecondRun) {
                     return this;
                 }
@@ -275,6 +288,8 @@ public class HoodController implements PeriodicTask {
             if (isTimedOut()) {
                 Log.i(LOG_TAG, "Timed out before reaching target, going idle");
                 prepareToTransitionToNextState();
+
+                currentHoodPosition = null;
 
                 if (requireSecondRun) {
                     return this;
@@ -333,6 +348,7 @@ public class HoodController implements PeriodicTask {
                 if (position != 0) {
                     // do stuff based on the position
                     hoodAngleServo.setPower(position);
+                    currentHoodPosition = null;
                 } else {
                     hoodAngleServo.setPower(0);
                 }

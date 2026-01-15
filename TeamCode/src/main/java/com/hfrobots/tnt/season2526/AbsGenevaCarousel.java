@@ -207,18 +207,30 @@ public class AbsGenevaCarousel implements GenevaCarousel {
     }
 
     @Override
-    public State nextLaunchIndexState(final Telemetry telemetry, @NonNull final Ticker ticker) {
-        return new NextLaunchIndexState(telemetry, ticker);
+    public State nextLaunchIndexState(final Telemetry telemetry, @NonNull final Ticker ticker, boolean skipIfInPosition) {
+        return new NextLaunchIndexState(telemetry, ticker, skipIfInPosition);
     }
 
     private class NextLaunchIndexState extends StopwatchTimeoutSafetyState {
         private boolean initialized = false;
-        protected NextLaunchIndexState(final Telemetry telemetry, @NonNull final Ticker ticker) {
+
+        private final boolean skipIfInPosition;
+
+        protected NextLaunchIndexState(final Telemetry telemetry, @NonNull final Ticker ticker, boolean skipIfInPosition) {
             super("Carousel indexing", telemetry, ticker, 10_000);
+            this.skipIfInPosition = skipIfInPosition;
         }
 
         @Override
         public State doStuffAndGetNextState() {
+            if (skipIfInPosition) {
+                if (isInLaunchPosition()) {
+                    resetToStart();
+
+                    return nextState;
+                }
+            }
+
             if (!initialized) {
                 nextIndexForLaunch();
                 initialized = true;
@@ -255,18 +267,30 @@ public class AbsGenevaCarousel implements GenevaCarousel {
     }
 
     @Override
-    public State nextIntakeIndexState(final Telemetry telemetry, @NonNull final Ticker ticker) {
-        return new NextIntakeIndexState(telemetry, ticker);
+    public State nextIntakeIndexState(final Telemetry telemetry, @NonNull final Ticker ticker, final boolean skipIfInPosition) {
+        return new NextIntakeIndexState(telemetry, ticker, skipIfInPosition);
     }
 
     private class NextIntakeIndexState extends StopwatchTimeoutSafetyState {
         private boolean initialized = false;
-        protected NextIntakeIndexState(final Telemetry telemetry, @NonNull final Ticker ticker) {
+        private final boolean skipIfInPosition;
+
+        protected NextIntakeIndexState(final Telemetry telemetry, @NonNull final Ticker ticker, boolean skipIfInPosition) {
             super("Carousel indexing", telemetry, ticker, 10_000);
+
+            this.skipIfInPosition = skipIfInPosition;
         }
 
         @Override
         public State doStuffAndGetNextState() {
+            if (skipIfInPosition) {
+                if (!isInLaunchPosition()) {
+                    resetToStart();
+
+                    return nextState;
+                }
+            }
+
             if (!initialized) {
                 nextIndexForIntake();
                 initialized = true;

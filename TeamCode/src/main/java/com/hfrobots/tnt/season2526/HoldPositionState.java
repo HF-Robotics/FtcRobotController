@@ -41,6 +41,7 @@ public class HoldPositionState extends State {
 
     private boolean followerHasStarted = false;
 
+    Pose poseToHold = null;
 
     public HoldPositionState(@NonNull String name, Telemetry telemetry, final Follower follower) {
         super(name, telemetry);
@@ -49,6 +50,7 @@ public class HoldPositionState extends State {
 
     @Override
     public void resetToStart() {
+        poseToHold = null;
         followerHasStarted = false;
     }
 
@@ -56,7 +58,7 @@ public class HoldPositionState extends State {
     public State doStuffAndGetNextState() {
         if (!followerHasStarted) {
 
-            final Pose poseToHold = follower.getPose();
+            poseToHold = follower.getPose();
 
             follower.holdPoint(poseToHold);
             followerHasStarted = true;
@@ -64,6 +66,11 @@ public class HoldPositionState extends State {
             return this;
         }
 
-       return this;
+        if (poseToHold != null) {
+            follower.holdPoint(poseToHold);
+            follower.update();
+        }
+
+        return this;
     }
 }
