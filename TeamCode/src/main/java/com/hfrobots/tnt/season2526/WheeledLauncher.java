@@ -44,7 +44,7 @@ public class WheeledLauncher implements PeriodicTask {
 
     private static final double FAR_LAUNCH_VELOCITY = 1598;
 
-    private static final double MEDIUM_LAUNCH_VELOCITY = 1150;
+    private static final double MEDIUM_LAUNCH_VELOCITY = 1300;
 
     private static final double CLOSE_LAUNCH_VELOCITY = 1080;
 

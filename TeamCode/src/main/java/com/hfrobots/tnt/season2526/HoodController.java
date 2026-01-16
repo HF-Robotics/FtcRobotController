@@ -89,9 +89,9 @@ public class HoodController implements PeriodicTask {
 
         goCloseDistanceState = new GoToPositionState("Go-Close", telemetry, 250, WheeledLauncher.TargetDistance.CLOSE);
 
-        goMediumDistanceState = new GoToPositionState("Go-Med", telemetry, 465, WheeledLauncher.TargetDistance.MEDIUM);
+        goMediumDistanceState = new GoToPositionState("Go-Med", telemetry, 500, WheeledLauncher.TargetDistance.MEDIUM);
 
-        goFarDistanceState = new GoToPositionState("Go-Far", telemetry, 319, WheeledLauncher.TargetDistance.FAR);
+        goFarDistanceState = new GoToPositionState("Go-Far", telemetry, 325, WheeledLauncher.TargetDistance.FAR);
 
         goCloseDistanceState.setNextState(idleState);
         goMediumDistanceState.setNextState(idleState);
