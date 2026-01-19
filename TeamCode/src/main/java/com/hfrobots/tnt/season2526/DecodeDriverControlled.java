@@ -42,7 +42,7 @@ import java.util.List;
 public class DecodeDriverControlled extends OpMode {
     public static final String OP_MODE_NAME = "00 DECODE";
 
-    private final boolean emitMetrics = false;
+    private final boolean emitMetrics = true;
 
     private DecodeDrivebase drivebase;
 
