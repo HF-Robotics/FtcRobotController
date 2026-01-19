@@ -22,6 +22,9 @@ apply plugin: 'com.android.application'
 android {
 
     compileSdk 34
+    packagingOptions {
+        jniLibs.useLegacyPackaging true
+    }
 
     signingConfigs {
         release {
