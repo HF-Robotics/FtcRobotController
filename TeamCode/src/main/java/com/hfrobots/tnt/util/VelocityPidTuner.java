@@ -19,30 +19,34 @@
 
 package com.hfrobots.tnt.util;
 
-import android.util.Log;
-
+import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.configurables.annotations.IgnoreConfigurable;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.NinjaGamePad;
-import com.google.common.base.Stopwatch;
-import com.hfrobots.tnt.corelib.drive.PidController;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import static com.ftc9929.corelib.Constants.LOG_TAG;
 
 @TeleOp(name="Velocity PID", group="Utilities")
-@Disabled
+@Configurable
 public class VelocityPidTuner extends OpMode {
-    private List<NamedDeviceMap.NamedDevice<DcMotor>> namedMotors;
-    private Map<DcMotor, String> motorsToNames = new HashMap<>();
+    private List<NamedDeviceMap.NamedDevice<DcMotorEx>> namedMotors;
+    private Map<DcMotorEx, String> motorsToNames = new HashMap<>();
     private int currentListPosition;
+
+    @IgnoreConfigurable
+    static TelemetryManager telemetryM;
+
+    @IgnoreConfigurable
+    static PanelsTelemetry telemetryP = PanelsTelemetry.INSTANCE;
 
     private DebouncedButton aButton;
 
@@ -54,42 +58,51 @@ public class VelocityPidTuner extends OpMode {
 
     private DebouncedButton dpadDown;
 
-    private boolean runningPid = false;
+    private DebouncedButton dpadLeft;
 
-    private int lastEncoderPos = Integer.MIN_VALUE;
+    private DebouncedButton dpadRight;
 
-    private Stopwatch stopWatch;
+    private static final double FAR_LAUNCH_VELOCITY = 1598;
 
-    private PidController pidController;
+    private static final double MEDIUM_LAUNCH_VELOCITY = 1300;
 
-    private static final double TARGET_RPM = 200;
+    private static final double CLOSE_LAUNCH_VELOCITY = 1080;
 
-    private static final double TARGET_TICKS_PER_RPM = 537.6 * TARGET_RPM;
+    public static double kP;
 
-    private static final double TARGET_TICKS_PER_SECOND = TARGET_TICKS_PER_RPM / 60;
+    public static double kI;
+
+    public static double kD;
+
+    public static double kF;
+
+    private double requestedLaunchVelocity = 0;
 
     @Override
     public void init() {
+        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         NamedDeviceMap namedDeviceMap = new NamedDeviceMap(hardwareMap);
-        namedMotors = namedDeviceMap.getAll(DcMotor.class);
+        namedMotors = namedDeviceMap.getAll(DcMotorEx.class);
         currentListPosition = 0;
 
         NinjaGamePad ninjaGamePad = new NinjaGamePad(gamepad1);
-        aButton = new DebouncedButton(ninjaGamePad.getAButton());
-        bButton = new DebouncedButton(ninjaGamePad.getBButton());
-        rightBumper = new DebouncedButton(ninjaGamePad.getRightBumper());
-        dpadUp = new DebouncedButton(ninjaGamePad.getDpadUp());
-        dpadDown = new DebouncedButton(ninjaGamePad.getDpadDown());
-        double ku = .005;
+        aButton = ninjaGamePad.getAButton().debounced();
+        bButton = ninjaGamePad.getBButton().debounced();
+        rightBumper = ninjaGamePad.getRightBumper().debounced();
+        dpadUp = ninjaGamePad.getDpadUp().debounced();
+        dpadDown = ninjaGamePad.getDpadDown().debounced();
+        dpadLeft = ninjaGamePad.getDpadLeft().debounced();
+        dpadRight = ninjaGamePad.getDpadRight().debounced();
 
-        pidController = PidController.builder().setAllowOscillation(true).setKp(.005).setkI(0).setkF(3.24e-4).setTolerance(10).build();
+        PIDFCoefficients currentPIDF = hardwareMap.get(DcMotorEx.class, "launcherMotor").getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+        kP = currentPIDF.p;
+        kI = currentPIDF.i;
+        kD = currentPIDF.d;
+        kF = currentPIDF.f;
     }
 
     @Override
     public void loop() {
-        if (stopWatch == null) {
-            stopWatch = Stopwatch.createStarted();
-        }
 
         if (namedMotors.isEmpty()) {
             telemetry.addData("No DC Motors", "");
@@ -97,71 +110,60 @@ public class VelocityPidTuner extends OpMode {
             return;
         }
 
+        /*
         if (rightBumper.getRise()) {
+            namedMotors.get(currentListPosition).getDevice().setVelocity(0);
+
             currentListPosition++;
 
             if (currentListPosition == namedMotors.size()) {
                 currentListPosition = 0;
             }
+
+            PIDFCoefficients currentPIDF = namedMotors.get(currentListPosition).getDevice().getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+            kP = currentPIDF.p;
+            kI = currentPIDF.i;
+            kD = currentPIDF.d;
+            kF = currentPIDF.f;
         }
 
-        NamedDeviceMap.NamedDevice<DcMotor> namedDcMotor = namedMotors.get(currentListPosition);
-        DcMotor currentMotor = namedDcMotor.getDevice();
-        String motorName = namedDcMotor.getName();
+        NamedDeviceMap.NamedDevice<DcMotorEx> namedDcMotor = namedMotors.get(currentListPosition);
+        */
+        DcMotorEx currentMotor = hardwareMap.get(DcMotorEx.class, "launcherMotor");
 
-        if (!runningPid) {
-            telemetry.addData("motor ", "%s", motorName);
+        String motorName = "launcher"; // namedDcMotor.getName();
+
+        if (dpadUp.getRise()) {
+            requestedLaunchVelocity = FAR_LAUNCH_VELOCITY;
+        } else if (dpadLeft.getRise()) {
+            requestedLaunchVelocity = MEDIUM_LAUNCH_VELOCITY;
+        } else if (dpadDown.getRise()) {
+            requestedLaunchVelocity = CLOSE_LAUNCH_VELOCITY;
+        } else if (dpadRight.getRise()) {
+            requestedLaunchVelocity = 0;
         }
 
-        updateTelemetry(telemetry);
-
-        if (bButton.getRise()) {
-            runningPid = true;
-
-            return;
+        if (aButton.getRise()) {
+            gamepad1.rumbleBlips(1);
+            currentMotor.setVelocityPIDFCoefficients(kP, kI, kD, kF);
         }
 
-        if (runningPid) {
-            if (lastEncoderPos == Integer.MIN_VALUE) {
-                pidController.setTarget(2100, 0);
-                pidController.setAbsoluteSetPoint(true);
-                pidController.setOutputRange(0.05, 1.0);
+        currentMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        currentMotor.setVelocity(requestedLaunchVelocity);
 
-                lastEncoderPos = currentMotor.getCurrentPosition();
+        double encoderClicksPerSec = currentMotor.getVelocity();
 
-                return;
-            }
+        telemetry.addData("motor ",  "%s - vel_req %s - cur_vel %s",
+                motorName,
+                Double.toString(requestedLaunchVelocity),
+                Double.toString(encoderClicksPerSec));
+        PIDFCoefficients currentPidF = currentMotor.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+        telemetry.addData("PIDF", currentPidF.p + " " + currentPidF.i + " " + currentPidF.d + " " + currentPidF.f);
+        //updateTelemetry(telemetry);
 
-            long elapsedTime = stopWatch.elapsed(TimeUnit.MILLISECONDS);
-            double encoderTicksPerSecond = 0;
 
-            if (elapsedTime >= 100) {
-                stopWatch.reset();
-                stopWatch.start();
-
-                // We have enough samples to run the PID
-
-                int encoderTicks = currentMotor.getCurrentPosition() - lastEncoderPos;
-
-                double encoderTicksPerMs = (double) encoderTicks / (double) elapsedTime;
-                encoderTicksPerSecond = (double) encoderTicksPerMs * 1000;
-
-                Log.d(LOG_TAG, String.format("ticks: %d, pms: %f, ps: %f", encoderTicks, encoderTicksPerMs, encoderTicksPerSecond));
-
-                lastEncoderPos = currentMotor.getCurrentPosition();
-
-                if (!pidController.isOnTarget()) {
-                    double output = pidController.getOutput(encoderTicksPerSecond);
-
-                    //if (output >= 0.7) {
-                    //   output = 0.7;
-                    //}
-
-                    currentMotor.setPower(output);
-                }
-            }
-
-            telemetry.addData("motor ",  "%s p: %f v: %f", motorName, currentMotor.getPower(), encoderTicksPerSecond);
-        }
+        telemetryM.addData("reqVel", requestedLaunchVelocity);
+        telemetryM.addData("curVel", encoderClicksPerSec);
+        telemetryM.update(telemetry);
     }
 }
