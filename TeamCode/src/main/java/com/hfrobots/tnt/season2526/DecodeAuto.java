@@ -686,9 +686,9 @@ public class DecodeAuto extends OpMode {
         final Pose leaveEndPose;
 
         if (currentAlliance == Constants.Alliance.BLUE) {
-            leaveEndPose = new Pose(144-12, 36, Math.toRadians(180));
+            leaveEndPose = new Pose(144-9.5, 36, Math.toRadians(180));
         } else {
-            leaveEndPose = new Pose(144-12, 144 - 36, Math.toRadians(180));
+            leaveEndPose = new Pose(144-9.5, 144 - 36, Math.toRadians(180));
         }
 
         final Path toLeavePath = new Path(new BezierLine(scorePose, leaveEndPose));
@@ -715,7 +715,7 @@ public class DecodeAuto extends OpMode {
             yPosition = 24;
         }
 
-        final Pose endPose = new Pose(144 - 2, yPosition, Math.toRadians(180));
+        final Pose endPose = new Pose(144 - 1, yPosition, Math.toRadians(180));
 
         final Pose startPose = new Pose(144, 0, Math.toRadians(180)); // Start Pose of our robot.
 
