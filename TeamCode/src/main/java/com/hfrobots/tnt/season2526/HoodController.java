@@ -354,7 +354,17 @@ public class HoodController implements PeriodicTask {
                 }
             }
 
+            handleEncoderCoastAfterHoming();
+
             return this;
+        }
+
+        private void handleEncoderCoastAfterHoming() {
+            if (hoodAngleServo.getPower() == 0) {
+                if (getRelativeEncoderPosition() < 0 && !hoodLowerLimit.getState()) {
+                    currentHomePosition = hoodAngleEncoder.getCurrentPosition();
+                }
+            }
         }
 
         @Override
