@@ -74,7 +74,7 @@ public class StatsDMetricSampler implements MetricsSampler {
         addGamepad("drv", driverControls);
         addGamepad("opr", operatorControls);
 
-        String metricsServerHost = "192.168.43.78"; // server in workshop
+        String metricsServerHost = "192.168.43.21"; // server in workshop
 
         try {
             statsDClient = new NonBlockingStatsDClient("",   metricsServerHost, 8126);
