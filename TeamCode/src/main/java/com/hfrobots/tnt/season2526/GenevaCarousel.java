@@ -13,6 +13,8 @@ public interface GenevaCarousel {
 
     void nextIndexForIntake();
 
+    boolean notDoneAdvancing();
+
     boolean isInLaunchPosition();
 
     void nextIndexForLaunch();

@@ -104,7 +104,7 @@ public class AbsGenevaCarousel implements GenevaCarousel {
 
     }
 
-    private boolean notDoneAdvancing() {
+     public boolean notDoneAdvancing() {
 
         if (DcMotor.RunMode.RUN_TO_POSITION != carouselMotor.getMode()) {
             return false;

@@ -102,7 +102,8 @@ public class OGGenevaCarousel implements GenevaCarousel {
 
     }
 
-    private boolean notDoneAdvancing() {
+    @Override
+    public boolean notDoneAdvancing() {
 
         if (DcMotor.RunMode.RUN_TO_POSITION != carouselMotor.getMode()) {
             return false;
