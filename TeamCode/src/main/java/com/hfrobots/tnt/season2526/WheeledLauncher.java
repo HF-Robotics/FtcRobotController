@@ -64,6 +64,7 @@ public class WheeledLauncher implements PeriodicTask {
                            final Ticker ticker) {
         kickerServo = hardwareMap.get(Servo.class, "kickerServo");
         launcherMotor = hardwareMap.get(DcMotorEx.class, "launcherMotor");
+        launcherMotor.setVelocityPIDFCoefficients(135,3, 0, 14);
         this.telemetry = telemetry;
         kickerServo.setPosition(KICKER_SERVO_LOWERED_POSITION);
         setupHoodController(hardwareMap, telemetry, ticker);
