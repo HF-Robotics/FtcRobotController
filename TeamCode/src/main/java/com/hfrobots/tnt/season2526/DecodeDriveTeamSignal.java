@@ -38,6 +38,8 @@ public class DecodeDriveTeamSignal implements PeriodicTask {
 
     public static final double GREEN_LED = 0.5;
 
+    public static final double AZURE_LED = 0.555;
+
     public static final double ORANGE_LED = 0.333;
 
     public static final double VIOLET_LED = .722;
@@ -66,7 +68,10 @@ public class DecodeDriveTeamSignal implements PeriodicTask {
     @Setter
     private boolean forceEndGameState = false;
 
+    public enum DetectedIntakeArtifact {NONE, PURPLE, GREEN}
 
+    @Setter
+    DetectedIntakeArtifact detectedIntakeArtifact = DetectedIntakeArtifact.NONE;
 
     public DecodeDriveTeamSignal(final HardwareMap hardwareMap, final Ticker ticker,
                                  final Gamepad driverGamepad,
@@ -128,6 +133,9 @@ public class DecodeDriveTeamSignal implements PeriodicTask {
                         setIndicators(BLUE_LED);
                         break;
                     }
+                    default:
+                        setIndicators(0);
+                        break;
                 }
             } else {
                 setIndicators(VIOLET_LED);
@@ -136,7 +144,7 @@ public class DecodeDriveTeamSignal implements PeriodicTask {
     }
 
     private void setIndicators(double value) {
-        ledIndicatorBack.setPosition(value);
+        //ledIndicatorBack.setPosition(value);
         ledIndicatorFrontLeft.setPosition(value);
         ledIndicatorFrontRight.setPosition(value);
     }

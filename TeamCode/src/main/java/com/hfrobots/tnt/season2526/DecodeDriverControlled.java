@@ -65,6 +65,8 @@ public class DecodeDriverControlled extends OpMode {
     private DecodeDriveTeamSignal driveTeamSignal;
 
     private AprilTagAligner aprilTagAligner;
+
+    private ArtifactDetector artifactDetector;
     
     boolean canUseAprilTags = false;
     private RollerIntake intake;
@@ -99,6 +101,12 @@ public class DecodeDriverControlled extends OpMode {
                     .kickstand(kickstand).build();
 
             setupMetricsSampler(driversGamepad, operatorGamepad);
+
+            try {
+                artifactDetector = new ArtifactDetector(hardwareMap, telemetry);
+            } catch (IllegalArgumentException ex) {
+                artifactDetector = null;
+            }
 
             try {
                 driveTeamSignal = new DecodeDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
@@ -214,6 +222,10 @@ public class DecodeDriverControlled extends OpMode {
 
             if (driveTeamSignal != null) {
                 driveTeamSignal.periodicTask();
+            }
+
+            if (artifactDetector !=null) {
+                artifactDetector.periodicTask();
             }
 
             if (emitMetrics) {

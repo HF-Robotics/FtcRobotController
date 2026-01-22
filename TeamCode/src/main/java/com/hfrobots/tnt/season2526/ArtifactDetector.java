@@ -21,29 +21,66 @@
  */
 package com.hfrobots.tnt.season2526;
 
+import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
+
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
+import com.hfrobots.tnt.util.LowPassFilter;
 import com.qualcomm.hardware.lynx.LynxI2cColorRangeSensor;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class ArtifactDetector implements PeriodicTask {
     final RevColorSensorV3 artifactColor1;
 
     final RevColorSensorV3 artifactColor2;
 
+    final AnalogInput rightPresenceDetector;
+
+    final AnalogInput leftPresenceDetector;
+
     final Servo colorIndicator;
 
     final Telemetry telemetry;
 
-    private int color1red;
-    private int color1green;
-    private int color1blue;
-    private int color2red;
-    private int color2green;
-    private int color2blue;
+    private final LowPassFilter leftLowPassFilter = new LowPassFilter(0.78D);
+    private final LowPassFilter rightLowPassFilter = new LowPassFilter(0.78D);
+
+    static class RGBAD {
+        final int red;
+
+        final int green;
+
+        final int blue;
+
+        final int alpha;
+
+        final double distanceMm;
+
+        RGBAD(final RevColorSensorV3 colorSensor) {
+            red = colorSensor.red();
+            green = colorSensor.green();
+            blue = colorSensor.blue();
+            alpha = colorSensor.alpha();
+            distanceMm = colorSensor.getDistance(DistanceUnit.MM);
+        }
+
+
+        @NonNull
+        @Override
+        public String toString() {
+            return red + "," + green + ", " + blue;
+        }
+    }
+
     public ArtifactDetector(final HardwareMap hardwareMap, Telemetry telemetry) {
         artifactColor1 = hardwareMap.get(RevColorSensorV3.class, "artifactColor1");
 
@@ -51,44 +88,93 @@ public class ArtifactDetector implements PeriodicTask {
 
         colorIndicator = hardwareMap.get(Servo.class, "ledIndicatorBack");
 
+        leftPresenceDetector = hardwareMap.get(AnalogInput.class, "leftPresenceDetector");
+
+        rightPresenceDetector = hardwareMap.get(AnalogInput.class, "rightPresenceDetector");
+
         this.telemetry = telemetry;
     }
 
-
     @Override
     public void periodicTask() {
+        // Only read if the robot detects a possible artifact present
+
+        double leftVoltage = leftPresenceDetector.getVoltage();
+
+        double rightVoltage = rightPresenceDetector.getVoltage();
+
+        leftVoltage = leftLowPassFilter.filter(leftVoltage);
+
+        rightVoltage = rightLowPassFilter.filter(rightVoltage);
+
+        if (leftVoltage < 0.5 && rightVoltage < 0.5) {
+            setPresenceSignal(true);
+            colorDetectionLogic();
+        } else {
+            setPresenceSignal(false);
+        }
+
+        colorDetectionLogic();
+    }
+
+    private void setPresenceSignal(final boolean isPresent) {
+        if (isPresent) {
+            colorIndicator.setPosition(DecodeDriveTeamSignal.AZURE_LED);
+        } else {
+            colorIndicator.setPosition(0);
+        }
+    }
+
+    private void colorDetectionLogic() {
+
         // Detect RGB from each color sensor, they read as
         // individual values for red, green, blue
 
         // Make a decision, is it green, purple or unknown
         // and set the RGB indicator to show the drive team
 
-        color1red = artifactColor1.red();
-        color1green = artifactColor1.green();
-        color1blue = artifactColor1.blue();
+        // Don't fail the robot code if I2C readings fail
 
-        color2red = artifactColor2.red();
-        color2green = artifactColor2.green();
-        color2blue = artifactColor2.blue();
+        try {
+            RGBAD colorValues1 = new RGBAD(artifactColor1);
+            RGBAD colorValues2 = new RGBAD(artifactColor2);
 
-        if ((color1red > color1green && color1blue > color1green) || (color2red > color2green && color2blue > color2green)) {
-            // it's purple
-            colorIndicator.setPosition(DecodeDriveTeamSignal.VIOLET_LED);
-        } else if ((color1green > color1red && color1green > color1blue) && (color2green > color2red && color2green > color2blue)) {
-            // it's green
-            colorIndicator.setPosition(DecodeDriveTeamSignal.GREEN_LED);
-        } else {
-            // It's unknown. turn off the RGB indicator
+            telemetry.addData("Artifact", colorValues1 + " | " + colorValues2);
+
+            if (isPurple(colorValues1) ||
+                isPurple(colorValues2)) {
+                colorIndicator.setPosition(DecodeDriveTeamSignal.VIOLET_LED);
+            } else if (isGreen(colorValues1) ||
+                isGreen(colorValues2)) {
+                colorIndicator.setPosition(DecodeDriveTeamSignal.GREEN_LED);
+            } else {
+                // It's unknown. turn off the RGB indicator
+                //colorIndicator.setPosition(0);
+            }
+        } catch (Exception ex) {
+            Log.e(LOG_TAG, "Failed to read from color sensors", ex);
+
             colorIndicator.setPosition(0);
         }
+    }
 
-        telemetry.addData("Art", "%d %d %d | %d %d %d",
-                color1red,
-                color1green,
-                color1blue,
-                color2red,
-                color2green,
-                color2blue);
+    private boolean isPurple(final RGBAD colorValues) {
+        if (!isGoodReading(colorValues)) {
+            return false;
+        }
 
+        return colorValues.blue > colorValues.green;
+    }
+
+    private boolean isGreen(final RGBAD colorValues) {
+        if (!isGoodReading(colorValues)) {
+            return false;
+        }
+
+        return colorValues.green > colorValues.red /*&& green > blue*/;
+    }
+
+    private boolean isGoodReading(final RGBAD colorValues) {
+        return colorValues.red > 1000 && colorValues.green > 1000 && colorValues.blue > 1000;
     }
 }
