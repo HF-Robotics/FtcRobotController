@@ -28,8 +28,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
-import com.hfrobots.tnt.util.LowPassFilter;
-import com.qualcomm.hardware.lynx.LynxI2cColorRangeSensor;
+import com.hfrobots.tnt.corelib.control.LowPassFilter;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -39,6 +38,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class ArtifactDetector implements PeriodicTask {
+    public static final double PRESENCE_LOW_PASS_FILTER_FACTOR = 0.78D;
     final RevColorSensorV3 artifactColor1;
 
     final RevColorSensorV3 artifactColor2;
@@ -51,8 +51,8 @@ public class ArtifactDetector implements PeriodicTask {
 
     final Telemetry telemetry;
 
-    private final LowPassFilter leftLowPassFilter = new LowPassFilter(0.78D);
-    private final LowPassFilter rightLowPassFilter = new LowPassFilter(0.78D);
+    private final LowPassFilter leftLowPassFilter;
+    private final LowPassFilter rightLowPassFilter;
 
     static class RGBAD {
         final int red;
@@ -92,6 +92,12 @@ public class ArtifactDetector implements PeriodicTask {
 
         rightPresenceDetector = hardwareMap.get(AnalogInput.class, "rightPresenceDetector");
 
+        leftLowPassFilter = new LowPassFilter(PRESENCE_LOW_PASS_FILTER_FACTOR,
+                leftPresenceDetector::getVoltage);
+
+        rightLowPassFilter = new LowPassFilter(PRESENCE_LOW_PASS_FILTER_FACTOR,
+                rightPresenceDetector::getVoltage);
+
         this.telemetry = telemetry;
     }
 
@@ -99,22 +105,20 @@ public class ArtifactDetector implements PeriodicTask {
     public void periodicTask() {
         // Only read if the robot detects a possible artifact present
 
-        double leftVoltage = leftPresenceDetector.getVoltage();
-
-        double rightVoltage = rightPresenceDetector.getVoltage();
-
-        leftVoltage = leftLowPassFilter.filter(leftVoltage);
-
-        rightVoltage = rightLowPassFilter.filter(rightVoltage);
-
-        if (leftVoltage < 0.5 && rightVoltage < 0.5) {
+        if (isArtifactFullyLoaded()) {
             setPresenceSignal(true);
-            colorDetectionLogic();
+            //colorDetectionLogic();
         } else {
             setPresenceSignal(false);
         }
+    }
 
-        colorDetectionLogic();
+    public boolean isArtifactFullyLoaded() {
+        final double leftVoltage = leftLowPassFilter.get();
+
+        final double rightVoltage = rightLowPassFilter.get();
+
+        return leftVoltage < 0.5 && rightVoltage < 0.5;
     }
 
     private void setPresenceSignal(final boolean isPresent) {

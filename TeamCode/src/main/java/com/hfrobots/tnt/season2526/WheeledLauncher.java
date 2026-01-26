@@ -151,13 +151,13 @@ public class WheeledLauncher implements PeriodicTask {
     }
 
     public void safelyRaiseKicker() {
-        final boolean isMoving = isMoving();
+        final boolean isLauncherWheelMoving = isMoving();
         final boolean isAtTargetVelocity = isAtTargetVelocity();
 
-        if (isMoving && isAtTargetVelocity) {
+        if (isLauncherWheelMoving && isAtTargetVelocity) {
             kickerServo.setPosition(KICKER_SERVO_RAISED_POSITION);
         } else {
-            Log.i(LOG_TAG, "Not safe to raise kicker: moving: " + isMoving + ", at velocity: " + isAtTargetVelocity);
+            Log.i(LOG_TAG, "Not safe to raise kicker: moving: " + isLauncherWheelMoving + ", at velocity: " + isAtTargetVelocity);
         }
     }
 

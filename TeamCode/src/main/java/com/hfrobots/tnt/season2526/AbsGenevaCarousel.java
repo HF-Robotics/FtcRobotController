@@ -31,6 +31,7 @@ import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.google.common.base.Ticker;
 import com.google.common.collect.Maps;
+import com.hfrobots.tnt.season2324.Shared;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
@@ -38,12 +39,13 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import lombok.NonNull;
 
 public class AbsGenevaCarousel implements GenevaCarousel {
-    public static final double AUTOMATED_POWER = .4;
+    public static final double AUTOMATED_POWER = .55;
 
     public static final double MANUAL_ADJUST_SPEED_REDUCTION = 1.5;
 
@@ -53,7 +55,16 @@ public class AbsGenevaCarousel implements GenevaCarousel {
 
     private final DigitalChannel launchPositionDetection;
 
+    private final ArtifactDetector artifactDetector;
+
+    private final RollerIntake rollerIntake;
+
     public static final double ONE_FULL_REV = 384.5; // Yellow Jacket 435RPM
+
+    private InIntakePositionState inIntakePositionState;
+    private NextIntakeIndexState nextIntakePositionState;
+
+    private CarouselFullState carouselFullState;
 
     public enum ArtifactColor { GREEN, PURPLE }
 
@@ -66,14 +77,77 @@ public class AbsGenevaCarousel implements GenevaCarousel {
 
     private int currentPosIndex = 0;
 
-    public AbsGenevaCarousel(final HardwareMap hardwareMap, Telemetry telemetry) {
+    public AbsGenevaCarousel(final HardwareMap hardwareMap,
+                             final ArtifactDetector artifactDetector,
+                             final RollerIntake rollerIntake,
+                             Telemetry telemetry) {
         carouselMotor = hardwareMap.get(DcMotorEx.class, "carouselMotor");
         this.telemetry = telemetry;
         carouselMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         carouselMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         carouselMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
+        this.artifactDetector = artifactDetector;
         launchPositionDetection = hardwareMap.get(DigitalChannel.class, "launchPositionDetection");
+
+        this.rollerIntake = rollerIntake;
+        setupAutoIntake();
+    }
+
+    private State currentAutoIntakeState;
+
+    private State startingState;
+
+    private void setupAutoIntake() {
+
+        carouselFullState = new CarouselFullState(telemetry);
+        inIntakePositionState = new InIntakePositionState(telemetry, carouselFullState);
+        nextIntakePositionState = new NextIntakeIndexState(telemetry, Ticker.systemTicker(), false);
+
+        inIntakePositionState.setNextState(nextIntakePositionState);
+        nextIntakePositionState.setNextState(inIntakePositionState);
+
+        startingState = new EnsureEmptyIntakePositionState(telemetry, nextIntakePositionState, inIntakePositionState);
+        currentAutoIntakeState = startingState;
+    }
+
+    private boolean[] artifactSpots = new boolean[3];
+
+    private void doOneAutoIntakeStateMachineLoop() {
+        Shared.withBetterErrorHandling(() -> {
+            State nextState = currentAutoIntakeState.doStuffAndGetNextState();
+
+            if (nextState == null) {
+                nextState = startingState;
+            }
+
+            if (nextState != currentAutoIntakeState) {
+                Log.d(LOG_TAG, String.format("Hood state transition from %s to %s", currentAutoIntakeState.getClass()
+                        + "(" + currentAutoIntakeState.getName() + ")", nextState.getClass() + "(" + nextState.getName() + ")"));
+            }
+
+            currentAutoIntakeState = nextState;
+        });
+    }
+
+    @Override
+    public void doAutoIntakeStuff() {
+        if (artifactDetector == null) {
+            return;
+        }
+
+        doOneAutoIntakeStateMachineLoop();
+    }
+
+    @Override
+    public void resetAutoIntake() {
+        if (artifactDetector == null) {
+            return;
+        }
+
+        currentAutoIntakeState = startingState;
+        carouselFullState.resetToStart();
+
+        Arrays.fill(artifactSpots, false);
     }
 
     @Override
@@ -269,6 +343,108 @@ public class AbsGenevaCarousel implements GenevaCarousel {
     @Override
     public State nextIntakeIndexState(final Telemetry telemetry, @NonNull final Ticker ticker, final boolean skipIfInPosition) {
         return new NextIntakeIndexState(telemetry, ticker, skipIfInPosition);
+    }
+
+    private class EnsureEmptyIntakePositionState extends State {
+
+        final NextIntakeIndexState nextIntakePositionState;
+
+        final InIntakePositionState inIntakePositionState;
+
+        protected EnsureEmptyIntakePositionState(Telemetry telemetry,
+                                                 NextIntakeIndexState nextIntakePositionState,
+                                                 InIntakePositionState inIntakePositionState) {
+            super("See if empty", telemetry);
+            this.nextIntakePositionState = nextIntakePositionState;
+            this.inIntakePositionState = inIntakePositionState;
+        }
+
+        @Override
+        public State doStuffAndGetNextState() {
+            if (isInLaunchPosition()) {
+                Log.d(LOG_TAG, "Not in intake position, advancing to next intake state");
+                return nextIntakePositionState;
+            } else {
+                Log.d(LOG_TAG, "In intake position, advancing to detection state");
+                return inIntakePositionState;
+            }
+        }
+
+        @Override
+        public void resetToStart() {
+
+        }
+    }
+    private class InIntakePositionState extends State {
+        private final State carouselFullState;
+
+        protected InIntakePositionState(Telemetry telemetry, State carouselFullState) {
+            super("Waiting for artifact", telemetry);
+            this.carouselFullState = carouselFullState;
+        }
+
+        @Override
+        public State doStuffAndGetNextState() {
+            if (rollerIntake != null) {
+                rollerIntake.intake();
+            }
+
+            if (artifactDetector.isArtifactFullyLoaded()) {
+                int whichSlot = currentPosIndex % 3;
+
+                artifactSpots[whichSlot] = true;
+
+                boolean foundAnEmpty = false;
+
+                for (boolean spot : artifactSpots) {
+                    if (spot == false) {
+                        foundAnEmpty = true;
+                        break;
+                    }
+                }
+
+                if (foundAnEmpty) {
+                    return nextState;
+                }
+
+                return carouselFullState;
+            }
+
+            return this;
+        }
+
+        @Override
+        public void resetToStart() {
+
+        }
+    }
+
+    class CarouselFullState extends State {
+
+        boolean hasAskedForLaunchPosition = false;
+
+        protected CarouselFullState(Telemetry telemetry) {
+            super("Carousel full", telemetry);
+        }
+
+        @Override
+        public State doStuffAndGetNextState() {
+            if (rollerIntake != null) {
+                rollerIntake.outtake();
+            }
+
+            if (!hasAskedForLaunchPosition) {
+                nextIndexForLaunch();
+                hasAskedForLaunchPosition = true;
+            }
+
+            return this;
+        }
+
+        @Override
+        public void resetToStart() {
+            hasAskedForLaunchPosition = false;
+        }
     }
 
     private class NextIntakeIndexState extends StopwatchTimeoutSafetyState {

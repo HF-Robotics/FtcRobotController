@@ -99,14 +99,8 @@ public class DecodeDriverControlled extends OpMode {
                     .carousel(carousel)
                     .launcher(launcher)
                     .kickstand(kickstand).build();
-
             setupMetricsSampler(driversGamepad, operatorGamepad);
 
-            try {
-                artifactDetector = new ArtifactDetector(hardwareMap, telemetry);
-            } catch (IllegalArgumentException ex) {
-                artifactDetector = null;
-            }
 
             try {
                 driveTeamSignal = new DecodeDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
@@ -133,6 +127,12 @@ public class DecodeDriverControlled extends OpMode {
 
     private void setupMechanisms() {
         try {
+            artifactDetector = new ArtifactDetector(hardwareMap, telemetry);
+        } catch (IllegalArgumentException ex) {
+            artifactDetector = null;
+        }
+
+        try {
             launcher = new WheeledLauncher(hardwareMap, telemetry, ticker);
         } catch (IllegalArgumentException ex) {
             launcher = null;
@@ -145,7 +145,7 @@ public class DecodeDriverControlled extends OpMode {
         }
 
         try {
-            carousel = new AbsGenevaCarousel(hardwareMap, telemetry);
+            carousel = new AbsGenevaCarousel(hardwareMap, artifactDetector, intake, telemetry);
         } catch (IllegalArgumentException ex) {
             carousel = null;
         }

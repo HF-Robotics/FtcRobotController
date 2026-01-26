@@ -75,6 +75,16 @@ public class OGGenevaCarousel implements GenevaCarousel {
     }
 
     @Override
+    public void doAutoIntakeStuff() {
+
+    }
+
+    @Override
+    public void resetAutoIntake() {
+
+    }
+
+    @Override
     public boolean isBusyIndexing() {
         return carouselMotor.isBusy();
     }

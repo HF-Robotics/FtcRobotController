@@ -9,6 +9,10 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import lombok.NonNull;
 
 public interface GenevaCarousel {
+    void doAutoIntakeStuff();
+
+    void resetAutoIntake();
+
     boolean isBusyIndexing();
 
     void nextIndexForIntake();

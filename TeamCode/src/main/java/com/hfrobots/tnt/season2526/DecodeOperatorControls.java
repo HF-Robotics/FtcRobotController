@@ -247,12 +247,20 @@ public class DecodeOperatorControls implements PeriodicTask {
 
         if (intake != null) {
 
-            if (intakeIn.isPressed()) {
+            if (intakeIn.isPressed() && intakeOut.isPressed()) {
+                carousel.doAutoIntakeStuff();
+            } else if (intakeIn.isPressed()) {
                 intake.intake();
+
+                carousel.resetAutoIntake();
             } else if (intakeOut.isPressed()) {
                 intake.outtake();
+
+                carousel.resetAutoIntake();
             } else {
                 intake.stop();
+
+                carousel.resetAutoIntake();
             }
         }
 

@@ -138,13 +138,20 @@ public class DecodeAuto extends OpMode {
 
             //setupVisionPortal(hardwareMap);
 
+            ArtifactDetector artifactDetector;
+            try {
+                artifactDetector = new ArtifactDetector(hardwareMap, telemetry);
+            } catch (IllegalArgumentException ex) {
+                artifactDetector = null;
+            }
+
             driveTeamSignal = new DecodeDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
             launcher = new WheeledLauncher(hardwareMap, telemetry, ticker);
 
-            carousel = new AbsGenevaCarousel(hardwareMap, telemetry);
-
             intake = new RollerIntake(hardwareMap);
+
+            carousel = new AbsGenevaCarousel(hardwareMap, artifactDetector, intake, telemetry);
 
             pedroFollower = DecodeLargeDrivebasePedroConstants.createFollower(hardwareMap);
 
