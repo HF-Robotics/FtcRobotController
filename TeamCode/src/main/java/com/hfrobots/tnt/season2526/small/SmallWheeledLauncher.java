@@ -45,7 +45,7 @@ public class SmallWheeledLauncher extends WheeledLauncher {
     public SmallWheeledLauncher(final HardwareMap hardwareMap,
                                 final Telemetry telemetry,
                                 final Ticker ticker) {
-        super(hardwareMap, telemetry, ticker);
+        super(hardwareMap, telemetry, ticker, null);
         launcherMotor.setDirection(DcMotorSimple.Direction.FORWARD);
     }
 

@@ -60,8 +60,10 @@ SOFTWARE.
 
             <AnalogInput name="leftPresenceDetector" port="2" />
 
+            <!--
             <RevColorSensorV3 name="artifactColor1" port="0" bus="1" />
             <RevColorSensorV3 name="artifactColor2" port="0" bus="2" />
+            -->
         </LynxModule>
     </LynxUsbDevice>
 </Robot>

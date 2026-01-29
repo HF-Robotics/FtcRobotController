@@ -43,6 +43,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import lombok.Setter;
 
 public class HoodController implements PeriodicTask {
+
     private final CRServo hoodAngleServo;
 
     private final DcMotorEx hoodAngleEncoder;
@@ -87,11 +88,11 @@ public class HoodController implements PeriodicTask {
         goHomeState = new GoHomeState(telemetry);
         idleState = new IdleState(telemetry);
 
-        goCloseDistanceState = new GoToPositionState("Go-Close", telemetry, 250, WheeledLauncher.TargetDistance.CLOSE);
+        goCloseDistanceState = new GoToPositionState("Go-Close", telemetry, WheeledLauncher.CLOSE_HOOD_POSITION, WheeledLauncher.TargetDistance.CLOSE);
 
-        goMediumDistanceState = new GoToPositionState("Go-Med", telemetry, 500, WheeledLauncher.TargetDistance.MEDIUM);
+        goMediumDistanceState = new GoToPositionState("Go-Med", telemetry, WheeledLauncher.MEDIUM_HOOD_POSITION, WheeledLauncher.TargetDistance.MEDIUM);
 
-        goFarDistanceState = new GoToPositionState("Go-Far", telemetry, 325, WheeledLauncher.TargetDistance.FAR);
+        goFarDistanceState = new GoToPositionState("Go-Far", telemetry, WheeledLauncher.FAR_HOOD_POSITION, WheeledLauncher.TargetDistance.FAR);
 
         goCloseDistanceState.setNextState(idleState);
         goMediumDistanceState.setNextState(idleState);
@@ -99,6 +100,16 @@ public class HoodController implements PeriodicTask {
         goHomeState.setNextState(idleState);
 
         currentState = idleState;
+    }
+
+    public void setDynamicPosition(final int position) {
+        if (position < 0) {
+            return;
+        }
+
+        State goDynamicDistanceState = new GoToPositionState("Go-Close", telemetry, position, WheeledLauncher.TargetDistance.CLOSE);
+        goDynamicDistanceState.setNextState(idleState);
+        currentState = goDynamicDistanceState;
     }
 
     public void setPosition(final WheeledLauncher.TargetDistance targetDistance) {

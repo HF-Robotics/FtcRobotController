@@ -38,10 +38,10 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class ArtifactDetector implements PeriodicTask {
-    public static final double PRESENCE_LOW_PASS_FILTER_FACTOR = 0.78D;
-    final RevColorSensorV3 artifactColor1;
+    public static final double PRESENCE_LOW_PASS_FILTER_FACTOR = 0.95D;
+    //final RevColorSensorV3 artifactColor1;
 
-    final RevColorSensorV3 artifactColor2;
+    //final RevColorSensorV3 artifactColor2;
 
     final AnalogInput rightPresenceDetector;
 
@@ -82,9 +82,9 @@ public class ArtifactDetector implements PeriodicTask {
     }
 
     public ArtifactDetector(final HardwareMap hardwareMap, Telemetry telemetry) {
-        artifactColor1 = hardwareMap.get(RevColorSensorV3.class, "artifactColor1");
+        // artifactColor1 = hardwareMap.get(RevColorSensorV3.class, "artifactColor1");
 
-        artifactColor2 = hardwareMap.get(RevColorSensorV3.class, "artifactColor2");
+        // artifactColor2 = hardwareMap.get(RevColorSensorV3.class, "artifactColor2");
 
         colorIndicator = hardwareMap.get(Servo.class, "ledIndicatorBack");
 
@@ -101,19 +101,28 @@ public class ArtifactDetector implements PeriodicTask {
         this.telemetry = telemetry;
     }
 
+    private boolean artifactFullyLoaded = false;
+
     @Override
     public void periodicTask() {
         // Only read if the robot detects a possible artifact present
 
-        if (isArtifactFullyLoaded()) {
+        if (detectArtifactPresence()) {
+            artifactFullyLoaded = true;
             setPresenceSignal(true);
+
             //colorDetectionLogic();
         } else {
+            artifactFullyLoaded = false;
             setPresenceSignal(false);
         }
     }
 
     public boolean isArtifactFullyLoaded() {
+        return artifactFullyLoaded;
+    }
+
+    private boolean detectArtifactPresence() {
         final double leftVoltage = leftLowPassFilter.get();
 
         final double rightVoltage = rightLowPassFilter.get();
@@ -123,43 +132,51 @@ public class ArtifactDetector implements PeriodicTask {
 
     private void setPresenceSignal(final boolean isPresent) {
         if (isPresent) {
-            colorIndicator.setPosition(DecodeDriveTeamSignal.AZURE_LED);
+            if (colorIndicator.getPosition() != DecodeDriveTeamSignal.AZURE_LED) {
+                colorIndicator.setPosition(DecodeDriveTeamSignal.AZURE_LED);
+            }
         } else {
-            colorIndicator.setPosition(0);
+            if (colorIndicator.getPosition() != 0) {
+                colorIndicator.setPosition(0);
+            }
         }
     }
 
     private void colorDetectionLogic() {
-
-        // Detect RGB from each color sensor, they read as
-        // individual values for red, green, blue
-
-        // Make a decision, is it green, purple or unknown
-        // and set the RGB indicator to show the drive team
-
-        // Don't fail the robot code if I2C readings fail
-
-        try {
-            RGBAD colorValues1 = new RGBAD(artifactColor1);
-            RGBAD colorValues2 = new RGBAD(artifactColor2);
-
-            telemetry.addData("Artifact", colorValues1 + " | " + colorValues2);
-
-            if (isPurple(colorValues1) ||
-                isPurple(colorValues2)) {
-                colorIndicator.setPosition(DecodeDriveTeamSignal.VIOLET_LED);
-            } else if (isGreen(colorValues1) ||
-                isGreen(colorValues2)) {
-                colorIndicator.setPosition(DecodeDriveTeamSignal.GREEN_LED);
-            } else {
-                // It's unknown. turn off the RGB indicator
-                //colorIndicator.setPosition(0);
-            }
-        } catch (Exception ex) {
-            Log.e(LOG_TAG, "Failed to read from color sensors", ex);
-
-            colorIndicator.setPosition(0);
-        }
+//
+//        if (artifactColor1 == null || artifactColor2 == null) {
+//            return;
+//        }
+//
+//        // Detect RGB from each color sensor, they read as
+//        // individual values for red, green, blue
+//
+//        // Make a decision, is it green, purple or unknown
+//        // and set the RGB indicator to show the drive team
+//
+//        // Don't fail the robot code if I2C readings fail
+//
+//        try {
+//            RGBAD colorValues1 = new RGBAD(artifactColor1);
+//            RGBAD colorValues2 = new RGBAD(artifactColor2);
+//
+//            telemetry.addData("Artifact", colorValues1 + " | " + colorValues2);
+//
+//            if (isPurple(colorValues1) ||
+//                isPurple(colorValues2)) {
+//                colorIndicator.setPosition(DecodeDriveTeamSignal.VIOLET_LED);
+//            } else if (isGreen(colorValues1) ||
+//                isGreen(colorValues2)) {
+//                colorIndicator.setPosition(DecodeDriveTeamSignal.GREEN_LED);
+//            } else {
+//                // It's unknown. turn off the RGB indicator
+//                //colorIndicator.setPosition(0);
+//            }
+//        } catch (Exception ex) {
+//            Log.e(LOG_TAG, "Failed to read from color sensors", ex);
+//
+//            colorIndicator.setPosition(0);
+//        }
     }
 
     private boolean isPurple(final RGBAD colorValues) {

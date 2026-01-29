@@ -1,17 +1,13 @@
-package com.hfrobots.tnt.season2324;
 /*
- Copyright (c) 2023 The Tech Ninja Team (https://ftc9929.com)
-
+ Copyright (c) 2026 HF Robotics (http://www.hfrobots.com)
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
  furnished to do so, subject to the following conditions:
-
  The above copyright notice and this permission notice shall be included in all
  copies or substantial portions of the Software.
-
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,30 +15,34 @@ package com.hfrobots.tnt.season2324;
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
- */
+*/
 
-import static com.ftc9929.corelib.Constants.LOG_TAG;
+package com.hfrobots.tnt.corelib.metrics.sources;
 
-import android.util.Log;
+import com.hfrobots.tnt.corelib.metrics.GaugeMetricSource;
+import com.hfrobots.tnt.util.NamedDeviceMap;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
+import lombok.EqualsAndHashCode;
 
-public class Shared {
-    public static void withBetterErrorHandling(Runnable code) {
-        try {
-            code.run();
-        } catch (Throwable t) {
-            // Better logging than the FTC SDK provides :(
-            Log.e(LOG_TAG, "Exception during state machine", t);
+@EqualsAndHashCode
+public class AnalogInputMetricSource implements GaugeMetricSource {
+    private final AnalogInput analogInput;
 
-            if (t instanceof RuntimeException) {
-                throw (RuntimeException)t;
-            }
+    private final String name;
 
-            RuntimeException rte = new RuntimeException();
-            rte.initCause(t);
+    public AnalogInputMetricSource(final NamedDeviceMap.NamedDevice<AnalogInput> namedAnalogInput) {
+        this.analogInput = namedAnalogInput.getDevice();
+        this.name = "sensor_" + namedAnalogInput.getName();
+    }
 
-            throw rte;
-        }
+    @Override
+    public String getSampleName() {
+        return name;
+    }
+
+    @Override
+    public double getValue() {
+        return analogInput.getVoltage();
     }
 }

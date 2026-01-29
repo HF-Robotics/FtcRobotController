@@ -113,6 +113,8 @@ public class DecodeDriverControls implements PeriodicTask {
 
     private DebouncedButton launchSpeedStop;
 
+    private OnOffButton autoRange;
+
     @Builder
     private DecodeDriverControls(RangeInput leftStickX,
                                  RangeInput leftStickY,
@@ -224,6 +226,8 @@ public class DecodeDriverControls implements PeriodicTask {
         launchSpeedClose = dpadDown;
 
         launchSpeedStop = bRedButton;
+
+        autoRange = leftBumper;
     }
 
     private boolean gripUpFirstTime = false;
@@ -267,6 +271,8 @@ public class DecodeDriverControls implements PeriodicTask {
                 launcher.closeLaunchVelocity();
             } else if (launchSpeedStop.getRise()) {
                 launcher.stopLauncher();
+            } else if (autoRange.isPressed()) {
+                launcher.autoRange();
             }
         }
     }

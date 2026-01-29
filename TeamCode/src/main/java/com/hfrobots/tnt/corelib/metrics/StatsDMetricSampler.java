@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2019 HF Robotics (http://www.hfrobots.com)
+ Copyright (c) 2026 HF Robotics (http://www.hfrobots.com)
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
  in the Software without restriction, including without limitation the rights
@@ -24,6 +24,7 @@ import android.util.Log;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.control.OnOffButton;
 import com.ftc9929.corelib.control.RangeInput;
+import com.hfrobots.tnt.corelib.metrics.sources.AnalogInputMetricSource;
 import com.hfrobots.tnt.corelib.metrics.sources.DcMotorCurrentMetricSource;
 import com.hfrobots.tnt.corelib.metrics.sources.DcMotorPowerMetricSource;
 import com.hfrobots.tnt.corelib.metrics.sources.DigitalChannelMetricSource;
@@ -37,6 +38,7 @@ import com.hfrobots.tnt.corelib.metrics.sources.Voltage5VMetricSource;
 import com.hfrobots.tnt.util.NamedDeviceMap;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -118,6 +120,7 @@ public class StatsDMetricSampler implements MetricsSampler {
         addDcMotors();
         addVoltages();
         addDigitalChannels();
+        addAnalogInputs();
         addServos();
 
         if (sampleDistanceSensors) {
@@ -196,6 +199,15 @@ public class StatsDMetricSampler implements MetricsSampler {
 
         for (NamedDeviceMap.NamedDevice<DigitalChannel> namedDigitalChannel : allDigitalChannels) {
             GaugeMetricSource metricSource = new DigitalChannelMetricSource(namedDigitalChannel);
+            addSource(toInterestingValues(metricSource));
+        }
+    }
+
+    private void addAnalogInputs() {
+        List<NamedDeviceMap.NamedDevice<AnalogInput>> allAnalogInputs = namedDeviceMap.getAll(AnalogInput.class);
+
+        for (NamedDeviceMap.NamedDevice<AnalogInput> namedAnalogInput : allAnalogInputs) {
+            GaugeMetricSource metricSource = new AnalogInputMetricSource(namedAnalogInput);
             addSource(toInterestingValues(metricSource));
         }
     }

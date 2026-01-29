@@ -42,7 +42,7 @@ import java.util.List;
 public class DecodeDriverControlled extends OpMode {
     public static final String OP_MODE_NAME = "00 DECODE";
 
-    private final boolean emitMetrics = true;
+    private boolean emitMetrics = false;
 
     private DecodeDrivebase drivebase;
 
@@ -74,6 +74,8 @@ public class DecodeDriverControlled extends OpMode {
     private Kickstand kickstand;
 
     private Ticker ticker;
+    private NinjaGamePad driversGamepad;
+    private NinjaGamePad operatorGamepad;
 
     @Override
     public void init() {
@@ -82,32 +84,6 @@ public class DecodeDriverControlled extends OpMode {
 
             drivebase = new DecodeDrivebase(hardwareMap);
 
-            setupMechanisms();
-
-            NinjaGamePad driversGamepad = new NinjaGamePad(gamepad1);
-
-            driverControls = DecodeDriverControls.builder()
-                    .driversGamepad(driversGamepad)
-                    .launcher(launcher)
-                    .kinematics(drivebase).build();
-            
-            final NinjaGamePad operatorGamepad = new NinjaGamePad(gamepad2);
-
-            operatorControls = DecodeOperatorControls.builder()
-                    .operatorGamepad(operatorGamepad)
-                    .intake(intake)
-                    .carousel(carousel)
-                    .launcher(launcher)
-                    .kickstand(kickstand).build();
-            setupMetricsSampler(driversGamepad, operatorGamepad);
-
-
-            try {
-                driveTeamSignal = new DecodeDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
-            } catch (IllegalArgumentException ex) {
-                driveTeamSignal = null;
-            }
-
             try {
                 aprilTagAligner = new AprilTagAligner(telemetry, drivebase, hardwareMap, ticker);
                 canUseAprilTags = true;
@@ -115,6 +91,32 @@ public class DecodeDriverControlled extends OpMode {
                 Log.e(LOG_TAG, "Unable to initialize AprilTags", ex);
                 canUseAprilTags = false;
             }
+
+            setupMechanisms();
+
+            driversGamepad = new NinjaGamePad(gamepad1);
+
+            driverControls = DecodeDriverControls.builder()
+                    .driversGamepad(driversGamepad)
+                    .launcher(launcher)
+                    .kinematics(drivebase).build();
+
+            operatorGamepad = new NinjaGamePad(gamepad2);
+
+            operatorControls = DecodeOperatorControls.builder()
+                    .operatorGamepad(operatorGamepad)
+                    .intake(intake)
+                    .carousel(carousel)
+                    .launcher(launcher)
+                    .kickstand(kickstand).build();
+
+            try {
+                driveTeamSignal = new DecodeDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
+            } catch (IllegalArgumentException ex) {
+                driveTeamSignal = null;
+            }
+
+
 
             allHubs = hardwareMap.getAll(LynxModule.class);
 
@@ -133,7 +135,7 @@ public class DecodeDriverControlled extends OpMode {
         }
 
         try {
-            launcher = new WheeledLauncher(hardwareMap, telemetry, ticker);
+            launcher = new WheeledLauncher(hardwareMap, telemetry, ticker, aprilTagAligner);
         } catch (IllegalArgumentException ex) {
             launcher = null;
         }
@@ -182,6 +184,17 @@ public class DecodeDriverControlled extends OpMode {
     @Override
     public void init_loop() {
         clearHubsBulkCaches(); // important, do not remove this line, or reads from robot break!
+
+        if (gamepad1.circleWasPressed()) {
+            emitMetrics = !emitMetrics;
+
+            if (emitMetrics) {
+                setupMetricsSampler(driversGamepad, operatorGamepad);
+            }
+        }
+
+        telemetry.addLine("Emit metrics: " + emitMetrics + " (press circle to toggle)");
+        telemetry.update();
     }
 
     private void clearHubsBulkCaches() {
@@ -203,44 +216,53 @@ public class DecodeDriverControlled extends OpMode {
         });
     }
 
+    private final TimeTracker timer = new TimeTracker(telemetry, "loop");
+
     @Override
     public void loop() {
         Shared.withBetterErrorHandling(() -> {
-            clearHubsBulkCaches(); // important, do not remove this line, or reads from robot break!
+            timer.trackTime(() -> {
+                clearHubsBulkCaches(); // important, do not remove this line, or reads from robot break!
 
-            if (canUseAprilTags) {
-                aprilTagAligner.periodicTask();
-            }
-            
-            if (canUseAprilTags && driverControls.rightBumper.isPressed()) {
-                aprilTagAligner.aimToDetectedAprilTag();
-            } else {
-                driverControls.periodicTask();
-            }
-            
-            operatorControls.periodicTask();
+                if (canUseAprilTags) {
+                    aprilTagAligner.periodicTask();
+                }
 
-            if (driveTeamSignal != null) {
-                driveTeamSignal.periodicTask();
-            }
-
-            if (artifactDetector !=null) {
-                artifactDetector.periodicTask();
-            }
-
-            if (emitMetrics) {
-                if (useLegacyMetricsSampler) {
-                    if (legacyMetricsSampler != null) {
-                        legacyMetricsSampler.doSamples();
-                    }
+                if (canUseAprilTags && driverControls.rightBumper.isPressed()) {
+                    aprilTagAligner.aimToDetectedAprilTag();
                 } else {
-                    if (newMetricsSampler != null) {
-                        newMetricsSampler.doSamples();
+                    driverControls.periodicTask();
+                }
+
+                // DO NOT CHANGE THIS ORDER
+                // Artifact detection must happen before operator
+                // controls can look at things!
+                if (artifactDetector != null) {
+                    artifactDetector.periodicTask();
+                }
+
+                operatorControls.periodicTask();
+
+                if (driveTeamSignal != null) {
+                    driveTeamSignal.periodicTask();
+                }
+
+                if (emitMetrics) {
+                    if (useLegacyMetricsSampler) {
+                        if (legacyMetricsSampler != null) {
+                            legacyMetricsSampler.doSamples();
+                        }
+                    } else {
+                        if (newMetricsSampler != null) {
+                            newMetricsSampler.doSamples();
+                        }
                     }
                 }
-            }
 
-            telemetry.update();
+
+            });
         });
+
+        telemetry.update();
     }
 }

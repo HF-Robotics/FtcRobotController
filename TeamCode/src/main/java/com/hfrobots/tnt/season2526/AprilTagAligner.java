@@ -103,6 +103,23 @@ public class AprilTagAligner implements PeriodicTask {
 
     private WebcamManualControlSetup manualControlSetup;
 
+    public Double getRange() {
+        if (!manualControlSetup.isCameraIsSetup()) {
+            telemetry.addData("Apriltags", "Camera isn't ready");
+        }
+
+        desiredTag = detectTag();
+        // Find the tag, return the distance or *null* if the tag isn't found
+        if (desiredTag != null)
+        {
+            return desiredTag.ftcPose.range;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
     public Double aimToDetectedAprilTag() {
         if (!manualControlSetup.isCameraIsSetup()) {
             telemetry.addData("Apriltags", "Camera isn't ready");
@@ -113,30 +130,11 @@ public class AprilTagAligner implements PeriodicTask {
         double strafe = 0;        // Desired strafe power/speed (-1 to +1)
         double turn = 0;        // Desired turning power/speed (-1 to +1)
 
-        targetFound = false;
+
         desiredTag = null;
 
-        // Step through the list of detected tags and look for a matching tag
-        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
-        for (AprilTagDetection detection : currentDetections) {
-            // Look to see if we have size info on this tag.
-            if (detection.metadata != null) {
-                //  Check to see if we want to track towards this tag.
-
-                if (detection.id == 24 || detection.id == 20) {
-                    // Yes, we want to use this tag.
-                    targetFound = true;
-                    desiredTag = detection;
-                    break;  // don't look any further.
-                } else {
-                    // This tag is in the library, but we do not want to track it right now.
-                    telemetry.addData("Skipping", "Tag ID %d is not desired", detection.id);
-                }
-            } else {
-                // This tag is NOT in the library, so we don't have enough information to track to it.
-                telemetry.addData("Unknown", "Tag ID %d is not in TagLibrary", detection.id);
-            }
-        }
+        desiredTag = detectTag();
+        targetFound = desiredTag != null;
 
         // Tell the driver what we see, and what to do.
         if (targetFound) {
@@ -165,6 +163,33 @@ public class AprilTagAligner implements PeriodicTask {
             drivebase.driveCartesian(0 /* -strafe */,0/* drive */, -turn, false);
 
             return headingError;
+        }
+
+        return null;
+    }
+
+    private AprilTagDetection detectTag() {
+        // Step through the list of detected tags and look for a matching tag
+        List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+        for (AprilTagDetection detection : currentDetections) {
+            // Look to see if we have size info on this tag.
+            if (detection.metadata != null) {
+                //  Check to see if we want to track towards this tag.
+
+                if (detection.id == 24 || detection.id == 20) {
+                    // Yes, we want to use this tag.
+                    return detection;
+                } else {
+                    // This tag is in the library, but we do not want to track it right now.
+                    telemetry.addData("Skipping", "Tag ID %d is not desired", detection.id);
+                    return null;
+                }
+            } else {
+                // This tag is NOT in the library, so we don't have enough information to track to it.
+                telemetry.addData("Unknown", "Tag ID %d is not in TagLibrary", detection.id);
+
+                return null;
+            }
         }
 
         return null;

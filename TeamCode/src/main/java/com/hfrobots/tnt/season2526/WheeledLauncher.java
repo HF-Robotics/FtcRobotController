@@ -36,7 +36,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class WheeledLauncher implements PeriodicTask {
-
     // These constants are the tunables for our launcher.
     protected static final double KICKER_SERVO_RAISED_POSITION =.775;
 
@@ -44,9 +43,17 @@ public class WheeledLauncher implements PeriodicTask {
 
     private static final double FAR_LAUNCH_VELOCITY = 1598;
 
+    public static final int FAR_HOOD_POSITION = 325;
+
     private static final double MEDIUM_LAUNCH_VELOCITY = 1300;
 
+    public static final int MEDIUM_HOOD_POSITION = 500;
+
     private static final double CLOSE_LAUNCH_VELOCITY = 1080;
+
+    public static final int CLOSE_HOOD_POSITION = 250;
+
+    // END: Tunables
 
     // These are the components of our launcher
     protected final DcMotorEx launcherMotor;
@@ -59,11 +66,14 @@ public class WheeledLauncher implements PeriodicTask {
 
     private final Telemetry telemetry;
 
+    private final AprilTagAligner aprilTagAligner;
+
     public WheeledLauncher(final HardwareMap hardwareMap,
                            final Telemetry telemetry,
-                           final Ticker ticker) {
+                           final Ticker ticker, AprilTagAligner aprilTagAligner) {
         kickerServo = hardwareMap.get(Servo.class, "kickerServo");
         launcherMotor = hardwareMap.get(DcMotorEx.class, "launcherMotor");
+        this.aprilTagAligner = aprilTagAligner;
         launcherMotor.setVelocityPIDFCoefficients(135,3, 0, 14);
         this.telemetry = telemetry;
         kickerServo.setPosition(KICKER_SERVO_LOWERED_POSITION);
@@ -86,6 +96,51 @@ public class WheeledLauncher implements PeriodicTask {
         if (hoodController != null) {
             hoodController.goHome();
         }
+    }
+
+    public void autoRange() {
+        if (aprilTagAligner == null) {
+            return;
+        }
+
+
+        final Double measuredRange = aprilTagAligner.getRange();
+
+        if (measuredRange == null) {
+            return;
+        }
+        final double adjustedRangeInches = measuredRange - 6;
+        final double wheelSpeed;
+        final int hoodPosition;
+
+        if (adjustedRangeInches < 0) {
+            wheelSpeed = 920;
+            hoodPosition = 0;
+        } else if (adjustedRangeInches < 12) {
+            wheelSpeed = 970;
+            hoodPosition = 0;
+        } else if (adjustedRangeInches < 24) {
+            wheelSpeed = 1050;
+            hoodPosition = 0;
+        } else if (adjustedRangeInches < 36) {
+            wheelSpeed = 1150;
+            hoodPosition = 191;
+        } else if (adjustedRangeInches < 48) {
+            wheelSpeed = 1200;
+            hoodPosition = 250;
+        } else if (adjustedRangeInches < 60){
+            wheelSpeed = 1250;
+            hoodPosition = 300;
+        } else {
+            wheelSpeed = 1350;
+            hoodPosition = 350;
+        }
+
+        // Set launch velocity
+        maybeSetLaunchVelocity(wheelSpeed);
+        // Set hood position
+
+        hoodController.setDynamicPosition(hoodPosition);
     }
 
     public boolean isHoodIdle() {

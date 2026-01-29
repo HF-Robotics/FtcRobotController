@@ -50,7 +50,7 @@ public class StateMachinesTest {
 
         /// Perform the logic for this state, return the next state which may be
         /// this state if we are to remain in this state.
-        /// 
+        ///
         /// Called repeatedly in a loop by StateMachine (and the like)
         /// for every loop() call in the FTC SDK
         @Override

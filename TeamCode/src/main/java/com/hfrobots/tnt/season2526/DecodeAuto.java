@@ -147,7 +147,7 @@ public class DecodeAuto extends OpMode {
 
             driveTeamSignal = new DecodeDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
-            launcher = new WheeledLauncher(hardwareMap, telemetry, ticker);
+            launcher = new WheeledLauncher(hardwareMap, telemetry, ticker, null);
 
             intake = new RollerIntake(hardwareMap);
 
