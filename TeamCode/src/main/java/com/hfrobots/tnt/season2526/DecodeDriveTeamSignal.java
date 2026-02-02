@@ -143,6 +143,10 @@ public class DecodeDriveTeamSignal implements PeriodicTask {
         }
     }
 
+    public void signalGoalAcquired() {
+        ledIndicatorBack.setPosition(GREEN_LED);
+    }
+
     private void setIndicators(double value) {
         //ledIndicatorBack.setPosition(value);
         ledIndicatorFrontLeft.setPosition(value);

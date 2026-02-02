@@ -22,8 +22,14 @@
 
 package com.hfrobots.tnt.season2526;
 
+import static com.ftc9929.corelib.Constants.LOG_TAG;
+
+import android.util.Log;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.google.common.base.Ticker;
+import com.google.common.collect.ImmutableSet;
+import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
@@ -35,6 +41,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
+import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 
@@ -57,6 +64,16 @@ public class AprilTagAligner implements PeriodicTask {
     final double MAX_AUTO_TURN  = 0.3;   //  Clip the turn speed to this max value (adjust for your robot)
 
     private AprilTagDetection desiredTag = null;     // Used to hold the data for a detected AprilTag
+
+    private final int BLUE_TARGET_ID = 20;
+
+    private final int RED_TARGET_ID = 24;
+
+    private final ImmutableSet<Integer> BOTH_GOAL_TAGS = ImmutableSet.of(BLUE_TARGET_ID, RED_TARGET_ID);
+
+    private final ImmutableSet<Integer> BLUE_GOAL_TAG = ImmutableSet.of(BLUE_TARGET_ID);
+
+    private final ImmutableSet<Integer> RED_GOAL_TAG = ImmutableSet.of(RED_TARGET_ID);
 
     private final Telemetry telemetry;
 
@@ -101,14 +118,42 @@ public class AprilTagAligner implements PeriodicTask {
                 visionPortal, telemetry, ticker);
     }
 
+    public void periodicCameraSetup() {
+        manualControlSetup.periodicTask();
+    }
+
     private WebcamManualControlSetup manualControlSetup;
+
+    public Double getBearing(final Constants.Alliance alliance) {
+        // Different than other times, we want to only use tag from
+        // our alliance, since the robot can see *both*
+
+        final ImmutableSet<Integer> correctTags;
+
+        if (alliance == Constants.Alliance.BLUE) {
+            correctTags = BLUE_GOAL_TAG;
+        } else {
+            correctTags = RED_GOAL_TAG;
+        }
+
+        desiredTag = detectTag(correctTags);
+
+        // Find the tag, return the distance or *null* if the tag isn't found
+        if (desiredTag != null) {
+            Log.i(LOG_TAG, "Found tag " + desiredTag.id);
+
+            return desiredTag.ftcPose.bearing;
+        } else {
+            return null;
+        }
+    }
 
     public Double getRange() {
         if (!manualControlSetup.isCameraIsSetup()) {
             telemetry.addData("Apriltags", "Camera isn't ready");
         }
 
-        desiredTag = detectTag();
+        desiredTag = detectTag(BOTH_GOAL_TAGS);
         // Find the tag, return the distance or *null* if the tag isn't found
         if (desiredTag != null)
         {
@@ -133,7 +178,7 @@ public class AprilTagAligner implements PeriodicTask {
 
         desiredTag = null;
 
-        desiredTag = detectTag();
+        desiredTag = detectTag(BOTH_GOAL_TAGS);
         targetFound = desiredTag != null;
 
         // Tell the driver what we see, and what to do.
@@ -160,7 +205,9 @@ public class AprilTagAligner implements PeriodicTask {
 
             telemetry.addData("Auto", "Drive %5.2f, Strafe %5.2f, Turn %5.2f ", drive, strafe, turn);
 
-            drivebase.driveCartesian(0 /* -strafe */,0/* drive */, -turn, false);
+            if (drivebase != null) {
+                drivebase.driveCartesian(0 /* -strafe */, 0/* drive */, -turn, false);
+            }
 
             return headingError;
         }
@@ -168,15 +215,20 @@ public class AprilTagAligner implements PeriodicTask {
         return null;
     }
 
-    private AprilTagDetection detectTag() {
+    private AprilTagDetection detectTag(final Set<Integer> desiredTags) {
         // Step through the list of detected tags and look for a matching tag
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
+
+        if (currentDetections != null) {
+            Log.d(LOG_TAG, "Detections: " + currentDetections);
+        }
+
         for (AprilTagDetection detection : currentDetections) {
             // Look to see if we have size info on this tag.
             if (detection.metadata != null) {
                 //  Check to see if we want to track towards this tag.
 
-                if (detection.id == 24 || detection.id == 20) {
+                if (desiredTags.contains(detection.id)) {
                     // Yes, we want to use this tag.
                     return detection;
                 } else {

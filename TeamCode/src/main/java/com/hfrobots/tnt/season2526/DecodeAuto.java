@@ -25,7 +25,6 @@ package com.hfrobots.tnt.season2526;
 import static com.ftc9929.corelib.Constants.LOG_TAG;
 
 import android.util.Log;
-import android.util.Size;
 
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.state.SequenceOfStates;
@@ -39,14 +38,14 @@ import com.hfrobots.tnt.season2324.Shared;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.BezierPoint;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
+import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
 
 import java.util.List;
@@ -89,6 +88,10 @@ public class DecodeAuto extends OpMode {
     private StateMachine stateMachine;
 
     private RollerIntake intake;
+
+    private AprilTagAligner aprilTagAligner;
+
+    private boolean canUseAprilTags;
 
     // FIXME: The tasks our robot knows how to do - rename these to
     //  something meaningful for the season!
@@ -136,9 +139,16 @@ public class DecodeAuto extends OpMode {
 
             setupDriverControls();
 
-            //setupVisionPortal(hardwareMap);
+            try {
+                aprilTagAligner = new AprilTagAligner(telemetry, null, hardwareMap, ticker);
+                canUseAprilTags = true;
+            } catch (Exception ex) {
+                Log.e(LOG_TAG, "Unable to initialize AprilTags", ex);
+                canUseAprilTags = false;
+            }
 
             ArtifactDetector artifactDetector;
+
             try {
                 artifactDetector = new ArtifactDetector(hardwareMap, telemetry);
             } catch (IllegalArgumentException ex) {
@@ -173,23 +183,8 @@ public class DecodeAuto extends OpMode {
 
         operatorControls = DecodeOperatorControls.builder()
                 .operatorGamepad(operatorGamepad)
+                .intake(intake)
                 .carousel(carousel).launcher(launcher).build();
-    }
-
-    private void setupVisionPortal(final HardwareMap hardwareMap) {
-        VisionPortal.Builder builder = new VisionPortal.Builder();
-
-        builder.setCamera(hardwareMap.get(WebcamName.class, "webcam"));
-
-        builder.setCameraResolution(new Size(640, 480));
-
-        builder.enableLiveView(true);
-
-        // FIXME: Need to add processor(s) here for the vision portal to actually
-        // detect anything!
-
-        // Build the Vision Portal, using the above settings.
-        visionPortal = builder.build();
     }
 
     @Override
@@ -220,6 +215,15 @@ public class DecodeAuto extends OpMode {
     public void init_loop() {
         doAutoConfig();
         operatorControls.periodicTask();
+
+//        if (aprilTagAligner != null) {
+//            try {
+//                aprilTagAligner.periodicCameraSetup();
+//            } catch (Exception ex) {
+//                canUseAprilTags = false;
+//            }
+//        }
+
         updateTelemetry(telemetry);
     }
 
@@ -655,7 +659,7 @@ public class DecodeAuto extends OpMode {
         final double startPosY;
         final double startPoseX = 135;
 
-        final double scorePoseX = 132;
+        final double scorePoseX = 133;
         final double scorePoseY;
 
         final double scoreHeadingDegrees;
@@ -685,6 +689,14 @@ public class DecodeAuto extends OpMode {
         PedroFollowerState scorePathState = new PedroFollowerState("Score preload", telemetry, pedroFollower, scorePreload);
 
         sequenceOfStates.addSequential(scorePathState);
+        sequenceOfStates.addWaitStep("Settle", 1, TimeUnit.SECONDS);
+
+        State finalizeAimAtGoal = getRelativeTurnToGoalState();
+
+        sequenceOfStates.addSequential(finalizeAimAtGoal);
+
+        // Need more time for launcher to come to speed
+        sequenceOfStates.addWaitStep("Launcher settling", 2, TimeUnit.SECONDS);
 
         addLaunchSteps(sequenceOfStates, WheeledLauncher.TargetDistance.FAR);
 
@@ -693,9 +705,9 @@ public class DecodeAuto extends OpMode {
         final Pose leaveEndPose;
 
         if (currentAlliance == Constants.Alliance.BLUE) {
-            leaveEndPose = new Pose(144-9.5, 36, Math.toRadians(180));
+            leaveEndPose = new Pose(144 - 9.5, 36, Math.toRadians(180));
         } else {
-            leaveEndPose = new Pose(144-9.5, 144 - 36, Math.toRadians(180));
+            leaveEndPose = new Pose(144 - 9.5, 144 - 36, Math.toRadians(180));
         }
 
         final Path toLeavePath = new Path(new BezierLine(scorePose, leaveEndPose));
@@ -709,6 +721,39 @@ public class DecodeAuto extends OpMode {
         commonCompletionStates(sequenceOfStates);
 
         stateMachine.addSequence(sequenceOfStates);
+    }
+
+    private PedroRelativeTurnState getRelativeTurnToGoalState() {
+        final PedroRelativeTurnState finalizeAimAtGoal = new PedroRelativeTurnState("Aiming at goal", telemetry, pedroFollower,
+                () -> {
+                    if (canUseAprilTags) {
+                        // do something
+                        final Double bearingInDegrees = aprilTagAligner.getBearing(currentAlliance);
+
+                        if (bearingInDegrees == null) {
+                            // April tag not found, or couldn't be used,
+                            // we have no idea where to aim, use "luck"
+
+                            return null;
+                        }
+
+                        double insideAdjustDegrees = 0;
+
+                        if (currentAlliance == Constants.Alliance.BLUE) {
+                            // Adjust one way
+                            insideAdjustDegrees = 6;
+                        } else {
+                            // Adjust the other
+                            insideAdjustDegrees = -6;
+                        }
+
+                        return bearingInDegrees + insideAdjustDegrees;
+                    }
+
+                    return null;
+                });
+
+        return finalizeAimAtGoal;
     }
 
     private void setupSimpleLeavePath() {
@@ -732,7 +777,6 @@ public class DecodeAuto extends OpMode {
         pedroFollower.setStartingPose(startPose);
 
         PedroFollowerState driveForwardPathState = new PedroFollowerState("Drive forward", telemetry, pedroFollower, driveForward);
-
         sequenceOfStates.addSequential(driveForwardPathState);
 
         commonCompletionStates(sequenceOfStates);
@@ -821,5 +865,57 @@ public class DecodeAuto extends OpMode {
         public void resetToStart() {
 
         }
+    }
+
+    // Old, experiments
+
+
+    private PedroFollowerState getAimToGoalState() {
+        PedroFollowerState finalizeAimAtGoal = new PedroFollowerState("Aiming at goal", telemetry, pedroFollower,
+                () -> {
+                    final Pose startPose = pedroFollower.getPose();
+                    final Pose safeEndPose = new Pose(startPose.getX(), startPose.getY() + 1, startPose.getHeading());
+
+                    if (canUseAprilTags) {
+                        // do something
+                        final Double bearingInDegrees = aprilTagAligner.getBearing(currentAlliance);
+
+                        if (bearingInDegrees == null) {
+                            // April tag not found, or couldn't be used,
+                            // we have no idea where to aim, use "luck"
+
+                            Log.e(LOG_TAG, "Tags working, but no bearing returned");
+                            Path goNowherePath = new Path(new BezierLine(startPose, safeEndPose));
+
+                            return new PathChain(goNowherePath);
+                        }
+
+                        driveTeamSignal.signalGoalAcquired();
+
+                        double insideAdjustDegrees = 0;
+
+                        if (currentAlliance == Constants.Alliance.BLUE) {
+                            insideAdjustDegrees = 20;
+                        } else {
+                            insideAdjustDegrees = -20;
+                        }
+
+                        double origHeading = startPose.getHeading();
+
+                        double newHeading = origHeading + Math.toRadians((bearingInDegrees + insideAdjustDegrees));
+
+                        Log.i(LOG_TAG, "Bearing: " + bearingInDegrees + ", orig heading: " + Math.toDegrees(origHeading) + " new heading: " + Math.toDegrees(newHeading));
+
+                        Pose endPose = new Pose(startPose.getX(), startPose.getY(), newHeading);
+                        Path toEndPath = new Path(new BezierLine(startPose, endPose));
+                        toEndPath.setLinearHeadingInterpolation(startPose.getHeading(), endPose.getHeading());
+
+                        return new PathChain(toEndPath);
+                    }
+
+                    Log.e(LOG_TAG, "April tags not working/initialized");
+                    return new PathChain(new Path(new BezierLine(startPose, safeEndPose)));
+                });
+        return finalizeAimAtGoal;
     }
 }
