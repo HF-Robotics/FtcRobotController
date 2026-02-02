@@ -29,6 +29,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import java.util.concurrent.TimeUnit;
 
+import lombok.Getter;
 import lombok.Setter;
 
 public class DecodeDriveTeamSignal implements PeriodicTask {
@@ -61,8 +62,11 @@ public class DecodeDriveTeamSignal implements PeriodicTask {
 
     private final Gamepad operatorGamepad;
 
+    @Getter
     private static Constants.Alliance chosenAlliance = null;
+
     private boolean haveSentReadyForEndGameRumble;
+
     private boolean haveEndGameRumble;
 
     @Setter

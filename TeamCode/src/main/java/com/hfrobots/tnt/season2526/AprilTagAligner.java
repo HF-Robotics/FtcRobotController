@@ -43,8 +43,6 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import java.util.List;
 import java.util.Set;
 
-import lombok.RequiredArgsConstructor;
-
 
 @Configurable
 public class AprilTagAligner implements PeriodicTask {
@@ -165,9 +163,17 @@ public class AprilTagAligner implements PeriodicTask {
         }
     }
 
-    public Double aimToDetectedAprilTag() {
-        if (!manualControlSetup.isCameraIsSetup()) {
-            telemetry.addData("Apriltags", "Camera isn't ready");
+    public void aimToDetectedAprilTag(Constants.Alliance currentAlliance) {
+        final ImmutableSet<Integer> lookForTagsFrom;
+
+        if (currentAlliance == null) {
+            lookForTagsFrom = BOTH_GOAL_TAGS;
+        } else if (currentAlliance == Constants.Alliance.BLUE) {
+            lookForTagsFrom = BLUE_GOAL_TAG;
+        } else if (currentAlliance == Constants.Alliance.RED) {
+            lookForTagsFrom = RED_GOAL_TAG;
+        } else {
+            lookForTagsFrom = BOTH_GOAL_TAGS;
         }
 
         boolean targetFound = false;    // Set to true when an AprilTag target is detected
@@ -175,10 +181,9 @@ public class AprilTagAligner implements PeriodicTask {
         double strafe = 0;        // Desired strafe power/speed (-1 to +1)
         double turn = 0;        // Desired turning power/speed (-1 to +1)
 
-
         desiredTag = null;
 
-        desiredTag = detectTag(BOTH_GOAL_TAGS);
+        desiredTag = detectTag(lookForTagsFrom);
         targetFound = desiredTag != null;
 
         // Tell the driver what we see, and what to do.
@@ -209,10 +214,7 @@ public class AprilTagAligner implements PeriodicTask {
                 drivebase.driveCartesian(0 /* -strafe */, 0/* drive */, -turn, false);
             }
 
-            return headingError;
         }
-
-        return null;
     }
 
     private AprilTagDetection detectTag(final Set<Integer> desiredTags) {

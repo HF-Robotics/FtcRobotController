@@ -30,6 +30,7 @@ import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.metrics.RobotMetricsSampler;
 import com.ftc9929.metrics.StatsdMetricsReporter;
 import com.google.common.base.Ticker;
+import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
 import com.hfrobots.tnt.season2324.Shared;
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -185,6 +186,14 @@ public class DecodeDriverControlled extends OpMode {
     public void init_loop() {
         clearHubsBulkCaches(); // important, do not remove this line, or reads from robot break!
 
+        if (driveTeamSignal.getChosenAlliance() == null) {
+            if (gamepad1.bWasPressed()) {
+                driveTeamSignal.setAlliance(Constants.Alliance.RED);
+            } else if (gamepad1.xWasPressed()) {
+                driveTeamSignal.setAlliance(Constants.Alliance.BLUE);
+            }
+        }
+
         if (gamepad1.circleWasPressed()) {
             emitMetrics = !emitMetrics;
 
@@ -229,7 +238,7 @@ public class DecodeDriverControlled extends OpMode {
                 }
 
                 if (canUseAprilTags && driverControls.rightBumper.isPressed()) {
-                    aprilTagAligner.aimToDetectedAprilTag();
+                    aprilTagAligner.aimToDetectedAprilTag(DecodeDriveTeamSignal.getChosenAlliance());
                 } else {
                     driverControls.periodicTask();
                 }

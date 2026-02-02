@@ -216,14 +216,6 @@ public class DecodeAuto extends OpMode {
         doAutoConfig();
         operatorControls.periodicTask();
 
-//        if (aprilTagAligner != null) {
-//            try {
-//                aprilTagAligner.periodicCameraSetup();
-//            } catch (Exception ex) {
-//                canUseAprilTags = false;
-//            }
-//        }
-
         updateTelemetry(telemetry);
     }
 
