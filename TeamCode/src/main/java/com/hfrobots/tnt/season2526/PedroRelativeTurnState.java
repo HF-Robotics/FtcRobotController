@@ -71,15 +71,7 @@ public class PedroRelativeTurnState extends State {
 
                 final double headingChangeInRadians = Math.toRadians(headingChangeInDegrees);
 
-                final Pose currentPose = follower.getPose();
-
-                final double currentHeadingInRadians = currentPose.getHeading();
-
-                final double newHeadingInRadians = currentHeadingInRadians + headingChangeInRadians;
-
-                final BezierPoint holdPoint = new BezierPoint(currentPose.getX(), currentPose.getY());
-
-                follower.holdPoint(holdPoint, newHeadingInRadians);
+                follower.turn(Math.abs(headingChangeInRadians), headingChangeInRadians > 0);
 
                 followerHasStarted = true;
 

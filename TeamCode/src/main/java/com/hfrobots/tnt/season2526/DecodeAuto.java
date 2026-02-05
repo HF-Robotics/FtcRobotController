@@ -30,7 +30,6 @@ import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.state.SequenceOfStates;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
-import com.ftc9929.corelib.state.StopwatchDelayState;
 import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
@@ -38,15 +37,12 @@ import com.hfrobots.tnt.season2324.Shared;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.geometry.BezierPoint;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
-import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.vision.VisionPortal;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -76,8 +72,8 @@ public class DecodeAuto extends OpMode {
     public static final Pose RED_CLOSE_LEAVE_POSE = new Pose(38, 144 - 17, Math.toRadians(90));
 
     public static final Pose BLUE_CLOSE_LEAVE_POSE = new Pose(38, 17, Math.toRadians(270));
-    private DecodeOperatorControls operatorControls;
 
+    private DecodeOperatorControls operatorControls;
 
     private Ticker ticker;
 
@@ -127,8 +123,6 @@ public class DecodeAuto extends OpMode {
     private Follower pedroFollower;
 
     private DecodeDriverControls driverControls;
-
-    private VisionPortal visionPortal;
 
     private DecodeDriveTeamSignal driveTeamSignal;
 
@@ -191,22 +185,13 @@ public class DecodeAuto extends OpMode {
     public void start() {
         Shared.withBetterErrorHandling(() -> {
             super.start();
-            if (visionPortal != null) {
-                visionPortal.stopLiveView();
-            }
 
             setupStateMachine();
         });
     }
 
     public void stop() {
-        Shared.withBetterErrorHandling(() -> {
-            super.stop();
-            if (visionPortal != null) {
-                visionPortal.stopStreaming();
-                visionPortal.stopLiveView();
-            }
-        });
+        Shared.withBetterErrorHandling(super::stop);
     }
 
     private boolean configLocked = false;
@@ -302,10 +287,6 @@ public class DecodeAuto extends OpMode {
         if (initialDelaySeconds != 0) {
             stateMachine.addStartDelay(initialDelaySeconds, Ticker.systemTicker());
         }
-    }
-
-    protected State newMsDelayState(String name, final int numberOfMillis) {
-        return new StopwatchDelayState(name, telemetry, ticker, numberOfMillis, TimeUnit.MILLISECONDS);
     }
 
     class DoneState extends State {
@@ -650,25 +631,44 @@ public class DecodeAuto extends OpMode {
 
         final double startPosY;
         final double startPoseX = 135;
-
-        final double scorePoseX = 133;
         final double scorePoseY;
+        final double scorePoseX = 132;
 
         final double scoreHeadingDegrees;
 
-        final double angleTowardsTargetDegrees = 24;
+        double angleTowardsTargetDegrees = 24;
+
+        if (currentAlliance == Constants.Alliance.RED) {
+            angleTowardsTargetDegrees = -angleTowardsTargetDegrees;
+        }
+
+        // Since we have not moved yet, we can compute the initial heading
+        // to use if we have a bearing from the april tags
+        if (canUseAprilTags) {
+            final Double detectedBearingInDegrees = aprilTagAligner.getBearing(currentAlliance);
+
+            if (detectedBearingInDegrees != null) {
+                driveTeamSignal.signalGoalAcquired();
+
+                angleTowardsTargetDegrees = detectedBearingInDegrees;
+                Log.d(LOG_TAG, "Setting angle to target based on april tags to " + angleTowardsTargetDegrees);
+            } else {
+                Log.e(LOG_TAG, "April tags working, but no usable tag found to use for aiming");
+            }
+        }
+
+        double initialRobotHeadingDegrees = 180;
+
+        scoreHeadingDegrees = initialRobotHeadingDegrees + angleTowardsTargetDegrees;
 
         if (currentAlliance == Constants.Alliance.BLUE) {
             startPosY = 60;
-            scorePoseY = startPosY;
-            scoreHeadingDegrees = 180 + angleTowardsTargetDegrees;
         } else {
             startPosY = 84;
-            scorePoseY = startPosY;
-            scoreHeadingDegrees = 180 - angleTowardsTargetDegrees;
         }
+        scorePoseY = startPosY;
 
-        final Pose startPose = new Pose(startPoseX, startPosY, Math.toRadians(180)); // Start Pose of our robot.
+        final Pose startPose = new Pose(startPoseX, startPosY, Math.toRadians(initialRobotHeadingDegrees)); // Start Pose of our robot.
 
         final Pose scorePose = new Pose(scorePoseX, scorePoseY, Math.toRadians(scoreHeadingDegrees));
 
@@ -678,14 +678,10 @@ public class DecodeAuto extends OpMode {
 
         pedroFollower.setStartingPose(startPose);
 
-        PedroFollowerState scorePathState = new PedroFollowerState("Score preload", telemetry, pedroFollower, scorePreload);
+        PedroFollowerState scorePathState = new PedroFollowerState("Score preload", telemetry,
+                pedroFollower, scorePreload);
 
         sequenceOfStates.addSequential(scorePathState);
-        sequenceOfStates.addWaitStep("Settle", 1, TimeUnit.SECONDS);
-
-        State finalizeAimAtGoal = getRelativeTurnToGoalState();
-
-        sequenceOfStates.addSequential(finalizeAimAtGoal);
 
         // Need more time for launcher to come to speed
         sequenceOfStates.addWaitStep("Launcher settling", 2, TimeUnit.SECONDS);
@@ -697,9 +693,9 @@ public class DecodeAuto extends OpMode {
         final Pose leaveEndPose;
 
         if (currentAlliance == Constants.Alliance.BLUE) {
-            leaveEndPose = new Pose(144 - 9.5, 36, Math.toRadians(180));
+            leaveEndPose = new Pose(144 - 9.5, 36, Math.toRadians(initialRobotHeadingDegrees));
         } else {
-            leaveEndPose = new Pose(144 - 9.5, 144 - 36, Math.toRadians(180));
+            leaveEndPose = new Pose(144 - 9.5, 144 - 36, Math.toRadians(initialRobotHeadingDegrees));
         }
 
         final Path toLeavePath = new Path(new BezierLine(scorePose, leaveEndPose));
@@ -713,39 +709,6 @@ public class DecodeAuto extends OpMode {
         commonCompletionStates(sequenceOfStates);
 
         stateMachine.addSequence(sequenceOfStates);
-    }
-
-    private PedroRelativeTurnState getRelativeTurnToGoalState() {
-        final PedroRelativeTurnState finalizeAimAtGoal = new PedroRelativeTurnState("Aiming at goal", telemetry, pedroFollower,
-                () -> {
-                    if (canUseAprilTags) {
-                        // do something
-                        final Double bearingInDegrees = aprilTagAligner.getBearing(currentAlliance);
-
-                        if (bearingInDegrees == null) {
-                            // April tag not found, or couldn't be used,
-                            // we have no idea where to aim, use "luck"
-
-                            return null;
-                        }
-
-                        double insideAdjustDegrees = 0;
-
-                        if (currentAlliance == Constants.Alliance.BLUE) {
-                            // Adjust one way
-                            insideAdjustDegrees = 6;
-                        } else {
-                            // Adjust the other
-                            insideAdjustDegrees = -6;
-                        }
-
-                        return bearingInDegrees + insideAdjustDegrees;
-                    }
-
-                    return null;
-                });
-
-        return finalizeAimAtGoal;
     }
 
     private void setupSimpleLeavePath() {
@@ -776,10 +739,6 @@ public class DecodeAuto extends OpMode {
         stateMachine.addSequence(sequenceOfStates);
     }
     private void addLaunchSteps(final SequenceOfStates sequenceOfStates, final WheeledLauncher.TargetDistance targetDistance) {
-        // State carouselHomeState = carousel.new HomeLocationState(telemetry, ticker);
-
-        // sequenceOfStates.addSequential(carouselHomeState);
-
         addOneLaunch(sequenceOfStates, targetDistance, true); // save time for the first launch
         addOneLaunch(sequenceOfStates, targetDistance, false);
         addOneLaunch(sequenceOfStates, targetDistance, false);
@@ -857,57 +816,5 @@ public class DecodeAuto extends OpMode {
         public void resetToStart() {
 
         }
-    }
-
-    // Old, experiments
-
-
-    private PedroFollowerState getAimToGoalState() {
-        PedroFollowerState finalizeAimAtGoal = new PedroFollowerState("Aiming at goal", telemetry, pedroFollower,
-                () -> {
-                    final Pose startPose = pedroFollower.getPose();
-                    final Pose safeEndPose = new Pose(startPose.getX(), startPose.getY() + 1, startPose.getHeading());
-
-                    if (canUseAprilTags) {
-                        // do something
-                        final Double bearingInDegrees = aprilTagAligner.getBearing(currentAlliance);
-
-                        if (bearingInDegrees == null) {
-                            // April tag not found, or couldn't be used,
-                            // we have no idea where to aim, use "luck"
-
-                            Log.e(LOG_TAG, "Tags working, but no bearing returned");
-                            Path goNowherePath = new Path(new BezierLine(startPose, safeEndPose));
-
-                            return new PathChain(goNowherePath);
-                        }
-
-                        driveTeamSignal.signalGoalAcquired();
-
-                        double insideAdjustDegrees = 0;
-
-                        if (currentAlliance == Constants.Alliance.BLUE) {
-                            insideAdjustDegrees = 20;
-                        } else {
-                            insideAdjustDegrees = -20;
-                        }
-
-                        double origHeading = startPose.getHeading();
-
-                        double newHeading = origHeading + Math.toRadians((bearingInDegrees + insideAdjustDegrees));
-
-                        Log.i(LOG_TAG, "Bearing: " + bearingInDegrees + ", orig heading: " + Math.toDegrees(origHeading) + " new heading: " + Math.toDegrees(newHeading));
-
-                        Pose endPose = new Pose(startPose.getX(), startPose.getY(), newHeading);
-                        Path toEndPath = new Path(new BezierLine(startPose, endPose));
-                        toEndPath.setLinearHeadingInterpolation(startPose.getHeading(), endPose.getHeading());
-
-                        return new PathChain(toEndPath);
-                    }
-
-                    Log.e(LOG_TAG, "April tags not working/initialized");
-                    return new PathChain(new Path(new BezierLine(startPose, safeEndPose)));
-                });
-        return finalizeAimAtGoal;
     }
 }
