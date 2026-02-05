@@ -41,9 +41,9 @@ public class WheeledLauncher implements PeriodicTask {
 
     protected static final double KICKER_SERVO_LOWERED_POSITION = .6;
 
-    private static final double FAR_LAUNCH_VELOCITY = 1520;
+    private static final double FAR_LAUNCH_VELOCITY = 1560;
 
-    public static final int FAR_HOOD_POSITION = 350;
+    public static final int FAR_HOOD_POSITION = 290;
 
     private static final double MEDIUM_LAUNCH_VELOCITY = 1300;
 
@@ -117,23 +117,23 @@ public class WheeledLauncher implements PeriodicTask {
             wheelSpeed = 920;
             hoodPosition = 0;
         } else if (adjustedRangeInches < 12) {
-            wheelSpeed = 970;
+            wheelSpeed = 920;
             hoodPosition = 0;
         } else if (adjustedRangeInches < 24) {
-            wheelSpeed = 1050;
+            wheelSpeed = 1100;
             hoodPosition = 0;
         } else if (adjustedRangeInches < 36) {
-            wheelSpeed = 1150;
-            hoodPosition = 191;
+            wheelSpeed = 1125;
+            hoodPosition = 0;
         } else if (adjustedRangeInches < 48) {
-            wheelSpeed = 1200;
-            hoodPosition = 250;
+            wheelSpeed = 1210;
+            hoodPosition = 0;
         } else if (adjustedRangeInches < 60){
-            wheelSpeed = 1250;
-            hoodPosition = 300;
+            wheelSpeed = 1270;
+            hoodPosition = 178;
         } else {
-            wheelSpeed = 1350;
-            hoodPosition = 350;
+            wheelSpeed = 1355;
+            hoodPosition = 252;
         }
 
         // Set launch velocity
