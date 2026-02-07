@@ -22,7 +22,10 @@
 
 package com.hfrobots.tnt.corelib.control;
 
+import com.google.common.base.Stopwatch;
 import com.qualcomm.robotcore.hardware.Gamepad;
+
+import java.util.concurrent.TimeUnit;
 
 import lombok.AllArgsConstructor;
 
@@ -52,4 +55,18 @@ public class RumbleTarget {
         gamepad.runRumbleEffect(effect);
     }
 
+    final Stopwatch rumbleLimiter = Stopwatch.createUnstarted();
+
+    public final void rumbleBlipsWithThrottle(final int numBlips) {
+        if (rumbleLimiter.isRunning()) {
+            if (rumbleLimiter.elapsed(TimeUnit.MILLISECONDS) > 500) {
+                gamepad.rumbleBlips(numBlips);
+                rumbleLimiter.reset();
+                rumbleLimiter.start();
+            }
+        } else {
+            rumbleLimiter.start();
+            gamepad.rumbleBlips(numBlips);
+        }
+    }
 }

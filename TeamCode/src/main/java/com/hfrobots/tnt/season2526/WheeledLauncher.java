@@ -41,17 +41,17 @@ public class WheeledLauncher implements PeriodicTask {
 
     protected static final double KICKER_SERVO_LOWERED_POSITION = .6;
 
-    private static final double FAR_LAUNCH_VELOCITY = 1560;
+    private static final double FAR_LAUNCH_VELOCITY = 1500;
 
-    public static final int FAR_HOOD_POSITION = 290;
+    public static final int FAR_HOOD_POSITION = 273;
 
-    private static final double MEDIUM_LAUNCH_VELOCITY = 1300;
+    private static final double MEDIUM_LAUNCH_VELOCITY = 1210;
 
-    public static final int MEDIUM_HOOD_POSITION = 500;
+    public static final int MEDIUM_HOOD_POSITION = 0;
 
-    private static final double CLOSE_LAUNCH_VELOCITY = 1080;
+    private static final double CLOSE_LAUNCH_VELOCITY = 1050;
 
-    public static final int CLOSE_HOOD_POSITION = 250;
+    public static final int CLOSE_HOOD_POSITION = 0;
 
     // END: Tunables
 
@@ -70,7 +70,8 @@ public class WheeledLauncher implements PeriodicTask {
 
     public WheeledLauncher(final HardwareMap hardwareMap,
                            final Telemetry telemetry,
-                           final Ticker ticker, AprilTagAligner aprilTagAligner) {
+                           final Ticker ticker,
+                           AprilTagAligner aprilTagAligner) {
         kickerServo = hardwareMap.get(Servo.class, "kickerServo");
         launcherMotor = hardwareMap.get(DcMotorEx.class, "launcherMotor");
         this.aprilTagAligner = aprilTagAligner;
@@ -109,6 +110,7 @@ public class WheeledLauncher implements PeriodicTask {
         if (measuredRange == null) {
             return;
         }
+
         final double adjustedRangeInches = measuredRange - 6;
         final double wheelSpeed;
         final int hoodPosition;

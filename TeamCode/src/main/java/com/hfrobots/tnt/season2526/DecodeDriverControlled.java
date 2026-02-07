@@ -31,6 +31,7 @@ import com.ftc9929.metrics.RobotMetricsSampler;
 import com.ftc9929.metrics.StatsdMetricsReporter;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
+import com.hfrobots.tnt.corelib.control.RumbleTarget;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
 import com.hfrobots.tnt.season2324.Shared;
 import com.qualcomm.hardware.lynx.LynxModule;
@@ -86,7 +87,9 @@ public class DecodeDriverControlled extends OpMode {
             drivebase = new DecodeDrivebase(hardwareMap);
 
             try {
-                aprilTagAligner = new AprilTagAligner(telemetry, drivebase, hardwareMap, ticker);
+                aprilTagAligner = new AprilTagAligner(telemetry, drivebase, hardwareMap, ticker,
+                        new GamepadLed(gamepad1), new GamepadLed(gamepad2),
+                        new RumbleTarget(gamepad1), new RumbleTarget(gamepad2));
                 canUseAprilTags = true;
             } catch (Exception ex) {
                 Log.e(LOG_TAG, "Unable to initialize AprilTags", ex);

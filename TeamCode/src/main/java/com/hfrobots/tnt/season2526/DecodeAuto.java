@@ -23,6 +23,7 @@
 package com.hfrobots.tnt.season2526;
 
 import static com.ftc9929.corelib.Constants.LOG_TAG;
+import static com.hfrobots.tnt.corelib.Constants.Alliance.BLUE;
 
 import android.util.Log;
 
@@ -50,16 +51,17 @@ import java.util.concurrent.TimeUnit;
 import lombok.Getter;
 import lombok.NonNull;
 
+// TODO: Tune wall/45 and maybe wall/goal to back up a bit further and/or wait for launcher a second
 @Autonomous(name = "00 DECODE Auto", preselectTeleOp = DecodeDriverControlled.OP_MODE_NAME)
 public class DecodeAuto extends OpMode {
     // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    public static final Pose RED_SCORE_POSE = new Pose(29.5, 144 - 33, Math.toRadians(135));
+    public static final Pose RED_SCORE_POSE = new Pose(29.5 + 2, 144 - (33 + 2), Math.toRadians(135));
 
     public static final Pose RED_SCORE_SECOND_POSE = new Pose(58, 144 - 53, Math.toRadians(135));
 
     public static final Pose RED_SCORE_SECOND_LEAVE_POSE = new Pose(84, 144 - 53, Math.toRadians(135));
 
-    public static final Pose BLUE_SCORE_POSE = new Pose(29.5, 33, Math.toRadians(225));
+    public static final Pose BLUE_SCORE_POSE = new Pose(29.5 + 2, 33 + 2, Math.toRadians(225));
 
     public static final Pose BLUE_SCORE_SECOND_POSE = new Pose(58, 53, Math.toRadians(225));
 
@@ -69,9 +71,9 @@ public class DecodeAuto extends OpMode {
 
     public static final Pose BLUE_START_PACMAN_POSE = new Pose(82, 40, Math.toRadians(270));
 
-    public static final Pose RED_CLOSE_LEAVE_POSE = new Pose(38, 144 - 17, Math.toRadians(90));
+    public static final Pose RED_CLOSE_LEAVE_POSE = new Pose(38, 144 - 18, Math.toRadians(90));
 
-    public static final Pose BLUE_CLOSE_LEAVE_POSE = new Pose(38, 17, Math.toRadians(270));
+    public static final Pose BLUE_CLOSE_LEAVE_POSE = new Pose(38, 18, Math.toRadians(270));
 
     private DecodeOperatorControls operatorControls;
 
@@ -151,7 +153,7 @@ public class DecodeAuto extends OpMode {
 
             driveTeamSignal = new DecodeDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
-            launcher = new WheeledLauncher(hardwareMap, telemetry, ticker, null);
+            launcher = new WheeledLauncher(hardwareMap, telemetry, ticker, aprilTagAligner);
 
             intake = new RollerIntake(hardwareMap);
 
@@ -339,7 +341,7 @@ public class DecodeAuto extends OpMode {
                     @Override
                     public void chooseBlueAlliance() {
                         if (!configLocked) {
-                            currentAlliance = Constants.Alliance.BLUE;
+                            currentAlliance = BLUE;
                         }
                     }
 
@@ -407,15 +409,15 @@ public class DecodeAuto extends OpMode {
         final Pose startPacmanPose;
         final double startAndScoreHeadingDegrees;
 
-        if (currentAlliance == Constants.Alliance.BLUE) {
+        if (currentAlliance == BLUE) {
             startPosY = 24 + 7.5; // FIXME - We don't understand this starting position!
             startAndScoreHeadingDegrees = 270;
-            scorePose = new Pose(startPoseX+1, startPosY+24, Math.toRadians(startAndScoreHeadingDegrees + 2));
+            scorePose = new Pose(startPoseX+1, startPosY+24, Math.toRadians(startAndScoreHeadingDegrees - 2));
             startPacmanPose = BLUE_START_PACMAN_POSE;
         } else {
             startPosY = 144 - (24 + 7.5); // FIXME
             startAndScoreHeadingDegrees = 90;
-            scorePose = new Pose(startPoseX+1, startPosY-24,  Math.toRadians(startAndScoreHeadingDegrees - 2));
+            scorePose = new Pose(startPoseX+1, startPosY-24,  Math.toRadians(startAndScoreHeadingDegrees + 2));
             startPacmanPose = RED_START_PACMAN_POSE;
         }
 
@@ -450,7 +452,7 @@ public class DecodeAuto extends OpMode {
 
             final Pose leaveEndPose;
 
-            if (currentAlliance == Constants.Alliance.BLUE) {
+            if (currentAlliance == BLUE) {
                 leaveEndPose = BLUE_SCORE_SECOND_LEAVE_POSE;
             } else {
                 leaveEndPose = RED_SCORE_SECOND_LEAVE_POSE;
@@ -477,7 +479,7 @@ public class DecodeAuto extends OpMode {
 
         final Pose scorePose;
 
-        if (currentAlliance == Constants.Alliance.BLUE) {
+        if (currentAlliance == BLUE) {
             scorePose = BLUE_SCORE_SECOND_POSE;
             direction = -1.0;
         } else {
@@ -539,7 +541,7 @@ public class DecodeAuto extends OpMode {
         final Pose scorePose;
         final Pose startPacmanPose;
 
-        if (currentAlliance == Constants.Alliance.BLUE) {
+        if (currentAlliance == BLUE) {
             startPosY = 22;
             startPosX = 16.5;
             startAngle = Math.toRadians(225);
@@ -584,7 +586,7 @@ public class DecodeAuto extends OpMode {
 
             final Pose leaveEndPose;
 
-            if (currentAlliance == Constants.Alliance.BLUE) {
+            if (currentAlliance == BLUE) {
                 leaveEndPose = BLUE_SCORE_SECOND_LEAVE_POSE;
             } else {
                 leaveEndPose = RED_SCORE_SECOND_LEAVE_POSE;
@@ -609,7 +611,7 @@ public class DecodeAuto extends OpMode {
     private void addCloseLeavePath(Pose scorePose, SequenceOfStates sequenceOfStates) {
         final Pose leaveEndPose;
 
-        if (currentAlliance == Constants.Alliance.BLUE) {
+        if (currentAlliance == BLUE) {
             leaveEndPose = BLUE_CLOSE_LEAVE_POSE;
         } else {
             leaveEndPose = RED_CLOSE_LEAVE_POSE;
@@ -651,6 +653,13 @@ public class DecodeAuto extends OpMode {
                 driveTeamSignal.signalGoalAcquired();
 
                 angleTowardsTargetDegrees = detectedBearingInDegrees;
+
+                if (currentAlliance == BLUE) {
+                    angleTowardsTargetDegrees += 1;
+                } else {
+                    angleTowardsTargetDegrees -= 1;
+                }
+
                 Log.d(LOG_TAG, "Setting angle to target based on april tags to " + angleTowardsTargetDegrees);
             } else {
                 Log.e(LOG_TAG, "April tags working, but no usable tag found to use for aiming");
@@ -661,7 +670,7 @@ public class DecodeAuto extends OpMode {
 
         scoreHeadingDegrees = initialRobotHeadingDegrees + angleTowardsTargetDegrees;
 
-        if (currentAlliance == Constants.Alliance.BLUE) {
+        if (currentAlliance == BLUE) {
             startPosY = 60;
         } else {
             startPosY = 84;
@@ -692,7 +701,7 @@ public class DecodeAuto extends OpMode {
 
         final Pose leaveEndPose;
 
-        if (currentAlliance == Constants.Alliance.BLUE) {
+        if (currentAlliance == BLUE) {
             leaveEndPose = new Pose(144 - 9.5, 36, Math.toRadians(initialRobotHeadingDegrees));
         } else {
             leaveEndPose = new Pose(144 - 9.5, 144 - 36, Math.toRadians(initialRobotHeadingDegrees));
@@ -716,7 +725,7 @@ public class DecodeAuto extends OpMode {
 
         final double yPosition;
 
-        if (currentAlliance == Constants.Alliance.BLUE) {
+        if (currentAlliance == BLUE) {
             yPosition = -24;
         } else {
             yPosition = 24;

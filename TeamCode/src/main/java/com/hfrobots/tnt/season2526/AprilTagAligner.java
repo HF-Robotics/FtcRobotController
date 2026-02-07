@@ -26,10 +26,13 @@ import static com.ftc9929.corelib.Constants.LOG_TAG;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableSet;
 import com.hfrobots.tnt.corelib.Constants;
+import com.hfrobots.tnt.corelib.control.RumbleTarget;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
@@ -55,7 +58,7 @@ public class AprilTagAligner implements PeriodicTask {
     //  Drive = Error * Gain    Make these values smaller for smoother control, or larger for a more aggressive response.
     final double SPEED_GAIN  =  0.02  ;   //  Forward Speed Control "Gain". e.g. Ramp up to 50% power at a 25 inch error.   (0.50 / 25.0)
     final double STRAFE_GAIN =  0.015 ;   //  Strafe Speed Control "Gain".  e.g. Ramp up to 37% power at a 25 degree Yaw error.   (0.375 / 25.0)
-    public static double TURN_GAIN   =  0.05  ;   //  Turn Control "Gain".  e.g. Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
+    public static double TURN_GAIN   =  0.04  ;   //  Turn Control "Gain".  e.g. Ramp up to 25% power at a 25 degree error. (0.25 / 25.0)
 
     final double MAX_AUTO_SPEED = 0.5;   //  Clip the approach speed to this max value (adjust for your robot)
     final double MAX_AUTO_STRAFE= 0.5;   //  Clip the strafing speed to this max value (adjust for your robot)
@@ -85,11 +88,30 @@ public class AprilTagAligner implements PeriodicTask {
 
     private AprilTagProcessor aprilTag;              // Used for managing the AprilTag detection process.
 
+    private final GamepadLed driverLed;
+
+    private final GamepadLed operatorLed;
+
+    private final RumbleTarget driverRumble;
+
+    private final RumbleTarget operatorRumble;
+
     public AprilTagAligner(Telemetry telemetry, DecodeDrivebase drivebase, HardwareMap hardwareMap, Ticker ticker) {
+        this(telemetry, drivebase, hardwareMap, ticker, null, null, null, null);
+    }
+
+    public AprilTagAligner(final Telemetry telemetry, final DecodeDrivebase drivebase,
+                           final HardwareMap hardwareMap, final Ticker ticker,
+                           final GamepadLed driverLed, final GamepadLed operatorLed,
+                           final RumbleTarget driverRumble, final RumbleTarget operatorRumble) {
         this.telemetry = telemetry;
         this.drivebase = drivebase;
         this.hardwareMap = hardwareMap;
         this.ticker = ticker;
+        this.driverLed = driverLed;
+        this.operatorLed = operatorLed;
+        this.driverRumble = driverRumble;
+        this.operatorRumble = operatorRumble;
 
         initAprilTag(ticker);
     }
@@ -138,7 +160,9 @@ public class AprilTagAligner implements PeriodicTask {
 
         // Find the tag, return the distance or *null* if the tag isn't found
         if (desiredTag != null) {
-            Log.i(LOG_TAG, "Found tag " + desiredTag.id);
+            final String tagName = getTagNameFromId();
+
+            Log.d(LOG_TAG, "auto-bearing found tag: " + tagName);
 
             return desiredTag.ftcPose.bearing;
         } else {
@@ -152,13 +176,37 @@ public class AprilTagAligner implements PeriodicTask {
         }
 
         desiredTag = detectTag(BOTH_GOAL_TAGS);
+
         // Find the tag, return the distance or *null* if the tag isn't found
-        if (desiredTag != null)
-        {
+        if (desiredTag != null) {
+            final String tagName = getTagNameFromId();
+
+            Log.d(LOG_TAG, "auto-range found tag: " + tagName);
+
+            if (operatorLed != null) {
+                operatorLed.setColor(101, 254, 8, 750);
+            }
+
             return desiredTag.ftcPose.range;
-        }
-        else
-        {
+        } else {
+
+            // Notify the drive team that we didn't find anything
+            // if (driverLed != null) {
+            //    driverLed.setColor(255, 165, 0, 500);
+            //}
+
+            if (operatorLed != null) {
+                operatorLed.setColor(255, 165, 0, 500);
+            }
+
+            if (driverRumble != null) {
+                driverRumble.rumbleBlipsWithThrottle(2);
+            }
+
+            if (operatorRumble != null) {
+                operatorRumble.rumbleBlipsWithThrottle(2);
+            }
+
             return null;
         }
     }
@@ -188,11 +236,32 @@ public class AprilTagAligner implements PeriodicTask {
 
         // Tell the driver what we see, and what to do.
         if (targetFound) {
+
+            if (operatorLed != null) {
+                driverLed.setColor(101, 254, 8, 750);
+            }
+
+            final String tagName = getTagNameFromId();
+
+            Log.d(LOG_TAG, "Found tag: " + tagName);
             telemetry.addData("Found", "ID %d (%s)", desiredTag.id, desiredTag.metadata.name);
             telemetry.addData("Range", "%5.1f inches", desiredTag.ftcPose.range);
             telemetry.addData("Bearing", "%3.0f degrees", desiredTag.ftcPose.bearing);
             telemetry.addData("Yaw", "%3.0f degrees", desiredTag.ftcPose.yaw);
         } else {
+            if (driverLed != null) {
+                driverLed.setColor(255, 165, 0, 500);
+            }
+
+            if (driverRumble != null) {
+                driverRumble.rumbleBlipsWithThrottle(2);
+            }
+
+            if (operatorRumble != null) {
+                operatorRumble.rumbleBlipsWithThrottle(2);
+            }
+
+
             telemetry.addData("\n>", "Drive using joysticks to find valid target\n");
         }
 
@@ -215,6 +284,20 @@ public class AprilTagAligner implements PeriodicTask {
             }
 
         }
+    }
+
+    @NonNull
+    private String getTagNameFromId() {
+        final String tagName;
+
+        if (desiredTag.id == BLUE_TARGET_ID) {
+            tagName = "Blue (" + desiredTag.id + ")";
+        } else if (desiredTag.id == RED_TARGET_ID) {
+            tagName = "Red (" + desiredTag.id + ")";
+        } else {
+            tagName = "? (" + desiredTag.id + ")";
+        }
+        return tagName;
     }
 
     private AprilTagDetection detectTag(final Set<Integer> desiredTags) {
