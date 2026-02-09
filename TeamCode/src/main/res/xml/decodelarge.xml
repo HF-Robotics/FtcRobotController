@@ -42,6 +42,7 @@ SOFTWARE.
             <Servo name="ledIndicatorFrontRight"    port="5" /> <!-- Purple -->
 
             <AnalogInput name="rightPresenceDetector" port="0" />
+            <DigitalDevice name="kickstandLimitswitch" port="1" />
 
         </LynxModule>
         <LynxModule name="Expansion Hub 5" port="5">

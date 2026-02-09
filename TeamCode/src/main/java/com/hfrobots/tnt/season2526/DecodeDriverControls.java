@@ -60,7 +60,7 @@ public class DecodeDriverControls implements PeriodicTask {
 
     protected DebouncedButton bRedButton;
 
-    protected DebouncedButton yYellowButton;
+    protected OnOffButton yYellowButton;
 
     protected DebouncedButton aGreenButton;
 
@@ -115,6 +115,12 @@ public class DecodeDriverControls implements PeriodicTask {
 
     private OnOffButton autoRange;
 
+    private OnOffButton kickstandExtend;
+
+    private DecodeDriveTeamSignal driveTeamSignal;
+
+    private Kickstand kickstand;
+
     @Builder
     private DecodeDriverControls(RangeInput leftStickX,
                                  RangeInput leftStickY,
@@ -130,7 +136,7 @@ public class DecodeDriverControls implements PeriodicTask {
                                  OnOffButton dpadRightRaw,
                                  DebouncedButton xBlueButton,
                                  DebouncedButton bRedButton,
-                                 DebouncedButton yYellowButton,
+                                 OnOffButton yYellowButton,
                                  DebouncedButton aGreenButton,
                                  OnOffButton rightBumper,
                                  OnOffButton leftBumper,
@@ -139,7 +145,9 @@ public class DecodeDriverControls implements PeriodicTask {
                                  NinjaGamePad driversGamepad,
                                  OpenLoopMecanumKinematics kinematics,
                                  InitLoopConfigTask autoConfigTask,
-                                 WheeledLauncher launcher)  {
+                                 WheeledLauncher launcher,
+                                 DecodeDriveTeamSignal driveTeamSignal,
+                                 Kickstand kickstand)  {
         if (driversGamepad != null) {
             this.driversGamepad = driversGamepad;
             setupFromGamepad();
@@ -170,6 +178,8 @@ public class DecodeDriverControls implements PeriodicTask {
         this.kinematics = kinematics;
         this.autoConfigTask = autoConfigTask;
         this.launcher = launcher;
+        this.driveTeamSignal = driveTeamSignal;
+        this.kickstand = kickstand;
     }
 
     private void setupCurvesAndFilters() {
@@ -200,7 +210,7 @@ public class DecodeDriverControls implements PeriodicTask {
         aGreenButton = driversGamepad.getAButton().debounced();
         bRedButton = driversGamepad.getBButton().debounced();
         xBlueButton = driversGamepad.getXButton().debounced();
-        yYellowButton = driversGamepad.getYButton().debounced();
+        yYellowButton = driversGamepad.getYButton();
 
         leftBumper = driversGamepad.getLeftBumper();
         rightBumper = driversGamepad.getRightBumper();
@@ -228,9 +238,9 @@ public class DecodeDriverControls implements PeriodicTask {
         launchSpeedStop = bRedButton;
 
         autoRange = leftBumper;
-    }
 
-    private boolean gripUpFirstTime = false;
+        kickstandExtend = yYellowButton;
+    }
 
     @Override
     public void periodicTask() {
@@ -273,6 +283,16 @@ public class DecodeDriverControls implements PeriodicTask {
                 launcher.stopLauncher();
             } else if (autoRange.isPressed()) {
                 launcher.autoRange();
+            }
+        }
+
+        if (driveTeamSignal != null && kickstand != null) {
+            if (driveTeamSignal.isEndGame()) {
+                if (kickstandExtend.isPressed()) {
+                    kickstand.extend();
+                } else {
+                    kickstand.stopExtending();
+                }
             }
         }
     }

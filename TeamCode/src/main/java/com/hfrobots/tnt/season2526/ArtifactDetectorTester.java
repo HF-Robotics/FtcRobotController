@@ -25,7 +25,7 @@ package com.hfrobots.tnt.season2526;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp(name = "ArtifactTester")
+@TeleOp(name = "ArtifactTester", group = "Utilities")
 public class ArtifactDetectorTester extends OpMode {
     private ArtifactDetector artifactDetector;
 

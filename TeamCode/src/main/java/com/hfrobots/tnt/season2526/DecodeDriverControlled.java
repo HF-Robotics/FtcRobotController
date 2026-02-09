@@ -98,12 +98,21 @@ public class DecodeDriverControlled extends OpMode {
 
             setupMechanisms();
 
+            try {
+                driveTeamSignal = new DecodeDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
+            } catch (IllegalArgumentException ex) {
+                driveTeamSignal = null;
+            }
+
+
             driversGamepad = new NinjaGamePad(gamepad1);
 
             driverControls = DecodeDriverControls.builder()
                     .driversGamepad(driversGamepad)
                     .launcher(launcher)
-                    .kinematics(drivebase).build();
+                    .kinematics(drivebase)
+                    .kickstand(kickstand)
+                    .driveTeamSignal(driveTeamSignal).build();
 
             operatorGamepad = new NinjaGamePad(gamepad2);
 
@@ -111,15 +120,7 @@ public class DecodeDriverControlled extends OpMode {
                     .operatorGamepad(operatorGamepad)
                     .intake(intake)
                     .carousel(carousel)
-                    .launcher(launcher)
-                    .kickstand(kickstand).build();
-
-            try {
-                driveTeamSignal = new DecodeDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
-            } catch (IllegalArgumentException ex) {
-                driveTeamSignal = null;
-            }
-
+                    .launcher(launcher).build();
 
 
             allHubs = hardwareMap.getAll(LynxModule.class);
@@ -245,6 +246,7 @@ public class DecodeDriverControlled extends OpMode {
                 } else {
                     driverControls.periodicTask();
                 }
+
 
                 // DO NOT CHANGE THIS ORDER
                 // Artifact detection must happen before operator

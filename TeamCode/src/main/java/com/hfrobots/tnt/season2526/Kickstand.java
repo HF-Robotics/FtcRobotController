@@ -22,14 +22,23 @@
 
 package com.hfrobots.tnt.season2526;
 
+import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
+
+import android.util.Log;
+
 import com.google.common.base.Stopwatch;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import java.util.concurrent.TimeUnit;
 
 public class Kickstand {
+    private static final int KICKSTAND_ENCODER_LIMIT = 1080;
+    public static final double EXTENSION_POWER = .8;
     private final DcMotorEx kickstandMotor;
+
+    private final DigitalChannel kickstandLimitswitch;
 
     private final static int RETRACTED_ENCODER_COUNT = 0; // we leave this at 0, it's where the motor started
 
@@ -41,29 +50,43 @@ public class Kickstand {
 
     public Kickstand(final HardwareMap hardwareMap) {
         kickstandMotor = hardwareMap.get(DcMotorEx.class, "kickstandMotor");
+        kickstandLimitswitch = hardwareMap.get(DigitalChannel.class, "kickstandLimitswitch");
         encoderCountAtStart = kickstandMotor.getCurrentPosition();
     }
 
     public void extend() {
-        if (encoderCountIsNotAdvancing()) {
+        if (kickstandLimitswitch.getState() == false) {
+            Log.i(LOG_TAG, "Reached limit switch, stop moving kickstand");
             stopExtending();
-
             return;
         }
 
+//        if (encoderCountIsNotAdvancing()) {
+//            Log.i(LOG_TAG, "Encoder count stalled, stop moving kickstand");
+//            stopExtending();
+//
+//            return;
+//        }
+
         if (atOrBeyondExtensionLimit()) {
+            Log.i(LOG_TAG, "Motor at extension limit, stop moving kickstand");
             stopExtending();
 
             return;
         }
 
         if (atOrBeyondTimeLimit()) {
+            Log.i(LOG_TAG, "Extension ran for too long, stop moving kickstand");
             stopExtending();
 
             return;
         }
 
-        extensionTimer.start();
+        if (!extensionTimer.isRunning()) {
+            extensionTimer.start();
+        }
+
+        kickstandMotor.setPower(EXTENSION_POWER);
     }
 
     private boolean encoderCountIsNotAdvancing() {
@@ -87,13 +110,16 @@ public class Kickstand {
     }
 
     private boolean atOrBeyondExtensionLimit() {
-        // FIXME: How to calculate this
+        int currentPosition = kickstandMotor.getCurrentPosition();
+        int delta = currentPosition - encoderCountAtStart;
 
-        return true; // SAFETY for now
+        return delta >= KICKSTAND_ENCODER_LIMIT;
     }
 
     public void stopExtending() {
         kickstandMotor.setPower(0);
-        extensionTimer.stop();
+        if (extensionTimer.isRunning()) {
+            extensionTimer.stop();
+        }
     }
 }

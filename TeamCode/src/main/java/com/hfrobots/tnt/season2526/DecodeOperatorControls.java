@@ -100,8 +100,6 @@ public class DecodeOperatorControls implements PeriodicTask {
 
     private RangeInput hoodAngleAdjust;
 
-    private OnOffButton kickstandDeploy;
-
     // FIXME: Add all of the mechanisms controlled by the operator here, and add them to
     // the constructor, and set them there from the constructor arguments
 
@@ -111,8 +109,6 @@ public class DecodeOperatorControls implements PeriodicTask {
     private DebouncedButton carouselLaunchNextIndex;
 
     private DecodeDriveTeamSignal driveTeamSignal;
-
-    private Kickstand kickstand;
 
     @Builder
     private DecodeOperatorControls(RangeInput leftStickX,
@@ -139,7 +135,6 @@ public class DecodeOperatorControls implements PeriodicTask {
                                    RollerIntake intake,
                                    WheeledLauncher launcher,
                                    GenevaCarousel carousel,
-                                   Kickstand kickstand,
                                    DecodeDriveTeamSignal driveTeamSignal) {
         if (operatorGamepad != null) {
             this.operatorGamepad = operatorGamepad;
@@ -168,7 +163,6 @@ public class DecodeOperatorControls implements PeriodicTask {
         // FIXME: Make sure that mechanisms are setup here, before "wiring" them to
         // controls
 
-        this.kickstand = kickstand;
         this.driveTeamSignal = driveTeamSignal;
         this.intake = intake;
         this.launcher = launcher;
@@ -302,19 +296,6 @@ public class DecodeOperatorControls implements PeriodicTask {
                 carousel.nextIndexForLaunch();
             } else {
                 carousel.manuallyAdjust(carouselThrottle, !unsafe.isPressed());
-            }
-        }
-
-        if (kickstand != null) {
-            if ((driveTeamSignal != null && driveTeamSignal.isEndGame())
-                || unsafe.isPressed()) {
-                // FIXME: Do kickstand stuff!
-//
-//                if (kickstandDeploy != null && kickstandDeploy.isPressed()) {
-//
-//                } else {
-//
-//                }
             }
         }
     }

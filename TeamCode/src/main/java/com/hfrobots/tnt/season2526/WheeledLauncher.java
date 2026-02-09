@@ -133,9 +133,12 @@ public class WheeledLauncher implements PeriodicTask {
         } else if (adjustedRangeInches < 60){
             wheelSpeed = 1270;
             hoodPosition = 178;
-        } else {
+        } else if (adjustedRangeInches < 86){
             wheelSpeed = 1355;
             hoodPosition = 252;
+        } else {
+            wheelSpeed = FAR_LAUNCH_VELOCITY;
+            hoodPosition = FAR_HOOD_POSITION;
         }
 
         // Set launch velocity
