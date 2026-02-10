@@ -50,7 +50,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
 
-@TeleOp(name = OP_MODE_NAME, group = "Utility")
+@TeleOp(name = OP_MODE_NAME, group="Utilities")
 public class DecodeSmallDriverControlled extends OpMode {
     public static final String OP_MODE_NAME = "Decode small";
 
