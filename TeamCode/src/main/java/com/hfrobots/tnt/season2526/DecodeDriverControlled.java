@@ -96,14 +96,13 @@ public class DecodeDriverControlled extends OpMode {
                 canUseAprilTags = false;
             }
 
-            setupMechanisms();
-
             try {
                 driveTeamSignal = new DecodeDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
             } catch (IllegalArgumentException ex) {
                 driveTeamSignal = null;
             }
 
+            setupMechanisms();
 
             driversGamepad = new NinjaGamePad(gamepad1);
 
@@ -158,7 +157,7 @@ public class DecodeDriverControlled extends OpMode {
         }
 
         try {
-            kickstand = new Kickstand(hardwareMap);
+            kickstand = new Kickstand(hardwareMap, driveTeamSignal);
         } catch (IllegalArgumentException ex) {
             kickstand = null;
         }

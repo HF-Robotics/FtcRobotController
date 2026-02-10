@@ -62,6 +62,10 @@ public class DecodeDriveTeamSignal implements PeriodicTask {
 
     private final Gamepad operatorGamepad;
 
+
+    @Setter
+    private boolean kickstandFullyDeployed = false;
+
     @Getter
     private static Constants.Alliance chosenAlliance = null;
 
@@ -112,7 +116,9 @@ public class DecodeDriveTeamSignal implements PeriodicTask {
         // for now, it can only show one thing at a time! Which one is most important
         // is up to you, the drive team, to decide.
 
-        if (isEndGame()) {
+        if (kickstandFullyDeployed) {
+            setIndicators(ORANGE_LED);
+        } else if (isEndGame()) {
             if (!haveEndGameRumble) {
                 driverGamepad.rumble(750);
                 operatorGamepad.rumble(750);

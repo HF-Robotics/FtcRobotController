@@ -287,7 +287,7 @@ public class DecodeDriverControls implements PeriodicTask {
         }
 
         if (driveTeamSignal != null && kickstand != null) {
-            if (driveTeamSignal.isEndGame()) {
+            if (true /*driveTeamSignal.isEndGame() */) {
                 if (kickstandExtend.isPressed()) {
                     kickstand.extend();
                 } else {
