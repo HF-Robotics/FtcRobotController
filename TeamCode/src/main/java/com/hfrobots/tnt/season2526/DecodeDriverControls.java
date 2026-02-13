@@ -62,7 +62,7 @@ public class DecodeDriverControls implements PeriodicTask {
 
     protected OnOffButton yYellowButton;
 
-    protected DebouncedButton aGreenButton;
+    protected OnOffButton aGreenButton;
 
     protected OnOffButton rightBumper;
 
@@ -137,7 +137,7 @@ public class DecodeDriverControls implements PeriodicTask {
                                  DebouncedButton xBlueButton,
                                  DebouncedButton bRedButton,
                                  OnOffButton yYellowButton,
-                                 DebouncedButton aGreenButton,
+                                 OnOffButton aGreenButton,
                                  OnOffButton rightBumper,
                                  OnOffButton leftBumper,
                                  RangeInput leftTrigger,
@@ -207,7 +207,7 @@ public class DecodeDriverControls implements PeriodicTask {
         dpadLeft = driversGamepad.getDpadLeft().debounced();
         dpadRight = driversGamepad.getDpadRight().debounced();
 
-        aGreenButton = driversGamepad.getAButton().debounced();
+        aGreenButton = driversGamepad.getAButton();
         bRedButton = driversGamepad.getBButton().debounced();
         xBlueButton = driversGamepad.getXButton().debounced();
         yYellowButton = driversGamepad.getYButton();
@@ -287,7 +287,7 @@ public class DecodeDriverControls implements PeriodicTask {
         }
 
         if (driveTeamSignal != null && kickstand != null) {
-            if (true /*driveTeamSignal.isEndGame() */) {
+            if (driveTeamSignal.isEndGame() || (aGreenButton != null && aGreenButton.isPressed())) {
                 if (kickstandExtend.isPressed()) {
                     kickstand.extend();
                 } else {

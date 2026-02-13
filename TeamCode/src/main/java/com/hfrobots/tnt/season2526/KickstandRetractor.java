@@ -21,6 +21,7 @@ package com.hfrobots.tnt.season2526;
 
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.control.RangeInput;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -29,6 +30,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
  *
  */
 @TeleOp(name="Kickstand Retractor", group="In pits")
+@Disabled
 public class KickstandRetractor extends OpMode {
     private DcMotorEx kickstandMotor;
 
