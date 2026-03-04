@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2022 The Tech Ninja Team (https://ftc9929.com)
+ Copyright (c) 2026 The Tech Ninja Team (https://ftc9929.com)
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -48,29 +48,25 @@ public class TemplateDriverControls implements PeriodicTask {
 
     protected RangeInput rightStickY;
 
-    protected DebouncedButton dpadUp;
+    protected OnOffButton dpadUp;
 
-    protected DebouncedButton dpadDown;
+    protected OnOffButton dpadDown;
 
-    protected DebouncedButton dpadLeft;
+    protected OnOffButton dpadLeft;
 
-    protected DebouncedButton dpadRight;
+    protected OnOffButton dpadRight;
 
-    protected DebouncedButton xBlueButton;
+    protected OnOffButton xBlueButton;
 
-    protected DebouncedButton bRedButton;
+    protected OnOffButton bRedButton;
 
-    protected DebouncedButton yYellowButton;
+    protected OnOffButton yYellowButton;
 
-    protected DebouncedButton aGreenButton;
+    protected OnOffButton aGreenButton;
 
     protected OnOffButton rightBumper;
 
     protected OnOffButton leftBumper;
-
-    protected DebouncedButton rightBumperDebounced;
-
-    protected DebouncedButton leftBumperDebounced;
 
     protected RangeInput leftTrigger;
 
@@ -103,23 +99,31 @@ public class TemplateDriverControls implements PeriodicTask {
 
     private final float lowPassFilterFactor = 1.0F;
 
+    private DebouncedButton leftBumperDebounced;
+
+    private DebouncedButton rightBumperDebounced;
+
+    private DebouncedButton bRedButtonDebounced;
+
+    private DebouncedButton xBlueButtonDebounced;
+
+    private DebouncedButton dpadUpDebounced;
+
+    private DebouncedButton dpadDownDebounced;
+
     @Builder
     private TemplateDriverControls(RangeInput leftStickX,
                                    RangeInput leftStickY,
                                    RangeInput rightStickX,
                                    RangeInput rightStickY,
-                                   DebouncedButton dpadUp,
-                                   DebouncedButton dpadDown,
-                                   DebouncedButton dpadLeft,
-                                   DebouncedButton dpadRight,
-                                   OnOffButton dpadUpRaw,
-                                   OnOffButton dpadDownRaw,
-                                   OnOffButton dpadLeftRaw,
-                                   OnOffButton dpadRightRaw,
-                                   DebouncedButton xBlueButton,
-                                   DebouncedButton bRedButton,
-                                   DebouncedButton yYellowButton,
-                                   DebouncedButton aGreenButton,
+                                   OnOffButton dpadUp,
+                                   OnOffButton dpadDown,
+                                   OnOffButton dpadLeft,
+                                   OnOffButton dpadRight,
+                                   OnOffButton xBlueButton,
+                                   OnOffButton bRedButton,
+                                   OnOffButton yYellowButton,
+                                   OnOffButton aGreenButton,
                                    OnOffButton rightBumper,
                                    OnOffButton leftBumper,
                                    RangeInput leftTrigger,
@@ -147,8 +151,6 @@ public class TemplateDriverControls implements PeriodicTask {
             this.leftBumper = leftBumper;
             this.leftTrigger = leftTrigger;
             this.rightTrigger = rightTrigger;
-            this.leftBumperDebounced = this.leftBumper.debounced();
-            this.rightBumperDebounced = this.rightBumper.debounced();
         }
 
         setupDerivedControls();
@@ -178,20 +180,18 @@ public class TemplateDriverControls implements PeriodicTask {
         rightStickX = driversGamepad.getRightStickX();
         rightStickY = driversGamepad.getRightStickY();
 
-        dpadDown = driversGamepad.getDpadDown().debounced();
-        dpadUp = driversGamepad.getDpadUp().debounced();
-        dpadLeft = driversGamepad.getDpadLeft().debounced();
-        dpadRight = driversGamepad.getDpadRight().debounced();
+        dpadDown = driversGamepad.getDpadDown();
+        dpadUp = driversGamepad.getDpadUp();
+        dpadLeft = driversGamepad.getDpadLeft();
+        dpadRight = driversGamepad.getDpadRight();
 
-        aGreenButton = driversGamepad.getAButton().debounced();
-        bRedButton = driversGamepad.getBButton().debounced();
-        xBlueButton = driversGamepad.getXButton().debounced();
-        yYellowButton = driversGamepad.getYButton().debounced();
+        aGreenButton = driversGamepad.getAButton();
+        bRedButton = driversGamepad.getBButton();
+        xBlueButton = driversGamepad.getXButton();
+        yYellowButton = driversGamepad.getYButton();
 
         leftBumper = driversGamepad.getLeftBumper();
         rightBumper = driversGamepad.getRightBumper();
-        leftBumperDebounced = leftBumper.debounced();
-        rightBumperDebounced = rightBumper.debounced();
 
         leftTrigger = driversGamepad.getLeftTrigger();
         rightTrigger = driversGamepad.getRightTrigger();
@@ -202,11 +202,20 @@ public class TemplateDriverControls implements PeriodicTask {
     }
 
     private void setupDerivedControls() {
+        setupButtonsForAutoConfiguration();
+
         driveFastButton = new RangeInputButton(leftTrigger, 0.65f);
         driveInvertedButton = new RangeInputButton(rightTrigger, 0.65f);
     }
 
-    private boolean gripUpFirstTime = false;
+    private void setupButtonsForAutoConfiguration() {
+        bRedButtonDebounced = bRedButton.debounced();
+        xBlueButtonDebounced = xBlueButton.debounced();
+        dpadUpDebounced = dpadUp.debounced();
+        dpadDownDebounced = dpadDown.debounced();
+        leftBumperDebounced = leftBumper.debounced();
+        rightBumperDebounced = rightBumper.debounced();
+    }
 
     @Override
     public void periodicTask() {
@@ -249,9 +258,9 @@ public class TemplateDriverControls implements PeriodicTask {
         }
 
         // Use driver dpad up/down to select which route to run
-        if (dpadDown.getRise()) {
+        if (dpadDownDebounced.getRise()) {
             autoConfigTask.previousTaskChoice();
-        } else if (dpadUp.getRise()) {
+        } else if (dpadUpDebounced.getRise()) {
             autoConfigTask.nextTaskChoice();
         }
 
@@ -263,10 +272,9 @@ public class TemplateDriverControls implements PeriodicTask {
             autoConfigTask.increaseDelay();
         }
 
-        // Alliance selection
-        if (bRedButton.getRise()) {
+        if (bRedButtonDebounced.getRise()) {
             autoConfigTask.chooseRedAlliance();
-        } else if (xBlueButton.getRise()) {
+        } else if (xBlueButtonDebounced.getRise()) {
             autoConfigTask.chooseBlueAlliance();
         }
     }

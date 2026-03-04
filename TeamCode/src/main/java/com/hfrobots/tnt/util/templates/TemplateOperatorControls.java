@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2024 The Tech Ninja Team (https://ftc9929.com)
+ Copyright (c) 2026 The Tech Ninja Team (https://ftc9929.com)
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -92,10 +92,6 @@ public class TemplateOperatorControls implements PeriodicTask {
                                      OnOffButton dpadDown,
                                      OnOffButton dpadLeft,
                                      OnOffButton dpadRight,
-                                     OnOffButton dpadUpRaw,
-                                     OnOffButton dpadDownRaw,
-                                     OnOffButton dpadLeftRaw,
-                                     OnOffButton dpadRightRaw,
                                      OnOffButton xBlueButton,
                                      OnOffButton bRedButton,
                                      OnOffButton yYellowButton,
