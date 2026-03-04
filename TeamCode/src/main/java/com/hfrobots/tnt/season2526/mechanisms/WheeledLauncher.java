@@ -20,7 +20,7 @@
  SOFTWARE.
  */
 
-package com.hfrobots.tnt.season2526;
+package com.hfrobots.tnt.season2526.mechanisms;
 
 import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
 
@@ -29,6 +29,7 @@ import android.util.Log;
 import com.ftc9929.corelib.control.RangeInput;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
+import com.hfrobots.tnt.season2526.vision.AprilTagAligner;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;

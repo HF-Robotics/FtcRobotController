@@ -20,17 +20,14 @@
  SOFTWARE.
  */
 
-package com.hfrobots.tnt.season2526;
+package com.hfrobots.tnt.season2526.drivebase;
 
 import static com.ftc9929.corelib.Constants.LOG_TAG;
 
 import android.util.Log;
 
 import com.ftc9929.corelib.state.State;
-import com.google.common.base.Ticker;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.paths.Path;
-import com.pedropathing.paths.PathChain;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -38,30 +35,23 @@ import java.util.function.Supplier;
 
 import lombok.NonNull;
 
-public class PedroFollowerState extends State {
+public class PedroRelativeTurnState extends State {
     private final Follower follower;
 
-    private final Supplier<PathChain> pathChainSupplier;
+    private final Supplier<Double> degreesToTurn;
 
     private boolean followerHasStarted = false;
 
-    public PedroFollowerState(@NonNull String name, Telemetry telemetry, final Follower follower, final Path path) {
-        this(name, telemetry, follower, new PathChain(path));
-    }
-
-    public PedroFollowerState(@NonNull String name, Telemetry telemetry, final Follower follower, final PathChain pathChain) {
-        this(name, telemetry, follower, () -> pathChain);
-    }
-
     /**
-     * Use this when you need to dynamically create the path/patch chain based on the robot's current
-     * state while running auto, not something you can pre-plan (for example, when the beginning
-     * of the path needs to be from the current pose).
+     * Turns relative to the current pose, if the supplier of the degrees returns
+     * null, the transition to the next state will happen immediately.
+     * <p>
+     * Positive values for degreesToTurn will turn CCW around the Z axis.
      */
-    public PedroFollowerState(@NonNull String name, Telemetry telemetry, final Follower follower, final Supplier<PathChain> pathChainSupplier) {
+    public PedroRelativeTurnState(@NonNull String name, Telemetry telemetry, final Follower follower, Supplier<Double> degreesToTurn) {
         super(name, telemetry);
         this.follower = follower;
-        this.pathChainSupplier = pathChainSupplier;
+        this.degreesToTurn = degreesToTurn;
     }
 
     @Override
@@ -72,15 +62,21 @@ public class PedroFollowerState extends State {
     @Override
     public State doStuffAndGetNextState() {
         if (!followerHasStarted) {
-            final PathChain pathChain = pathChainSupplier.get();
+            Double headingChangeInDegrees = degreesToTurn.get();
 
-            Log.d(LOG_TAG, String.format("Starting to follow %s, for state %s", pathChain, name));
+            if (headingChangeInDegrees != null) {
+                Log.d(LOG_TAG, String.format("Starting to turn %s degrees, for state %s", degreesToTurn.get().toString(), name));
 
-            follower.followPath(pathChain);
+                final double headingChangeInRadians = Math.toRadians(headingChangeInDegrees);
 
-            followerHasStarted = true;
+                follower.turn(Math.abs(headingChangeInRadians), headingChangeInRadians > 0);
 
-            return this;
+                followerHasStarted = true;
+
+                return this;
+            } else {
+                return nextState;
+            }
         }
 
         follower.update();

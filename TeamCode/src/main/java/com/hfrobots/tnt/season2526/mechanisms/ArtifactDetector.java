@@ -19,16 +19,13 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
-package com.hfrobots.tnt.season2526;
-
-import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
-
-import android.util.Log;
+package com.hfrobots.tnt.season2526.mechanisms;
 
 import androidx.annotation.NonNull;
 
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
 import com.hfrobots.tnt.corelib.control.LowPassFilter;
+import com.hfrobots.tnt.season2526.driveteam.DecodeDriveTeamSignal;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.HardwareMap;

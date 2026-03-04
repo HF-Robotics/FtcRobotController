@@ -20,7 +20,7 @@
  SOFTWARE.
  */
 
-package com.hfrobots.tnt.season2526;
+package com.hfrobots.tnt.season2526.driveteam;
 
 import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.LowPassFilteredRangeInput;
@@ -31,6 +31,8 @@ import com.ftc9929.corelib.control.RangeInput;
 import com.ftc9929.corelib.control.RangeInputButton;
 import com.ftc9929.corelib.drive.OpenLoopMecanumKinematics;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
+import com.hfrobots.tnt.season2526.mechanisms.Kickstand;
+import com.hfrobots.tnt.season2526.mechanisms.WheeledLauncher;
 
 import lombok.Builder;
 
@@ -64,7 +66,7 @@ public class DecodeDriverControls implements PeriodicTask {
 
     protected OnOffButton aGreenButton;
 
-    protected OnOffButton rightBumper;
+    private OnOffButton rightBumper;
 
     protected OnOffButton leftBumper;
 
@@ -169,7 +171,7 @@ public class DecodeDriverControls implements PeriodicTask {
             this.leftTrigger = leftTrigger;
             this.rightTrigger = rightTrigger;
             this.leftBumperDebounced = this.leftBumper.debounced();
-            this.rightBumperDebounced = this.rightBumper.debounced();
+            this.rightBumperDebounced = this.getRightBumper().debounced();
         }
 
         setupDerivedControls();
@@ -215,7 +217,7 @@ public class DecodeDriverControls implements PeriodicTask {
         leftBumper = driversGamepad.getLeftBumper();
         rightBumper = driversGamepad.getRightBumper();
         leftBumperDebounced = leftBumper.debounced();
-        rightBumperDebounced = rightBumper.debounced();
+        rightBumperDebounced = getRightBumper().debounced();
 
         leftTrigger = driversGamepad.getLeftTrigger();
         rightTrigger = driversGamepad.getRightTrigger();
@@ -327,6 +329,10 @@ public class DecodeDriverControls implements PeriodicTask {
         } else if (xBlueButton.getRise()) {
             autoConfigTask.chooseBlueAlliance();
         }
+    }
+
+    public OnOffButton getRightBumper() {
+        return rightBumper;
     }
 
     public interface InitLoopConfigTask {

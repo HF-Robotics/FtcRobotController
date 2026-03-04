@@ -17,7 +17,7 @@
  SOFTWARE.
  */
 
-package com.hfrobots.tnt.season2526;
+package com.hfrobots.tnt.season2526.driveteam;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;

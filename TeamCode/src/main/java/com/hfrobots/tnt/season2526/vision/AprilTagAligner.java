@@ -20,7 +20,7 @@
  SOFTWARE.
  */
 
-package com.hfrobots.tnt.season2526;
+package com.hfrobots.tnt.season2526.vision;
 
 import static com.ftc9929.corelib.Constants.LOG_TAG;
 
@@ -34,6 +34,8 @@ import com.google.common.collect.ImmutableSet;
 import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.corelib.control.RumbleTarget;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
+import com.hfrobots.tnt.season2526.drivebase.DecodeDrivebase;
+import com.hfrobots.tnt.season2526.driveteam.GamepadLed;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
 

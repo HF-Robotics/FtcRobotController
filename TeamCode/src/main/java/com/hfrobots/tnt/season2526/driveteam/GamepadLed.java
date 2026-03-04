@@ -1,4 +1,4 @@
-package com.hfrobots.tnt.season2526;
+package com.hfrobots.tnt.season2526.driveteam;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
 

@@ -18,21 +18,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package com.hfrobots.tnt.season2526;
-
-import static com.ftc9929.corelib.Constants.LOG_TAG;
-
-import android.util.Log;
+package com.hfrobots.tnt.season2526.drivebase;
 
 import com.ftc9929.corelib.state.State;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.Path;
-import com.pedropathing.paths.PathChain;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-
-import java.util.function.Supplier;
 
 import lombok.NonNull;
 

@@ -20,7 +20,7 @@
  SOFTWARE.
  */
 
-package com.hfrobots.tnt.season2526;
+package com.hfrobots.tnt.season2526.mechanisms;
 
 import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
 

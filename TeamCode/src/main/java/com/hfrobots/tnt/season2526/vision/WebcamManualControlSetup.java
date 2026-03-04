@@ -1,4 +1,4 @@
-package com.hfrobots.tnt.season2526;
+package com.hfrobots.tnt.season2526.vision;
 
 import com.ftc9929.corelib.state.SequenceOfStates;
 import com.ftc9929.corelib.state.State;

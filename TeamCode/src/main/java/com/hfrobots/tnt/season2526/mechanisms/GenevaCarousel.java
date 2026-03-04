@@ -1,4 +1,4 @@
-package com.hfrobots.tnt.season2526;
+package com.hfrobots.tnt.season2526.mechanisms;
 
 import com.ftc9929.corelib.control.RangeInput;
 import com.ftc9929.corelib.state.State;

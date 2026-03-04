@@ -20,14 +20,14 @@
  SOFTWARE.
  */
 
-package com.hfrobots.tnt.season2526;
+package com.hfrobots.tnt.season2526.mechanisms;
 
 import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
 
 import android.util.Log;
 
 import com.google.common.base.Stopwatch;
-import com.hfrobots.tnt.season2122.DriveTeamSignal;
+import com.hfrobots.tnt.season2526.driveteam.DecodeDriveTeamSignal;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;

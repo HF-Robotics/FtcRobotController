@@ -20,7 +20,7 @@
  SOFTWARE.
  */
 
-package com.hfrobots.tnt.season2526;
+package com.hfrobots.tnt.season2526.drivebase;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;

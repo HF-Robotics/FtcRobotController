@@ -20,7 +20,7 @@
  SOFTWARE.
  */
 
-package com.hfrobots.tnt.season2526;
+package com.hfrobots.tnt.season2526.driveteam;
 
 import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.NinjaGamePad;
@@ -28,6 +28,9 @@ import com.ftc9929.corelib.control.OnOffButton;
 import com.ftc9929.corelib.control.RangeInput;
 import com.ftc9929.corelib.control.RangeInputButton;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
+import com.hfrobots.tnt.season2526.mechanisms.GenevaCarousel;
+import com.hfrobots.tnt.season2526.mechanisms.RollerIntake;
+import com.hfrobots.tnt.season2526.mechanisms.WheeledLauncher;
 
 import lombok.Builder;
 

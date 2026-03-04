@@ -20,7 +20,7 @@
  SOFTWARE.
  */
 
-package com.hfrobots.tnt.season2526;
+package com.hfrobots.tnt.season2526.mechanisms;
 
 import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
 
@@ -30,6 +30,7 @@ import com.ftc9929.corelib.control.RangeInput;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.google.common.base.Ticker;
+import com.google.common.collect.Maps;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
@@ -37,83 +38,138 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+import java.util.Map;
+
 import lombok.NonNull;
 
-public class Carousel {
-    public static final double AUTOMATED_POWER = 0.3;
-    public static final int MANUAL_ADJUST_SPEED_REDUCTION = 4;
+public class OGGenevaCarousel implements GenevaCarousel {
+    public static final double AUTOMATED_POWER = 0.4;
+
+    public static final double MANUAL_ADJUST_SPEED_REDUCTION = 1.5;
+
     private final DcMotorEx carouselMotor;
 
-    private final DigitalChannel carouselHomeLimit;
+    private final boolean limitSwitchIsWorking = true;
 
-    public static final double ONE_FULL_REV = 751.8;
-    public static final double ONE_THIRD_REV = ONE_FULL_REV / 3;
-    public static final double ONE_SIXTH_REV = ONE_THIRD_REV / 2;
+    private final DigitalChannel launchPositionDetection;
 
-    private static double[] LAUNCH_POSITIONS = {
-            0 + ONE_SIXTH_REV,
-            ONE_SIXTH_REV + ONE_THIRD_REV,
-            ONE_SIXTH_REV + ONE_THIRD_REV + ONE_THIRD_REV
-    };
+    public static final double ONE_FULL_REV = 384.5; // Yellow Jacket 435RPM
 
-    private static double[] INDEX_POSITIONS = {
-            0,
-            ONE_THIRD_REV,
-            ONE_THIRD_REV + ONE_THIRD_REV
-    };
+    public enum ArtifactColor { GREEN, PURPLE }
 
-    private int currentLaunchIndex = 0;
+    private final Map<ArtifactColor, Integer> artifactsToPositions = Maps.newHashMap();
 
-    private int currentIntakeIndex = 0;
+    private final Telemetry telemetry;
 
-    public Carousel(final HardwareMap hardwareMap) {
+    // FIXME: Must always start in launch position - until we fix limit switch!
+    private boolean isInLaunchPosition = true;
+
+    public OGGenevaCarousel(final HardwareMap hardwareMap, Telemetry telemetry) {
         carouselMotor = hardwareMap.get(DcMotorEx.class, "carouselMotor");
+        this.telemetry = telemetry;
         carouselMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         carouselMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         carouselMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        carouselHomeLimit = hardwareMap.get(DigitalChannel.class, "carouselHome");
+        launchPositionDetection = hardwareMap.get(DigitalChannel.class, "launchPositionDetection");
     }
 
+    @Override
+    public void doAutoIntakeStuff() {
+
+    }
+
+    @Override
+    public void resetAutoIntake() {
+
+    }
+
+    @Override
     public boolean isBusyIndexing() {
         return carouselMotor.isBusy();
     }
 
+    @Override
     public void nextIndexForIntake() {
-        nextIndexForIntake(false);
-    }
-
-    public void nextIndexForIntake(boolean slow) {
-        currentIntakeIndex = currentIntakeIndex + 1;
-
-        if (currentIntakeIndex > 2) {
-            currentIntakeIndex = 0;
+        if (notDoneAdvancing()) {
+            Log.d(LOG_TAG, "Not done advancing from previous command, not accepting nextIndexForIntake() command");
+            return;
         }
 
-        double targetPos = INDEX_POSITIONS[currentIntakeIndex];
+        int currentEncoderPosition = carouselMotor.getCurrentPosition();
 
-        if (!slow) {
-            runToPosition(targetPos);
+        final double targetPos;
+
+        if (isInLaunchPosition()) {
+            targetPos = currentEncoderPosition + ONE_FULL_REV;
         } else {
-            runToPositionSlow(targetPos);
+           targetPos = currentEncoderPosition + (ONE_FULL_REV * 2);
         }
-    }
-
-    public void nextIndexForLaunch() {
-        currentLaunchIndex = currentLaunchIndex + 1;
-
-        if (currentLaunchIndex > 2) {
-            currentLaunchIndex = 0;
-        }
-
-        double targetPos = LAUNCH_POSITIONS[currentLaunchIndex];
 
         runToPosition(targetPos);
+
+        isInLaunchPosition = false;
+
+    }
+
+    @Override
+    public boolean notDoneAdvancing() {
+
+        if (DcMotor.RunMode.RUN_TO_POSITION != carouselMotor.getMode()) {
+            return false;
+        }
+
+        int currentEncoderCount = carouselMotor.getCurrentPosition();
+        int targetEncoderCount = carouselMotor.getTargetPosition();
+        int targetTolerance = carouselMotor.getTargetPositionTolerance();
+
+        int difference = Math.abs(currentEncoderCount - targetEncoderCount);
+
+        Log.d(LOG_TAG, "Geneva drive: ce, te, tt, diff: " + currentEncoderCount + ", " + targetEncoderCount + ", " + targetTolerance + ", " + difference);
+
+        return difference >= targetTolerance;
+    }
+
+    @Override
+    public boolean isInLaunchPosition() {
+        if (!limitSwitchIsWorking) {
+            return isInLaunchPosition;
+        }
+
+        final boolean sensedLaunchPositionLimitSwitch = !launchPositionDetection.getState();
+
+        Log.d(LOG_TAG, "Launch position limit switch is sensed: " + sensedLaunchPositionLimitSwitch);
+
+        return sensedLaunchPositionLimitSwitch;
+    }
+
+    @Override
+    public void nextIndexForLaunch() {
+        if (notDoneAdvancing()) {
+            Log.d(LOG_TAG, "Not done advancing from previous command, not accepting nextIndexForLaunch() command");
+            return;
+        }
+
+        int currentEncoderPosition = carouselMotor.getCurrentPosition();
+
+        final double targetPos;
+
+        if (isInLaunchPosition()) {
+            targetPos = currentEncoderPosition + (ONE_FULL_REV * 2);
+            Log.d(LOG_TAG, "In launch position, going from " + currentEncoderPosition + " to " + targetPos);
+        } else {
+            targetPos = currentEncoderPosition + ONE_FULL_REV;
+            Log.d(LOG_TAG, "Not in launch position, going from " + currentEncoderPosition + " to " + targetPos);
+        }
+
+        runToPosition(targetPos);
+        isInLaunchPosition = true;
     }
 
     private boolean runningToPosition = false;
 
     private void runToPosition(double targetPos) {
+        Log.d(LOG_TAG, "Attempting to run to position:" + targetPos);
         carouselMotor.setTargetPosition((int) targetPos);
         carouselMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         carouselMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -121,14 +177,7 @@ public class Carousel {
         runningToPosition = true;
     }
 
-    private void runToPositionSlow(double targetPos) {
-        carouselMotor.setTargetPosition((int) targetPos);
-        carouselMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        carouselMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        carouselMotor.setPower(AUTOMATED_POWER * 0.6);
-        runningToPosition = true;
-    }
-
+    @Override
     public void manuallyAdjust(final RangeInput carouselThrottle, final boolean unsafeIsPressed) {
         manuallyAdjust(carouselThrottle.getPosition(), unsafeIsPressed);
     }
@@ -153,21 +202,6 @@ public class Carousel {
 
         carouselThrottlePosition /= MANUAL_ADJUST_SPEED_REDUCTION;
 
-        if (carouselThrottlePosition < 0) {
-            if (!unsafeIsPressed) {
-                if (!carouselHomeLimit.getState()) {
-                    Log.d(LOG_TAG, "Carousel is at home and throttle is " + carouselThrottlePosition);
-
-                    carouselMotor.setPower(0);
-                    carouselMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-                    return;
-                }
-            } else {
-                Log.d(LOG_TAG, "Unsafe pressed, not auto-homing");
-            }
-        }
-
         if (!unsafeIsPressed) {
             maybeSetRunMode(DcMotor.RunMode.RUN_USING_ENCODER);
         } else {
@@ -183,18 +217,31 @@ public class Carousel {
         }
     }
 
-    private boolean isAtHomePosition() {
-        return !carouselHomeLimit.getState();
+    @Override
+    public State nextLaunchIndexState(final Telemetry telemetry, @NonNull final Ticker ticker, final boolean skipIfInPosition) {
+        return new NextLaunchIndexState(telemetry, ticker, skipIfInPosition);
     }
 
-    public class NextLaunchIndexState extends StopwatchTimeoutSafetyState {
+    private class NextLaunchIndexState extends StopwatchTimeoutSafetyState {
         private boolean initialized = false;
-        protected NextLaunchIndexState(final Telemetry telemetry, @NonNull final Ticker ticker) {
+
+        private final boolean skipIfInPosition;
+
+        protected NextLaunchIndexState(final Telemetry telemetry, @NonNull final Ticker ticker, boolean skipIfInPosition) {
             super("Carousel indexing", telemetry, ticker, 10_000);
+            this.skipIfInPosition = skipIfInPosition;
         }
 
         @Override
         public State doStuffAndGetNextState() {
+            if (skipIfInPosition) {
+                if (isInLaunchPosition()) {
+                    resetToStart();
+
+                    return nextState;
+                }
+            }
+
             if (!initialized) {
                 nextIndexForLaunch();
                 initialized = true;
@@ -230,16 +277,33 @@ public class Carousel {
         }
     }
 
-    public class NextIntakeIndexState extends StopwatchTimeoutSafetyState {
+    @Override
+    public State nextIntakeIndexState(final Telemetry telemetry, @NonNull final Ticker ticker, final boolean skipIfInPosition) {
+        return new NextIntakeIndexState(telemetry, ticker, skipIfInPosition);
+    }
+
+    private class NextIntakeIndexState extends StopwatchTimeoutSafetyState {
         private boolean initialized = false;
-        protected NextIntakeIndexState(final Telemetry telemetry, @NonNull final Ticker ticker) {
+
+        private final boolean skipIfInPosition;
+
+        protected NextIntakeIndexState(final Telemetry telemetry, @NonNull final Ticker ticker, boolean skipIfInPosition) {
             super("Carousel indexing", telemetry, ticker, 10_000);
+            this.skipIfInPosition = skipIfInPosition;
         }
 
         @Override
         public State doStuffAndGetNextState() {
+            if (skipIfInPosition) {
+                if (!isInLaunchPosition()) {
+                    resetToStart();
+
+                    return nextState;
+                }
+            }
+
             if (!initialized) {
-                nextIndexForIntake(true);
+                nextIndexForIntake();
                 initialized = true;
 
                 return this;
@@ -270,39 +334,6 @@ public class Carousel {
             super.resetToStart();
 
             initialized = false;
-        }
-    }
-
-    public class HomeLocationState extends StopwatchTimeoutSafetyState {
-        @Override
-        public void resetToStart() {
-            super.resetToStart();
-            manuallyAdjust(0, true);
-        }
-
-        protected HomeLocationState(final Telemetry telemetry, @NonNull final Ticker ticker) {
-            super("Carousel homing", telemetry, ticker, 7_000);
-        }
-
-        @Override
-        public State doStuffAndGetNextState() {
-            manuallyAdjust(-.2F, false); // head towards hard stop
-
-            if (!isAtHomePosition()) {
-                return this;
-            }
-
-            if (isTimedOut()) {
-                Log.e(LOG_TAG, "Timed out while homing carousel");
-
-                resetToStart();
-
-                return nextState;
-            }
-
-            Log.d(LOG_TAG, "Carousel has completed homing");
-
-            return nextState;
         }
     }
 }

@@ -20,7 +20,7 @@
  SOFTWARE.
  */
 
-package com.hfrobots.tnt.season2526;
+package com.hfrobots.tnt.season2526.drivebase;
 
 import com.ftc9929.corelib.drive.OpenLoopMecanumKinematics;
 import com.qualcomm.robotcore.hardware.DcMotor;
