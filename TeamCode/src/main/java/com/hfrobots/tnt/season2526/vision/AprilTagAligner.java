@@ -44,6 +44,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import org.firstinspires.ftc.vision.apriltag.AprilTagSingleDetection;
 
 import java.util.List;
 import java.util.Set;
@@ -246,10 +247,10 @@ public class AprilTagAligner implements PeriodicTask {
             final String tagName = getTagNameFromId();
 
             Log.d(LOG_TAG, "Found tag: " + tagName);
-            telemetry.addData("Found", "ID %d (%s)", desiredTag.id, desiredTag.metadata.name);
-            telemetry.addData("Range", "%5.1f inches", desiredTag.ftcPose.range);
-            telemetry.addData("Bearing", "%3.0f degrees", desiredTag.ftcPose.bearing);
-            telemetry.addData("Yaw", "%3.0f degrees", desiredTag.ftcPose.yaw);
+            //telemetry.addData("Found", "ID %d (%s)", desiredTag.id, desiredTag.metadata.name);
+            //telemetry.addData("Range", "%5.1f inches", desiredTag.ftcPose.range);
+            //telemetry.addData("Bearing", "%3.0f degrees", desiredTag.ftcPose.bearing);
+            //telemetry.addData("Yaw", "%3.0f degrees", desiredTag.ftcPose.yaw);
         } else {
             if (driverLed != null) {
                 driverLed.setColor(255, 165, 0, 500);
@@ -290,16 +291,16 @@ public class AprilTagAligner implements PeriodicTask {
 
     @NonNull
     private String getTagNameFromId() {
-        final String tagName;
-
-        if (desiredTag.id == BLUE_TARGET_ID) {
-            tagName = "Blue (" + desiredTag.id + ")";
-        } else if (desiredTag.id == RED_TARGET_ID) {
-            tagName = "Red (" + desiredTag.id + ")";
-        } else {
-            tagName = "? (" + desiredTag.id + ")";
-        }
-        return tagName;
+//        final String tagName;
+//
+//        if (desiredTag.id == BLUE_TARGET_ID) {
+//            tagName = "Blue (" + desiredTag.id + ")";
+//        } else if (desiredTag.id == RED_TARGET_ID) {
+//            tagName = "Red (" + desiredTag.id + ")";
+//        } else {
+//            tagName = "? (" + desiredTag.id + ")";
+//        }
+        return "";
     }
 
     private AprilTagDetection detectTag(final Set<Integer> desiredTags) {
@@ -310,7 +311,9 @@ public class AprilTagAligner implements PeriodicTask {
             Log.d(LOG_TAG, "Detections: " + currentDetections);
         }
 
-        for (AprilTagDetection detection : currentDetections) {
+        for (AprilTagDetection someDetection : currentDetections) {
+            AprilTagSingleDetection detection = (AprilTagSingleDetection) someDetection;
+
             // Look to see if we have size info on this tag.
             if (detection.metadata != null) {
                 //  Check to see if we want to track towards this tag.
@@ -325,7 +328,7 @@ public class AprilTagAligner implements PeriodicTask {
                 }
             } else {
                 // This tag is NOT in the library, so we don't have enough information to track to it.
-                telemetry.addData("Unknown", "Tag ID %d is not in TagLibrary", detection.id);
+//                telemetry.addData("Unknown", "Tag ID %d is not in TagLibrary", detection.id);
 
                 return null;
             }
