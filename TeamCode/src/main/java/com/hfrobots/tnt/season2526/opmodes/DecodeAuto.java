@@ -47,10 +47,10 @@ import com.hfrobots.tnt.season2526.drivebase.HoldPositionState;
 import com.hfrobots.tnt.season2526.drivebase.PedroFollowerState;
 import com.hfrobots.tnt.season2526.mechanisms.RollerIntake;
 import com.hfrobots.tnt.season2526.mechanisms.WheeledLauncher;
+import static com.pedropathing.api.Paths.*;
+import com.pedropathing.api.PoseFactory;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierCurve;
-import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -67,25 +67,25 @@ import lombok.NonNull;
 @Autonomous(name = "00 DECODE Auto", preselectTeleOp = DecodeDriverControlled.OP_MODE_NAME)
 public class DecodeAuto extends OpMode {
     // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    public static final Pose RED_SCORE_POSE = new Pose(29.5 + 2, 144 - (33 + 2), Math.toRadians(135));
+    public final Pose RED_SCORE_POSE = poseFactory.of(29.5 + 2, 144 - (33 + 2), Math.toRadians(135));
 
-    public static final Pose RED_SCORE_SECOND_POSE = new Pose(58, 144 - 53, Math.toRadians(135));
+    public final Pose RED_SCORE_SECOND_POSE = poseFactory.of(58, 144 - 53, Math.toRadians(135));
 
-    public static final Pose RED_SCORE_SECOND_LEAVE_POSE = new Pose(84, 144 - 53, Math.toRadians(135));
+    public final Pose RED_SCORE_SECOND_LEAVE_POSE = poseFactory.of(84, 144 - 53, Math.toRadians(135));
 
-    public static final Pose BLUE_SCORE_POSE = new Pose(29.5 + 2, 33 + 2, Math.toRadians(225));
+    public final Pose BLUE_SCORE_POSE = poseFactory.of(29.5 + 2, 33 + 2, Math.toRadians(225));
 
-    public static final Pose BLUE_SCORE_SECOND_POSE = new Pose(58, 53, Math.toRadians(225));
+    public final Pose BLUE_SCORE_SECOND_POSE = poseFactory.of(58, 53, Math.toRadians(225));
 
-    public static final Pose BLUE_SCORE_SECOND_LEAVE_POSE = new Pose(84, 53, Math.toRadians(225));
+    public final Pose BLUE_SCORE_SECOND_LEAVE_POSE = poseFactory.of(84, 53, Math.toRadians(225));
 
-    public static final Pose RED_START_PACMAN_POSE = new Pose(82, 144 - 40, Math.toRadians(90));
+    public final Pose RED_START_PACMAN_POSE = poseFactory.of(82, 144 - 40, Math.toRadians(90));
 
-    public static final Pose BLUE_START_PACMAN_POSE = new Pose(82, 40, Math.toRadians(270));
+    public final Pose BLUE_START_PACMAN_POSE = poseFactory.of(82, 40, Math.toRadians(270));
 
-    public static final Pose RED_CLOSE_LEAVE_POSE = new Pose(38, 144 - 18, Math.toRadians(90));
+    public final Pose RED_CLOSE_LEAVE_POSE = poseFactory.of(38, 144 - 18, Math.toRadians(90));
 
-    public static final Pose BLUE_CLOSE_LEAVE_POSE = new Pose(38, 18, Math.toRadians(270));
+    public final Pose BLUE_CLOSE_LEAVE_POSE = poseFactory.of(38, 18, Math.toRadians(270));
 
     private DecodeOperatorControls operatorControls;
 
@@ -136,6 +136,8 @@ public class DecodeAuto extends OpMode {
 
     private Follower pedroFollower;
 
+    private static final PoseFactory poseFactory = PoseFactory.radians();
+
     private DecodeDriverControls driverControls;
 
     private DecodeDriveTeamSignal driveTeamSignal;
@@ -171,7 +173,7 @@ public class DecodeAuto extends OpMode {
 
             carousel = new AbsGenevaCarousel(hardwareMap, artifactDetector, intake, telemetry);
 
-            pedroFollower = DecodeLargeDrivebasePedroConstants.createFollower(hardwareMap);
+            pedroFollower = DecodeLargeDrivebasePedroConstants.create(hardwareMap);
 
             setupOperatorControls();
 
@@ -424,22 +426,21 @@ public class DecodeAuto extends OpMode {
         if (currentAlliance == BLUE) {
             startPosY = 24 + 7.5; // FIXME - We don't understand this starting position!
             startAndScoreHeadingDegrees = 270;
-            scorePose = new Pose(startPoseX+1, startPosY+24, Math.toRadians(startAndScoreHeadingDegrees - 2));
+            scorePose = poseFactory.of(startPoseX+1, startPosY+24, Math.toRadians(startAndScoreHeadingDegrees - 2));
             startPacmanPose = BLUE_START_PACMAN_POSE;
         } else {
             startPosY = 144 - (24 + 7.5); // FIXME
             startAndScoreHeadingDegrees = 90;
-            scorePose = new Pose(startPoseX+1, startPosY-24,  Math.toRadians(startAndScoreHeadingDegrees + 2));
+            scorePose = poseFactory.of(startPoseX+1, startPosY-24,  Math.toRadians(startAndScoreHeadingDegrees + 2));
             startPacmanPose = RED_START_PACMAN_POSE;
         }
 
-        final Pose startPose = new Pose(startPoseX, startPosY, Math.toRadians(startAndScoreHeadingDegrees)); // Start Pose of our robot.
+        final Pose startPose = poseFactory.of(startPoseX, startPosY, Math.toRadians(startAndScoreHeadingDegrees)); // Start Pose of our robot.
 
         /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
-        final Path scorePreload = new Path(new BezierLine(startPose, scorePose));
-        scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
+        final Path scorePreload =  line(startPose, scorePose).linear(startPose, scorePose);
 
-        pedroFollower.setStartingPose(startPose);
+        pedroFollower.setPose(startPose);
 
         PedroFollowerState scorePathState = new PedroFollowerState("Score preload", telemetry, pedroFollower, scorePreload);
 
@@ -450,11 +451,11 @@ public class DecodeAuto extends OpMode {
         // This is where we need to choose to go pacman - or just leave
 
         if (scoreMoreArtifacts) {
-            Pose midpointPose = new Pose(60 + 5, 144 - 60 + 5);
+            Pose midpointPose = poseFactory.of(60 + 5, 144 - 60 + 5, 0);
 
-            final Path toEndPosePath = new Path(new BezierCurve(List.of(scorePose, midpointPose, startPacmanPose)));
-
-            toEndPosePath.setLinearHeadingInterpolation(scorePose.getHeading(), startPacmanPose.getHeading());
+            // The new way looks like
+            final Path toEndPosePath = curve(scorePose, midpointPose, startPacmanPose)
+                    .linear(scorePose, startPacmanPose);
 
             PedroFollowerState endPathState = new PedroFollowerState("End pose", telemetry, pedroFollower, toEndPosePath);
 
@@ -470,9 +471,7 @@ public class DecodeAuto extends OpMode {
                 leaveEndPose = RED_SCORE_SECOND_LEAVE_POSE;
             }
 
-            final Path toLeavePath = new Path(new BezierLine(poseAtEndOfSecondScore, leaveEndPose));
-
-            toLeavePath.setLinearHeadingInterpolation(poseAtEndOfSecondScore.getHeading(), leaveEndPose.getHeading());
+            final Path toLeavePath = line(poseAtEndOfSecondScore, leaveEndPose).linear(poseAtEndOfSecondScore, leaveEndPose);
 
             PedroFollowerState leavePathState = new PedroFollowerState("Leave", telemetry, pedroFollower, toLeavePath);
 
@@ -512,9 +511,7 @@ public class DecodeAuto extends OpMode {
 
         sequenceOfStates.addRunnableStep("Intake off", () -> intake.stop());
 
-        final Path scorePath = new Path(new BezierLine(nextArtifactPose, scorePose));
-
-        scorePath.setLinearHeadingInterpolation(nextArtifactPose.getHeading(), scorePose.getHeading());
+        final Path scorePath = line(nextArtifactPose, scorePose).linear(nextArtifactPose, scorePose);
 
         PedroFollowerState scorePathState = new PedroFollowerState("Score again!", telemetry, pedroFollower, scorePath);
         sequenceOfStates.addSequential(scorePathState);
@@ -526,9 +523,10 @@ public class DecodeAuto extends OpMode {
 
     private Pose addOneArtifactIntakeSequence(final SequenceOfStates sequenceOfStates,
                                               final Pose startFromPose, final double direction) {
-        final Pose toNextArtifactPose = new Pose(startFromPose.getX(), startFromPose.getY() + (direction * 5), startFromPose.getHeading());
-        final Path intakeNextArtifactPath = new Path(new BezierLine(startFromPose, toNextArtifactPose));
-        intakeNextArtifactPath.setLinearHeadingInterpolation(startFromPose.getHeading(), toNextArtifactPose.getHeading());
+        final Pose toNextArtifactPose = poseFactory.of(startFromPose.x(), startFromPose.y() + (direction * 5), startFromPose.heading());
+
+        final Path intakeNextArtifactPath = line(startFromPose, toNextArtifactPose).linear(startFromPose, toNextArtifactPose);
+
         PedroFollowerState intakeNextArtifactPathState = new PedroFollowerState("Intake next artifact", telemetry, pedroFollower, intakeNextArtifactPath);
 
         final State nextIntakeIndexState = carousel.nextIntakeIndexState(telemetry, ticker, false);
@@ -569,14 +567,12 @@ public class DecodeAuto extends OpMode {
             startPacmanPose = RED_START_PACMAN_POSE;
         }
 
-        final Pose startPose = new Pose(startPosX, startPosY, startAngle); // Start Pose of our robot.
+        final Pose startPose = poseFactory.of(startPosX, startPosY, startAngle); // Start Pose of our robot.
 
         /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
-        final Path scorePreload = new Path(new BezierLine(startPose, scorePose));
+        final Path scorePreload = line(startPose, scorePose).linear(startPose, scorePose);
 
-        scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
-
-        pedroFollower.setStartingPose(startPose);
+        pedroFollower.setPose(startPose);
 
         PedroFollowerState scorePathState = new PedroFollowerState("Score preload", telemetry, pedroFollower, scorePreload);
 
@@ -586,9 +582,7 @@ public class DecodeAuto extends OpMode {
 
         // Here is where we decide to score more or leave
         if (scoreMoreArtifacts) {
-            final Path toEndPosePath = new Path(new BezierLine(scorePose, startPacmanPose));
-
-            toEndPosePath.setLinearHeadingInterpolation(scorePose.getHeading(), startPacmanPose.getHeading());
+            final Path toEndPosePath = line(scorePose, startPacmanPose).linear(scorePose, startPacmanPose);
 
             PedroFollowerState endPathState = new PedroFollowerState("End pose", telemetry, pedroFollower, toEndPosePath);
 
@@ -604,9 +598,7 @@ public class DecodeAuto extends OpMode {
                 leaveEndPose = RED_SCORE_SECOND_LEAVE_POSE;
             }
 
-            final Path toLeavePath = new Path(new BezierLine(poseAtEndOfSecondScore, leaveEndPose));
-
-            toLeavePath.setLinearHeadingInterpolation(poseAtEndOfSecondScore.getHeading(), leaveEndPose.getHeading());
+            final Path toLeavePath = line(poseAtEndOfSecondScore, leaveEndPose).linear(poseAtEndOfSecondScore, leaveEndPose);
 
             PedroFollowerState leavePathState = new PedroFollowerState("Leave", telemetry, pedroFollower, toLeavePath);
 
@@ -629,9 +621,7 @@ public class DecodeAuto extends OpMode {
             leaveEndPose = RED_CLOSE_LEAVE_POSE;
         }
 
-        final Path toLeavePath = new Path(new BezierLine(scorePose, leaveEndPose));
-
-        toLeavePath.setLinearHeadingInterpolation(scorePose.getHeading(), leaveEndPose.getHeading());
+        final Path toLeavePath = line(scorePose, leaveEndPose).linear(scorePose, leaveEndPose);
 
         PedroFollowerState leavePathState = new PedroFollowerState("Leave", telemetry, pedroFollower, toLeavePath);
 
@@ -689,15 +679,14 @@ public class DecodeAuto extends OpMode {
         }
         scorePoseY = startPosY;
 
-        final Pose startPose = new Pose(startPoseX, startPosY, Math.toRadians(initialRobotHeadingDegrees)); // Start Pose of our robot.
+        final Pose startPose = poseFactory.of(startPoseX, startPosY, Math.toRadians(initialRobotHeadingDegrees)); // Start Pose of our robot.
 
-        final Pose scorePose = new Pose(scorePoseX, scorePoseY, Math.toRadians(scoreHeadingDegrees));
+        final Pose scorePose = poseFactory.of(scorePoseX, scorePoseY, Math.toRadians(scoreHeadingDegrees));
 
         /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
-        final Path scorePreload = new Path(new BezierLine(startPose, scorePose));
-        scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
+        final Path scorePreload = line(startPose, scorePose).linear(startPose, scorePose);
 
-        pedroFollower.setStartingPose(startPose);
+        pedroFollower.setPose(startPose);
 
         PedroFollowerState scorePathState = new PedroFollowerState("Score preload", telemetry,
                 pedroFollower, scorePreload);
@@ -714,14 +703,12 @@ public class DecodeAuto extends OpMode {
         final Pose leaveEndPose;
 
         if (currentAlliance == BLUE) {
-            leaveEndPose = new Pose(144 - 9.5, 36, Math.toRadians(initialRobotHeadingDegrees));
+            leaveEndPose = poseFactory.of(144 - 9.5, 36, Math.toRadians(initialRobotHeadingDegrees));
         } else {
-            leaveEndPose = new Pose(144 - 9.5, 144 - 36, Math.toRadians(initialRobotHeadingDegrees));
+            leaveEndPose = poseFactory.of(144 - 9.5, 144 - 36, Math.toRadians(initialRobotHeadingDegrees));
         }
 
-        final Path toLeavePath = new Path(new BezierLine(scorePose, leaveEndPose));
-
-        toLeavePath.setLinearHeadingInterpolation(scorePose.getHeading(), leaveEndPose.getHeading());
+        final Path toLeavePath = line(scorePose, leaveEndPose).linear(scorePose, leaveEndPose);
 
         PedroFollowerState leavePathState = new PedroFollowerState("Leave", telemetry, pedroFollower, toLeavePath);
 
@@ -743,14 +730,13 @@ public class DecodeAuto extends OpMode {
             yPosition = 24;
         }
 
-        final Pose endPose = new Pose(144 - 1, yPosition, Math.toRadians(180));
+        final Pose endPose = poseFactory.of(144 - 1, yPosition, Math.toRadians(180));
 
-        final Pose startPose = new Pose(144, 0, Math.toRadians(180)); // Start Pose of our robot.
+        final Pose startPose = poseFactory.of(144, 0, Math.toRadians(180)); // Start Pose of our robot.
 
-        final Path driveForward = new Path(new BezierLine(startPose, endPose));
-        driveForward.setLinearHeadingInterpolation(startPose.getHeading(), endPose.getHeading());
+        final Path driveForward = line(startPose, endPose).linear(startPose, endPose);
 
-        pedroFollower.setStartingPose(startPose);
+        pedroFollower.setPose(startPose);
 
         PedroFollowerState driveForwardPathState = new PedroFollowerState("Drive forward", telemetry, pedroFollower, driveForward);
         sequenceOfStates.addSequential(driveForwardPathState);

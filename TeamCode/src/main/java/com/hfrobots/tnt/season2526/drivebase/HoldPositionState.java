@@ -22,7 +22,7 @@ package com.hfrobots.tnt.season2526.drivebase;
 
 import com.ftc9929.corelib.state.State;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Pose;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -50,16 +50,16 @@ public class HoldPositionState extends State {
     public State doStuffAndGetNextState() {
         if (!followerHasStarted) {
 
-            poseToHold = follower.getPose();
+            poseToHold = follower.pose();
 
-            follower.holdPoint(poseToHold);
+            follower.hold(poseToHold);
             followerHasStarted = true;
 
             return this;
         }
 
         if (poseToHold != null) {
-            follower.holdPoint(poseToHold);
+            follower.hold(poseToHold);
             follower.update();
         }
 
