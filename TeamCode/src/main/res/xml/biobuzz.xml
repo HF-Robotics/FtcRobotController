@@ -39,32 +39,11 @@ SOFTWARE.
             <Motor name="rightFrontDriveMotor" port="2" /> <!-- Yellow -->
             <Motor name="rightRearDriveMotor"  port="3" /> <!-- Green  -->
 
-            <Servo name="ledIndicatorFrontRight"    port="5" /> <!-- Purple -->
-
-            <AnalogInput name="rightPresenceDetector" port="0" />
-            <DigitalDevice name="kickstandLimitswitch" port="1" />
-
         </LynxModule>
         <LynxModule name="Expansion Hub 5" port="5">
-            <Motor name="launcherMotor"        port="0" /> <!-- Red    -->
-            <Motor name="intakeMotor"          port="1" /> <!-- Orange -->
-            <Motor name="carouselMotor"        port="2" /> <!-- Yellow -->
-            <Motor name="kickstandMotor"       port="3" /> <!-- Green -->
+            
 
-            <Servo name="kickerServo"                       port="0" /> <!-- Red -->
-            <ContinuousRotationServo name="hoodAngleServo"  port="1" /> <!-- Orange -->
-            <Servo name="ledIndicatorFrontLeft"             port="2" /> <!-- Yellow -->
-            <Servo name="ledIndicatorBack"                  port="5" /> <!-- Purple -->
 
-            <DigitalDevice name="launchPositionDetection" port="0" />
-            <DigitalDevice name="hoodLowerLimit" port="6" />
-
-            <AnalogInput name="leftPresenceDetector" port="2" />
-
-            <!--
-            <RevColorSensorV3 name="artifactColor1" port="0" bus="1" />
-            <RevColorSensorV3 name="artifactColor2" port="0" bus="2" />
-            -->
         </LynxModule>
     </LynxUsbDevice>
 </Robot>
