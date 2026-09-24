@@ -20,7 +20,7 @@
  SOFTWARE.
  */
 
-package com.hfrobots.tnt.season2526.drivebase;
+package com.hfrobots.tnt.corelib.drive.pedro;
 
 import static com.ftc9929.corelib.Constants.LOG_TAG;
 

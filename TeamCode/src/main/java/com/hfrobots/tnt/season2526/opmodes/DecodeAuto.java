@@ -43,8 +43,8 @@ import com.hfrobots.tnt.season2526.driveteam.DecodeDriverControls;
 import com.hfrobots.tnt.season2526.drivebase.DecodeLargeDrivebasePedroConstants;
 import com.hfrobots.tnt.season2526.driveteam.DecodeOperatorControls;
 import com.hfrobots.tnt.season2526.mechanisms.GenevaCarousel;
-import com.hfrobots.tnt.season2526.drivebase.HoldPositionState;
-import com.hfrobots.tnt.season2526.drivebase.PedroFollowerState;
+import com.hfrobots.tnt.corelib.drive.pedro.HoldPositionState;
+import com.hfrobots.tnt.corelib.drive.pedro.PedroFollowerState;
 import com.hfrobots.tnt.season2526.mechanisms.RollerIntake;
 import com.hfrobots.tnt.season2526.mechanisms.WheeledLauncher;
 import static com.pedropathing.api.Paths.*;
@@ -57,7 +57,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import lombok.Getter;
