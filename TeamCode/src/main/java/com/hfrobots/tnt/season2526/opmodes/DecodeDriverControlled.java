@@ -48,12 +48,14 @@ import com.hfrobots.tnt.season2526.mechanisms.RollerIntake;
 import com.hfrobots.tnt.util.TimeTracker;
 import com.hfrobots.tnt.season2526.mechanisms.WheeledLauncher;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import java.util.List;
 
 @TeleOp(name = DecodeDriverControlled.OP_MODE_NAME)
+@Disabled
 public class DecodeDriverControlled extends OpMode {
     public static final String OP_MODE_NAME = "00 DECODE";
 

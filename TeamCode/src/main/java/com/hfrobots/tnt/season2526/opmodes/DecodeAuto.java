@@ -53,6 +53,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -64,6 +65,7 @@ import lombok.NonNull;
 
 // TODO: Tune wall/45 and maybe wall/goal to back up a bit further and/or wait for launcher a second
 @Autonomous(name = "00 DECODE Auto", preselectTeleOp = DecodeDriverControlled.OP_MODE_NAME)
+@Disabled
 public class DecodeAuto extends OpMode {
     // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     public final Pose RED_SCORE_POSE = poseFactory.of(29.5 + 2, 144 - (33 + 2), Math.toRadians(135));

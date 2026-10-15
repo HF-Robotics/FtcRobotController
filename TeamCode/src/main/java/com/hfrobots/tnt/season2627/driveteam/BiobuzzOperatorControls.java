@@ -25,7 +25,9 @@ package com.hfrobots.tnt.season2627.driveteam;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.control.OnOffButton;
 import com.ftc9929.corelib.control.RangeInput;
+import com.ftc9929.corelib.control.RangeInputButton;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
+import com.hfrobots.tnt.season2627.RollerIntake;
 
 import lombok.Builder;
 
@@ -74,8 +76,13 @@ public class BiobuzzOperatorControls implements PeriodicTask {
     // FIXME: Add "derived" controls here by name, as they relate to things they control
     // on the robot
 
+    private OnOffButton intakeButton;
+    private OnOffButton outtakeButton;
+
     // FIXME: Add all of the mechanisms controlled by the operator here, and add them to
     // the constructor, and set them there from the constructor arguments
+
+    private RollerIntake intake;
 
     @Builder
     private BiobuzzOperatorControls(RangeInput leftStickX,
@@ -98,7 +105,8 @@ public class BiobuzzOperatorControls implements PeriodicTask {
                                     OnOffButton leftBumper,
                                     RangeInput leftTrigger,
                                     RangeInput rightTrigger,
-                                    NinjaGamePad operatorGamepad) {
+                                    NinjaGamePad operatorGamepad,
+                                    RollerIntake intake) {
         if (operatorGamepad != null) {
             this.operatorGamepad = operatorGamepad;
             setupFromGamepad();
@@ -125,6 +133,8 @@ public class BiobuzzOperatorControls implements PeriodicTask {
 
         // FIXME: Make sure that mechanisms are setup here, before "wiring" them to
         // controls
+
+        this.intake = intake;
 
         wireControlsToOperatorsMechanisms();
     }
@@ -159,6 +169,9 @@ public class BiobuzzOperatorControls implements PeriodicTask {
     // names.
     private void setupDerivedControls() {
         unsafe = leftBumper;
+
+        intakeButton = new RangeInputButton( rightTrigger, 0.65f);
+        outtakeButton = new RangeInputButton( leftTrigger, 0.65f);
     }
 
     // FIXME: As-needed, set controls to setters on scoring mechanisms that have
@@ -169,6 +182,14 @@ public class BiobuzzOperatorControls implements PeriodicTask {
 
     @Override
     public void periodicTask() {
-        // FIXME: Here is where we ask the various mechanisms to respond to operator input
+        if (intake != null) {
+            if (intakeButton.isPressed()) {
+                intake.intake();
+            } else if (outtakeButton.isPressed()) {
+                intake.outtake();
+            } else {
+                intake.stop();
+            }
+        }
     }
 }

@@ -43,10 +43,10 @@ import com.hfrobots.tnt.season2526.mechanisms.AbsGenevaCarousel;
 import com.hfrobots.tnt.season2526.mechanisms.ArtifactDetector;
 import com.hfrobots.tnt.season2526.mechanisms.GenevaCarousel;
 import com.hfrobots.tnt.season2526.mechanisms.Kickstand;
-import com.hfrobots.tnt.season2526.mechanisms.RollerIntake;
 import com.hfrobots.tnt.season2526.mechanisms.WheeledLauncher;
 import com.hfrobots.tnt.season2526.vision.AprilTagAligner;
 import com.hfrobots.tnt.season2627.BiobuzzDrivebase;
+import com.hfrobots.tnt.season2627.RollerIntake;
 import com.hfrobots.tnt.season2627.driveteam.BiobuzzDriverControls;
 import com.hfrobots.tnt.season2627.driveteam.BiobuzzOperatorControls;
 import com.hfrobots.tnt.util.TimeTracker;
@@ -80,6 +80,8 @@ public class BiobuzzDriverControlled extends OpMode {
     private NinjaGamePad driversGamepad;
     private NinjaGamePad operatorGamepad;
 
+    private RollerIntake intake;
+
     @Override
     public void init() {
         Shared.withBetterErrorHandling(() -> {
@@ -100,6 +102,7 @@ public class BiobuzzDriverControlled extends OpMode {
             operatorGamepad = new NinjaGamePad(gamepad2);
 
             operatorControls = BiobuzzOperatorControls.builder()
+                    .intake(intake)
                     .operatorGamepad(operatorGamepad).build();
 
             allHubs = hardwareMap.getAll(LynxModule.class);
@@ -112,7 +115,7 @@ public class BiobuzzDriverControlled extends OpMode {
     }
 
     private void setupMechanisms() {
-
+        intake = new RollerIntake(hardwareMap);
     }
 
     private void setupMetricsSampler(NinjaGamePad driversGamepad, NinjaGamePad operatorGamepad) {

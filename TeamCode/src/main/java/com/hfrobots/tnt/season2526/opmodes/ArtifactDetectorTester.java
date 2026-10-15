@@ -23,10 +23,12 @@
 package com.hfrobots.tnt.season2526.opmodes;
 
 import com.hfrobots.tnt.season2526.mechanisms.ArtifactDetector;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 @TeleOp(name = "ArtifactTester", group="Utilities")
+@Disabled
 public class ArtifactDetectorTester extends OpMode {
     private ArtifactDetector artifactDetector;
 

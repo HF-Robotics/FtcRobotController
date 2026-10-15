@@ -41,7 +41,7 @@ SOFTWARE.
 
         </LynxModule>
         <LynxModule name="Expansion Hub 5" port="5">
-            
+            <Motor name="intakeMotor"          port="1" /> <!-- Orange -->
 
 
         </LynxModule>
