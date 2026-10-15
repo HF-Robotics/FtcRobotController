@@ -41,6 +41,7 @@ import com.hfrobots.tnt.season2324.Shared;
 import com.hfrobots.tnt.season2526.drivebase.DecodeLargeDrivebasePedroConstants;
 import com.hfrobots.tnt.season2526.driveteam.DecodeOperatorControls;
 import com.hfrobots.tnt.season2526.mechanisms.WheeledLauncher;
+import com.hfrobots.tnt.season2627.FieldCoordinates;
 import com.hfrobots.tnt.season2627.driveteam.BiobuzzDriverControls;
 import com.pedropathing.api.PoseFactory;
 import com.pedropathing.follower.Follower;
@@ -56,6 +57,11 @@ import lombok.NonNull;
 
 @Autonomous(name = "00 Biobuzz Auto", preselectTeleOp = BiobuzzDriverControlled.OP_MODE_NAME)
 public class BiobuzzAuto extends OpMode {
+
+    private static final double ROBOT_WIDTH_INCHES = 18;
+
+    private static final double ROBOT_LENGTH_INCHES = 18;
+
     private DecodeOperatorControls operatorControls;
 
     private Ticker ticker;
@@ -66,7 +72,8 @@ public class BiobuzzAuto extends OpMode {
     //  something meaningful for the season!
     @Getter
     private enum Task {
-        LEAVE("Leave and Park");
+        LEAVE("Leave and Park"),
+        LAUNCH_AND_LEAVE("Launch and park");
 
         final String description;
 
@@ -204,6 +211,9 @@ public class BiobuzzAuto extends OpMode {
             case LEAVE:
                 setupLeavePark();
                 break;
+            case LAUNCH_AND_LEAVE:
+                setupLaunchLeavePark();
+                break;
             default:
                 stateMachine.addSequential(new DoneState("Default done", telemetry));
                 break;
@@ -335,29 +345,29 @@ public class BiobuzzAuto extends OpMode {
         final double endHeadingDegrees;
 
         if (currentAlliance == RED) {
-            startPoseX = 60;
+            startPoseX = FieldCoordinates.RED_HIVE_CENTER_LINE.x; // align center of bot with hive
 
-            startPoseY = 144;
+            startPoseY = FieldCoordinates.FLOWER_TOP_OF_FIELD.y - (ROBOT_LENGTH_INCHES / 2);
 
-            startHeadingDegrees = 180;
+            startHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
 
-            endPoseX = 0;
+            endPoseX = FieldCoordinates.LOADING_ZONE_RED.x + 10;
 
-            endPoseY = 132;
+            endPoseY = FieldCoordinates.LOADING_ZONE_RED.y;
 
-            endHeadingDegrees = 180;
+            endHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
         } else {
-            startPoseX = 84;
+            startPoseX = FieldCoordinates.BLUE_HIVE_CENTER_LINE.x;
 
-            startPoseY = 0;
+            startPoseY = FieldCoordinates.FLOWER_BOTTOM_OF_FIELD.y + (ROBOT_LENGTH_INCHES / 2);
 
-            startHeadingDegrees = 0;
+            startHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
 
-            endPoseX = 144;
+            endPoseX = FieldCoordinates.LOADING_ZONE_BLUE.x - 10;
 
-            endPoseY = 6;
+            endPoseY = FieldCoordinates.LOADING_ZONE_BLUE.y;
 
-            endHeadingDegrees = 0;
+            endHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
         }
 
 
@@ -378,13 +388,73 @@ public class BiobuzzAuto extends OpMode {
         stateMachine.addSequence(sequenceOfStates);
     }
 
-    private void addLaunchSteps(final SequenceOfStates sequenceOfStates, final WheeledLauncher.TargetDistance targetDistance) {
-        addOneLaunch(sequenceOfStates, targetDistance, true); // save time for the first launch
-        addOneLaunch(sequenceOfStates, targetDistance, false);
-        addOneLaunch(sequenceOfStates, targetDistance, false);
+    private void setupLaunchLeavePark() {
+        final SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
+
+        final double startPoseX;
+
+        final double startPoseY;
+
+        final double startHeadingDegrees;
+
+        final double endPoseX;
+
+        final double endPoseY;
+
+        final double endHeadingDegrees;
+
+        if (currentAlliance == RED) {
+            startPoseX = FieldCoordinates.RED_HIVE_CENTER_LINE.x; // align center of bot with hive
+
+            startPoseY = FieldCoordinates.RED_HIVE_CENTER_LINE.y + (ROBOT_LENGTH_INCHES / 2);
+
+            startHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
+
+            endPoseX = FieldCoordinates.LOADING_ZONE_RED.x - 10;
+
+            endPoseY = FieldCoordinates.LOADING_ZONE_RED.y;
+
+            endHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
+        } else {
+            startPoseX = FieldCoordinates.BLUE_HIVE_CENTER_LINE.x;
+
+            startPoseY = 144 - (ROBOT_LENGTH_INCHES / 2);
+
+            startHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
+
+            endPoseX = FieldCoordinates.LOADING_ZONE_BLUE.x + 10;
+
+            endPoseY = FieldCoordinates.LOADING_ZONE_BLUE.y;
+
+            endHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
+        }
+
+        addLaunchSteps(sequenceOfStates);
+
+        final Pose startPose = poseFactory.of(startPoseX, startPoseY, startHeadingDegrees); // Start Pose of our robot.
+
+        final Pose endPose = poseFactory.of(endPoseX, endPoseY, endHeadingDegrees);
+
+        final Path parkPath = line(startPose, endPose).linear(startPose, endPose);
+
+        pedroFollower.setPose(startPose);
+
+        PedroFollowerState parkPathState = new PedroFollowerState("leave and park", telemetry, pedroFollower, parkPath);
+
+        sequenceOfStates.addSequential(parkPathState);
+
+        commonCompletionStates(sequenceOfStates);
+
+        stateMachine.addSequence(sequenceOfStates);
     }
 
-    private void addOneLaunch(SequenceOfStates sequenceOfStates, final WheeledLauncher.TargetDistance targetDistance, final boolean skipMoveIfInPosition) {
+    private void addLaunchSteps(final SequenceOfStates sequenceOfStates) {
+        addOneLaunch(sequenceOfStates);
+        addOneLaunch(sequenceOfStates);
+        addOneLaunch(sequenceOfStates);
+    }
+
+    private void addOneLaunch(SequenceOfStates sequenceOfStates) {
 
 
     }

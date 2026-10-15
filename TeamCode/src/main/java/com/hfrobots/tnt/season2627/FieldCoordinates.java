@@ -1,5 +1,7 @@
 package com.hfrobots.tnt.season2627;
 
+import com.pedropathing.utils.Angle;
+
 import org.opencv.core.Point;
 
 public class FieldCoordinates {
@@ -24,5 +26,12 @@ public class FieldCoordinates {
 
     public final static Point LOADING_ZONE_RED = new Point (0, 108);
 
+    public final static double TOWARDS_AUDIENCE = 270;
+
+    public final static double TOWARDS_BLUE_ALLIANCE = 0;
+
+    public final static double AWAY_FROM_AUDIENCE = 90;
+
+    public final static double TOWARDS_RED_ALLIANCE = 180;
 
 }
