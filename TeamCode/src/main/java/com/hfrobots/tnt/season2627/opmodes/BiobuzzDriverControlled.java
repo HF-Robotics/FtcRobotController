@@ -30,25 +30,13 @@ import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.metrics.RobotMetricsSampler;
 import com.ftc9929.metrics.StatsdMetricsReporter;
 import com.google.common.base.Ticker;
-import com.hfrobots.tnt.corelib.Constants;
-import com.hfrobots.tnt.corelib.control.RumbleTarget;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
 import com.hfrobots.tnt.season2324.Shared;
-import com.hfrobots.tnt.season2526.drivebase.DecodeDrivebase;
-import com.hfrobots.tnt.season2526.driveteam.DecodeDriveTeamSignal;
-import com.hfrobots.tnt.season2526.driveteam.DecodeDriverControls;
-import com.hfrobots.tnt.season2526.driveteam.DecodeOperatorControls;
-import com.hfrobots.tnt.season2526.driveteam.GamepadLed;
-import com.hfrobots.tnt.season2526.mechanisms.AbsGenevaCarousel;
-import com.hfrobots.tnt.season2526.mechanisms.ArtifactDetector;
-import com.hfrobots.tnt.season2526.mechanisms.GenevaCarousel;
-import com.hfrobots.tnt.season2526.mechanisms.Kickstand;
-import com.hfrobots.tnt.season2526.mechanisms.WheeledLauncher;
-import com.hfrobots.tnt.season2526.vision.AprilTagAligner;
 import com.hfrobots.tnt.season2627.BiobuzzDrivebase;
-import com.hfrobots.tnt.season2627.RollerIntake;
+import com.hfrobots.tnt.season2627.mechanisms.RollerIntake;
 import com.hfrobots.tnt.season2627.driveteam.BiobuzzDriverControls;
 import com.hfrobots.tnt.season2627.driveteam.BiobuzzOperatorControls;
+import com.hfrobots.tnt.season2627.mechanisms.WheeledLauncher;
 import com.hfrobots.tnt.util.TimeTracker;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -82,13 +70,14 @@ public class BiobuzzDriverControlled extends OpMode {
 
     private RollerIntake intake;
 
+    private WheeledLauncher launcher;
+
     @Override
     public void init() {
         Shared.withBetterErrorHandling(() -> {
             ticker = Ticker.systemTicker();
 
             drivebase = new BiobuzzDrivebase(hardwareMap);
-
 
             setupMechanisms();
 
@@ -103,6 +92,7 @@ public class BiobuzzDriverControlled extends OpMode {
 
             operatorControls = BiobuzzOperatorControls.builder()
                     .intake(intake)
+                    .wheeledLauncher(launcher)
                     .operatorGamepad(operatorGamepad).build();
 
             allHubs = hardwareMap.getAll(LynxModule.class);
@@ -116,6 +106,8 @@ public class BiobuzzDriverControlled extends OpMode {
 
     private void setupMechanisms() {
         intake = new RollerIntake(hardwareMap);
+
+        launcher = new WheeledLauncher(hardwareMap, telemetry, ticker);
     }
 
     private void setupMetricsSampler(NinjaGamePad driversGamepad, NinjaGamePad operatorGamepad) {

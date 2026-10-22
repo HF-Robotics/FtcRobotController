@@ -22,12 +22,14 @@
 
 package com.hfrobots.tnt.season2627.driveteam;
 
+import com.ftc9929.corelib.control.DebouncedButton;
 import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.control.OnOffButton;
 import com.ftc9929.corelib.control.RangeInput;
 import com.ftc9929.corelib.control.RangeInputButton;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
-import com.hfrobots.tnt.season2627.RollerIntake;
+import com.hfrobots.tnt.season2627.mechanisms.RollerIntake;
+import com.hfrobots.tnt.season2627.mechanisms.WheeledLauncher;
 
 import lombok.Builder;
 
@@ -79,10 +81,18 @@ public class BiobuzzOperatorControls implements PeriodicTask {
     private OnOffButton intakeButton;
     private OnOffButton outtakeButton;
 
+    private DebouncedButton launchToSpeed;
+    private DebouncedButton launchSpeedStop;
+    private RangeInput launcherSpeedAdjust;
+
+    private OnOffButton gateOpen;
+
     // FIXME: Add all of the mechanisms controlled by the operator here, and add them to
     // the constructor, and set them there from the constructor arguments
 
     private RollerIntake intake;
+
+    private WheeledLauncher wheeledLauncher;
 
     @Builder
     private BiobuzzOperatorControls(RangeInput leftStickX,
@@ -106,7 +116,8 @@ public class BiobuzzOperatorControls implements PeriodicTask {
                                     RangeInput leftTrigger,
                                     RangeInput rightTrigger,
                                     NinjaGamePad operatorGamepad,
-                                    RollerIntake intake) {
+                                    RollerIntake intake,
+                                    WheeledLauncher wheeledLauncher) {
         if (operatorGamepad != null) {
             this.operatorGamepad = operatorGamepad;
             setupFromGamepad();
@@ -135,6 +146,7 @@ public class BiobuzzOperatorControls implements PeriodicTask {
         // controls
 
         this.intake = intake;
+        this.wheeledLauncher = wheeledLauncher;
 
         wireControlsToOperatorsMechanisms();
     }
@@ -172,6 +184,16 @@ public class BiobuzzOperatorControls implements PeriodicTask {
 
         intakeButton = new RangeInputButton( rightTrigger, 0.65f);
         outtakeButton = new RangeInputButton( leftTrigger, 0.65f);
+
+        launchToSpeed = dpadUp.debounced();
+
+        launchSpeedStop = bRedButton.debounced();
+
+        launcherSpeedAdjust = leftStickY;
+
+        gateOpen = rightBumper;
+
+
     }
 
     // FIXME: As-needed, set controls to setters on scoring mechanisms that have
@@ -190,6 +212,26 @@ public class BiobuzzOperatorControls implements PeriodicTask {
             } else {
                 intake.stop();
             }
+        }
+
+        if (wheeledLauncher != null) {
+            if (launchToSpeed.getRise()) {
+                wheeledLauncher.launchVelocity();
+            } else if (launchSpeedStop.getRise()) {
+                wheeledLauncher.stopLauncher();
+            }
+
+            if (gateOpen != null) {
+                if (gateOpen.isPressed()) {
+                    wheeledLauncher.openGate();
+                } else {
+                    wheeledLauncher.closeGate();
+                }
+            }
+
+            wheeledLauncher.adjustVelocity(launcherSpeedAdjust);
+
+            wheeledLauncher.periodicTask();
         }
     }
 }

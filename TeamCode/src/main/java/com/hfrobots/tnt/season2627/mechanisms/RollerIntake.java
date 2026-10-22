@@ -20,7 +20,7 @@
  SOFTWARE.
  */
 
-package com.hfrobots.tnt.season2627;
+package com.hfrobots.tnt.season2627.mechanisms;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;

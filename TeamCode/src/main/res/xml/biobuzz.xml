@@ -19,8 +19,10 @@ SOFTWARE.
 -->
 <Robot type="FirstInspires-FTC">
     <!-- C920 with mount removed -->
-    <Webcam name="webcam" serialNumber="11A5D15F" />
-    <Webcam name="gobildacam" serialNumber="UC852" />
+    <!-- <Webcam name="webcam" serialNumber="11A5D15F" /> -->
+
+    <!-- <Webcam name="gobildacam" serialNumber="UC852" /> -->
+
     <!-- Control Hub #1 -->
 
     <!-- 9929-Q-RC has a port#, parentModuleAddress of "2" - it will need to be changed
@@ -41,8 +43,10 @@ SOFTWARE.
 
         </LynxModule>
         <LynxModule name="Expansion Hub 5" port="5">
+            <Motor name="launcherMotor"        port="0" /> <!-- Red    -->
             <Motor name="intakeMotor"          port="1" /> <!-- Orange -->
 
+            <Servo name="gateServo"             port="0" /> <!-- Red -->
 
         </LynxModule>
     </LynxUsbDevice>
