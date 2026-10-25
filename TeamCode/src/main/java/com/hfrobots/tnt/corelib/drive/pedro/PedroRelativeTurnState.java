@@ -20,7 +20,7 @@
  SOFTWARE.
  */
 
-package com.hfrobots.tnt.corelib.drive.pedro;
+package com.hfrobots.tnt.season2526.drivebase;
 
 import static com.ftc9929.corelib.Constants.LOG_TAG;
 
@@ -52,8 +52,6 @@ public class PedroRelativeTurnState extends State {
         super(name, telemetry);
         this.follower = follower;
         this.degreesToTurn = degreesToTurn;
-        //FIXME:
-        throw new RuntimeException("Turn not implemented yet!");
     }
 
     @Override
@@ -71,8 +69,7 @@ public class PedroRelativeTurnState extends State {
 
                 final double headingChangeInRadians = Math.toRadians(headingChangeInDegrees);
 
-                // FIXME:
-                //follower.turn(Math.abs(headingChangeInRadians), headingChangeInRadians > 0);
+                follower.turn(Math.abs(headingChangeInRadians), headingChangeInRadians > 0);
 
                 followerHasStarted = true;
 

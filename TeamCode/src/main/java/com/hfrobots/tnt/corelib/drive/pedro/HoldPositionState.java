@@ -18,11 +18,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package com.hfrobots.tnt.corelib.drive.pedro;
+package com.hfrobots.tnt.season2526.drivebase;
 
 import com.ftc9929.corelib.state.State;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.math.Pose;
+import com.pedropathing.geometry.Pose;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -50,16 +50,16 @@ public class HoldPositionState extends State {
     public State doStuffAndGetNextState() {
         if (!followerHasStarted) {
 
-            poseToHold = follower.pose();
+            poseToHold = follower.getPose();
 
-            follower.hold(poseToHold);
+            follower.holdPoint(poseToHold);
             followerHasStarted = true;
 
             return this;
         }
 
         if (poseToHold != null) {
-            follower.hold(poseToHold);
+            follower.holdPoint(poseToHold);
             follower.update();
         }
 

@@ -20,7 +20,7 @@
  SOFTWARE.
  */
 
-package com.hfrobots.tnt.corelib.drive.pedro;
+package com.hfrobots.tnt.season2526.drivebase;
 
 import static com.ftc9929.corelib.Constants.LOG_TAG;
 
@@ -29,6 +29,7 @@ import android.util.Log;
 import com.ftc9929.corelib.state.State;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.paths.Path;
+import com.pedropathing.paths.PathChain;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -39,12 +40,16 @@ import lombok.NonNull;
 public class PedroFollowerState extends State {
     private final Follower follower;
 
-    private final Supplier<Path> pathSupplier;
+    private final Supplier<PathChain> pathChainSupplier;
 
     private boolean followerHasStarted = false;
 
     public PedroFollowerState(@NonNull String name, Telemetry telemetry, final Follower follower, final Path path) {
-        this(name, telemetry, follower, () -> path);
+        this(name, telemetry, follower, new PathChain(path));
+    }
+
+    public PedroFollowerState(@NonNull String name, Telemetry telemetry, final Follower follower, final PathChain pathChain) {
+        this(name, telemetry, follower, () -> pathChain);
     }
 
     /**
@@ -52,10 +57,10 @@ public class PedroFollowerState extends State {
      * state while running auto, not something you can pre-plan (for example, when the beginning
      * of the path needs to be from the current pose).
      */
-    public PedroFollowerState(@NonNull String name, Telemetry telemetry, final Follower follower, final Supplier<Path> pathSupplier) {
+    public PedroFollowerState(@NonNull String name, Telemetry telemetry, final Follower follower, final Supplier<PathChain> pathChainSupplier) {
         super(name, telemetry);
         this.follower = follower;
-        this.pathSupplier = pathSupplier;
+        this.pathChainSupplier = pathChainSupplier;
     }
 
     @Override
@@ -66,11 +71,11 @@ public class PedroFollowerState extends State {
     @Override
     public State doStuffAndGetNextState() {
         if (!followerHasStarted) {
-            final Path path = pathSupplier.get();
+            final PathChain pathChain = pathChainSupplier.get();
 
-            Log.d(LOG_TAG, String.format("Starting to follow %s, for state %s", path, name));
+            Log.d(LOG_TAG, String.format("Starting to follow %s, for state %s", pathChain, name));
 
-            follower.follow(path);
+            follower.followPath(pathChain);
 
             followerHasStarted = true;
 
@@ -79,7 +84,7 @@ public class PedroFollowerState extends State {
 
         follower.update();
 
-        if (!follower.atParametricEnd()) {
+        if (follower.isBusy()) {
             return this;
         }
 
