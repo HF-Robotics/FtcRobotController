@@ -1,7 +1,5 @@
 package com.hfrobots.tnt.season2627;
 
-import com.pedropathing.utils.Angle;
-
 import org.opencv.core.Point;
 
 public class FieldCoordinates {

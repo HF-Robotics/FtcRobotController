@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package com.hfrobots.tnt.season2526.drivebase;
+package com.hfrobots.tnt.corelib.drive.pedro;
 
 import com.ftc9929.corelib.state.State;
 import com.pedropathing.follower.Follower;

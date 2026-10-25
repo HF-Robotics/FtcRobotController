@@ -25,7 +25,6 @@ package com.hfrobots.tnt.season2627.opmodes;
 import static com.ftc9929.corelib.Constants.LOG_TAG;
 import static com.hfrobots.tnt.corelib.Constants.Alliance.BLUE;
 import static com.hfrobots.tnt.corelib.Constants.Alliance.RED;
-import static com.pedropathing.api.Paths.line;
 
 import android.util.Log;
 
@@ -33,6 +32,7 @@ import com.ftc9929.corelib.control.NinjaGamePad;
 import com.ftc9929.corelib.state.SequenceOfStates;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
+import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.corelib.drive.pedro.HoldPositionState;
@@ -40,12 +40,13 @@ import com.hfrobots.tnt.corelib.drive.pedro.PedroFollowerState;
 import com.hfrobots.tnt.season2324.Shared;
 import com.hfrobots.tnt.season2526.drivebase.DecodeLargeDrivebasePedroConstants;
 import com.hfrobots.tnt.season2526.driveteam.DecodeOperatorControls;
-import com.hfrobots.tnt.season2526.mechanisms.WheeledLauncher;
 import com.hfrobots.tnt.season2627.FieldCoordinates;
 import com.hfrobots.tnt.season2627.driveteam.BiobuzzDriverControls;
-import com.pedropathing.api.PoseFactory;
+
+import com.hfrobots.tnt.season2627.mechanisms.WheeledLauncher;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.math.Pose;
+import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -67,6 +68,8 @@ public class BiobuzzAuto extends OpMode {
     private Ticker ticker;
 
     private StateMachine stateMachine;
+
+    private WheeledLauncher wheeledLauncher;
 
     // FIXME: The tasks our robot knows how to do - rename these to
     //  something meaningful for the season!
@@ -96,8 +99,6 @@ public class BiobuzzAuto extends OpMode {
 
     private Follower pedroFollower;
 
-    private static final PoseFactory poseFactory = PoseFactory.degrees();
-
     private BiobuzzDriverControls driverControls;
 
     @Override
@@ -107,11 +108,13 @@ public class BiobuzzAuto extends OpMode {
 
             setupDriverControls();
 
-            pedroFollower = DecodeLargeDrivebasePedroConstants.create(hardwareMap);
+            pedroFollower = DecodeLargeDrivebasePedroConstants.createFollower(hardwareMap);
 
             setupOperatorControls();
 
             stateMachine = new StateMachine(telemetry);
+
+            wheeledLauncher = new WheeledLauncher(hardwareMap, telemetry, ticker);
         });
     }
 
@@ -371,11 +374,12 @@ public class BiobuzzAuto extends OpMode {
         }
 
 
-        final Pose startPose = poseFactory.of(startPoseX, startPoseY, startHeadingDegrees); // Start Pose of our robot.
+        final Pose startPose = new Pose(startPoseX, startPoseY,  Math.toRadians(startHeadingDegrees)); // Start Pose of our robot.
 
-        final Pose endPose = poseFactory.of(endPoseX, endPoseY, endHeadingDegrees);
+        final Pose endPose = new Pose(endPoseX, endPoseY, Math.toRadians(endHeadingDegrees));
 
-        final Path parkPath = line(startPose, endPose).linear(startPose, endPose);
+        final Path parkPath = line(startPose, endPose);
+        linear(parkPath, startPose, endPose);
 
         pedroFollower.setPose(startPose);
 
@@ -386,6 +390,10 @@ public class BiobuzzAuto extends OpMode {
         commonCompletionStates(sequenceOfStates);
 
         stateMachine.addSequence(sequenceOfStates);
+    }
+
+    private void linear(final Path path, final Pose startPose, final Pose endPose) {
+        path.setLinearHeadingInterpolation(startPose.getHeading(), endPose.getHeading());
     }
 
     private void setupLaunchLeavePark() {
@@ -431,11 +439,13 @@ public class BiobuzzAuto extends OpMode {
 
         addLaunchSteps(sequenceOfStates);
 
-        final Pose startPose = poseFactory.of(startPoseX, startPoseY, startHeadingDegrees); // Start Pose of our robot.
+        final Pose startPose = poseOfDegrees(startPoseX, startPoseY, startHeadingDegrees); // Start Pose of our robot.
 
-        final Pose endPose = poseFactory.of(endPoseX, endPoseY, endHeadingDegrees);
+        final Pose endPose = poseOfDegrees(endPoseX, endPoseY, endHeadingDegrees);
 
-        final Path parkPath = line(startPose, endPose).linear(startPose, endPose);
+        final Path parkPath = line(startPose, endPose);
+
+        linear(parkPath, startPose, endPose);
 
         pedroFollower.setPose(startPose);
 
@@ -448,14 +458,16 @@ public class BiobuzzAuto extends OpMode {
         stateMachine.addSequence(sequenceOfStates);
     }
 
-    private void addLaunchSteps(final SequenceOfStates sequenceOfStates) {
-        addOneLaunch(sequenceOfStates);
-        addOneLaunch(sequenceOfStates);
-        addOneLaunch(sequenceOfStates);
+    @androidx.annotation.NonNull
+    private static Path line(Pose startPose, Pose endPose) {
+        return new Path(new BezierLine(startPose, endPose));
     }
 
-    private void addOneLaunch(SequenceOfStates sequenceOfStates) {
+    private void addLaunchSteps(final SequenceOfStates sequenceOfStates) {
+        wheeledLauncher.addLaunchStates(sequenceOfStates);
+    }
 
-
+    private Pose poseOfDegrees(final double x, final double y, final double headingDegrees) {
+        return new Pose(x, y, Math.toRadians(headingDegrees));
     }
 }
