@@ -48,7 +48,7 @@ public class WheeledLauncher implements PeriodicTask {
 
     private static final double LAUNCH_VELOCITY = 4000 ;
 
-    private static double GATE_OPEN_POS = 1;
+    private static double GATE_OPEN_POS = 0.2;
     private static double GATE_CLOSE_POS = 0;
     protected final DcMotorEx launcherMotor;
 
@@ -83,9 +83,9 @@ public class WheeledLauncher implements PeriodicTask {
     }
 
     public void openGate() {
-        if (isAtTargetVelocity()) {
+        //if (isAtTargetVelocity()) {
             gateServo.setPosition(GATE_OPEN_POS);
-        }
+        //}
     }
 
     public void closeGate(){

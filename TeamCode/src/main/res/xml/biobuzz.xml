@@ -43,8 +43,8 @@ SOFTWARE.
 
         </LynxModule>
         <LynxModule name="Expansion Hub 5" port="5">
-            <Motor name="launcherMotor"        port="0" /> <!-- Red    -->
-            <Motor name="intakeMotor"          port="1" /> <!-- Orange -->
+            <Motor name="intakeMotor"          port="0" /> <!-- Red -->
+            <Motor name="launcherMotor"        port="1" /> <!-- Orange -->
 
             <Servo name="gateServo"             port="0" /> <!-- Red -->
 
