@@ -39,6 +39,7 @@ import com.hfrobots.tnt.corelib.drive.pedro.PedroFollowerState;
 import com.hfrobots.tnt.season2324.Shared;
 import com.hfrobots.tnt.season2526.drivebase.DecodeLargeDrivebasePedroConstants;
 import com.hfrobots.tnt.season2526.driveteam.DecodeOperatorControls;
+import com.hfrobots.tnt.season2627.BiobuzzPedroConstants;
 import com.hfrobots.tnt.season2627.FieldCoordinates;
 import com.hfrobots.tnt.season2627.driveteam.BiobuzzDriverControls;
 
@@ -107,7 +108,7 @@ public class BiobuzzAuto extends OpMode {
 
             setupDriverControls();
 
-            pedroFollower = DecodeLargeDrivebasePedroConstants.createFollower(hardwareMap);
+            pedroFollower = BiobuzzPedroConstants.createFollower(hardwareMap);
 
             setupOperatorControls();
 
@@ -338,6 +339,8 @@ public class BiobuzzAuto extends OpMode {
 
         final double startPoseY;
 
+        final double frontOfFlowerY;
+
         final double startHeadingDegrees;
 
         final double endPoseX;
@@ -351,36 +354,47 @@ public class BiobuzzAuto extends OpMode {
 
             startPoseY = FieldCoordinates.FLOWER_TOP_OF_FIELD.y - (ROBOT_LENGTH_INCHES / 2);
 
-            startHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
+            frontOfFlowerY = startPoseY - 7;
+
+            startHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
 
             endPoseX = FieldCoordinates.LOADING_ZONE_RED.x + 10;
 
             endPoseY = FieldCoordinates.LOADING_ZONE_RED.y;
 
-            endHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
+            endHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
         } else {
             startPoseX = FieldCoordinates.BLUE_HIVE_CENTER_LINE.x;
 
             startPoseY = FieldCoordinates.FLOWER_BOTTOM_OF_FIELD.y + (ROBOT_LENGTH_INCHES / 2);
 
-            startHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
+            frontOfFlowerY = startPoseY + 7;
+
+            startHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
 
             endPoseX = FieldCoordinates.LOADING_ZONE_BLUE.x - 10;
 
             endPoseY = FieldCoordinates.LOADING_ZONE_BLUE.y;
 
-            endHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
+            endHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
         }
 
 
         final Pose startPose = new Pose(startPoseX, startPoseY,  Math.toRadians(startHeadingDegrees)); // Start Pose of our robot.
 
+        final Pose clearOfFlower = poseOfDegrees(startPoseX, frontOfFlowerY, startHeadingDegrees);
         final Pose endPose = new Pose(endPoseX, endPoseY, Math.toRadians(endHeadingDegrees));
 
-        final Path parkPath = line(startPose, endPose);
-        linear(parkPath, startPose, endPose);
+        final Path clearOfFlowerPath  = line(startPose, clearOfFlower);
+        linear(clearOfFlowerPath, startPose, clearOfFlower);
+
+        final Path parkPath = line(clearOfFlower, endPose);
+        linear(parkPath, clearOfFlower, endPose);
 
         pedroFollower.setPose(startPose);
+
+        PedroFollowerState clearOfFlowerState = new PedroFollowerState("Getting clear of flower", telemetry, pedroFollower, clearOfFlowerPath);
+        sequenceOfStates.addSequential(clearOfFlowerState);
 
         PedroFollowerState parkPathState = new PedroFollowerState("leave and park", telemetry, pedroFollower, parkPath);
 
@@ -415,28 +429,28 @@ public class BiobuzzAuto extends OpMode {
 
             startPoseY = FieldCoordinates.RED_HIVE_CENTER_LINE.y + (ROBOT_LENGTH_INCHES / 2);
 
-            startHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
+            startHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
 
             endPoseX = FieldCoordinates.LOADING_ZONE_RED.x - 10;
 
             endPoseY = FieldCoordinates.LOADING_ZONE_RED.y;
 
-            endHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
+            endHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
         } else {
             startPoseX = FieldCoordinates.BLUE_HIVE_CENTER_LINE.x;
 
             startPoseY = 144 - (ROBOT_LENGTH_INCHES / 2);
 
-            startHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
+            startHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
 
             endPoseX = FieldCoordinates.LOADING_ZONE_BLUE.x + 10;
 
             endPoseY = FieldCoordinates.LOADING_ZONE_BLUE.y;
 
-            endHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
+            endHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
         }
 
-        addLaunchSteps(sequenceOfStates);
+        //addLaunchSteps(sequenceOfStates);
 
         final Pose startPose = poseOfDegrees(startPoseX, startPoseY, startHeadingDegrees); // Start Pose of our robot.
 
