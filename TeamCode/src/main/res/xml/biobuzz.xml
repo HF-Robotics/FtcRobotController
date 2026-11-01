@@ -47,7 +47,7 @@ SOFTWARE.
             <Motor name="intakeMotor"          port="0" /> <!-- Red -->
             <Motor name="launcherMotor"        port="1" /> <!-- Orange -->
 
-            <Servo name="gateServo"             port="0" /> <!-- Red -->
+            <ContinuousRotationServo name="gateServo"             port="0" /> <!-- Red -->
         </LynxModule>
     </LynxUsbDevice>
 </Robot>

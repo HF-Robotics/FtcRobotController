@@ -22,10 +22,6 @@
 
 package com.hfrobots.tnt.season2627.mechanisms;
 
-import static com.hfrobots.tnt.corelib.Constants.LOG_TAG;
-
-import android.util.Log;
-
 import com.ftc9929.corelib.control.RangeInput;
 import com.ftc9929.corelib.state.RunnableState;
 import com.ftc9929.corelib.state.SequenceOfStates;
@@ -33,8 +29,7 @@ import com.ftc9929.corelib.state.State;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.state.DelayState;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
-import com.hfrobots.tnt.season2526.mechanisms.HoodController;
-import com.hfrobots.tnt.season2526.vision.AprilTagAligner;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -46,13 +41,15 @@ import java.util.concurrent.TimeUnit;
 
 public class WheeledLauncher implements PeriodicTask {
 
-    private static final double LAUNCH_VELOCITY = 4000 ;
+    private static final double LAUNCH_VELOCITY = 1900 ;
 
     private static double GATE_OPEN_POS = 0.2;
     private static double GATE_CLOSE_POS = 0;
     protected final DcMotorEx launcherMotor;
 
-    protected final Servo gateServo;
+   // protected final Servo gateServo;
+
+    protected final CRServo gateServo;
 
 
     private double requestedVelocity = 0;
@@ -66,7 +63,7 @@ public class WheeledLauncher implements PeriodicTask {
         //launcherMotor.setVelocityPIDFCoefficients(135,3, 0, 14);
         launcherMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        gateServo = hardwareMap.get (Servo.class,"gateServo");
+        gateServo = hardwareMap.get (CRServo.class,"gateServo");
         this.telemetry = telemetry;
     }
 
@@ -84,12 +81,14 @@ public class WheeledLauncher implements PeriodicTask {
 
     public void openGate() {
         //if (isAtTargetVelocity()) {
-            gateServo.setPosition(GATE_OPEN_POS);
+            //gateServo.setPosition(GATE_OPEN_POS);
+        gateServo.setPower(1);
         //}
     }
 
     public void closeGate(){
-        gateServo.setPosition(GATE_CLOSE_POS);
+        //gateServo.setPosition(GATE_CLOSE_POS);
+        gateServo.setPower(0);
     }
 
     public void launchVelocity() {
