@@ -20,9 +20,9 @@ public class FieldCoordinates {
 
     public final static Point GARDEN_RED = new Point (12, 24);
 
-    public final static Point LOADING_ZONE_BLUE = new Point (144, 36);
+    public final static Point LOADING_ZONE_BLUE_YCENTER_AGAINST_THE_WALL = new Point (144, 36);
 
-    public final static Point LOADING_ZONE_RED = new Point (0, 108);
+    public final static Point LOADING_ZONE_RED_YCENTER_AGAINST_THE_WALL = new Point (0, 108);
 
     public final static double TOWARDS_AUDIENCE = 270;
 

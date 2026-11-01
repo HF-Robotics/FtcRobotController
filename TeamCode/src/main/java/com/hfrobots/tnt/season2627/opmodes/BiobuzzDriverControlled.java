@@ -33,6 +33,7 @@ import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.metrics.StatsDMetricSampler;
 import com.hfrobots.tnt.season2324.Shared;
 import com.hfrobots.tnt.season2627.BiobuzzDrivebase;
+import com.hfrobots.tnt.season2627.driveteam.BiobuzzDriveTeamSignal;
 import com.hfrobots.tnt.season2627.mechanisms.RollerIntake;
 import com.hfrobots.tnt.season2627.driveteam.BiobuzzDriverControls;
 import com.hfrobots.tnt.season2627.driveteam.BiobuzzOperatorControls;
@@ -68,6 +69,8 @@ public class BiobuzzDriverControlled extends OpMode {
     private NinjaGamePad driversGamepad;
     private NinjaGamePad operatorGamepad;
 
+    private BiobuzzDriveTeamSignal driveTeamSignal;
+
     private RollerIntake intake;
 
     private WheeledLauncher launcher;
@@ -94,6 +97,8 @@ public class BiobuzzDriverControlled extends OpMode {
                     .intake(intake)
                     .wheeledLauncher(launcher)
                     .operatorGamepad(operatorGamepad).build();
+
+            driveTeamSignal = new BiobuzzDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
 
             allHubs = hardwareMap.getAll(LynxModule.class);
 
@@ -168,10 +173,9 @@ public class BiobuzzDriverControlled extends OpMode {
         Shared.withBetterErrorHandling(() -> {
             super.start();
 
-            /*
             if (driveTeamSignal != null) {
                 driveTeamSignal.startMatch();
-            }*/
+            }
         });
     }
 
@@ -185,9 +189,9 @@ public class BiobuzzDriverControlled extends OpMode {
                 driverControls.periodicTask();
                 operatorControls.periodicTask();
 
-                // if (driveTeamSignal != null) {
-                //    driveTeamSignal.periodicTask();
-                // }
+                if (driveTeamSignal != null) {
+                    driveTeamSignal.periodicTask();
+                }
 
                 if (emitMetrics) {
                     if (useLegacyMetricsSampler) {

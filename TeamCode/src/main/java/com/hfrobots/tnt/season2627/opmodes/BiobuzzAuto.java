@@ -37,14 +37,15 @@ import com.hfrobots.tnt.corelib.Constants;
 import com.hfrobots.tnt.corelib.drive.pedro.HoldPositionState;
 import com.hfrobots.tnt.corelib.drive.pedro.PedroFollowerState;
 import com.hfrobots.tnt.season2324.Shared;
-import com.hfrobots.tnt.season2526.drivebase.DecodeLargeDrivebasePedroConstants;
 import com.hfrobots.tnt.season2526.driveteam.DecodeOperatorControls;
 import com.hfrobots.tnt.season2627.BiobuzzPedroConstants;
 import com.hfrobots.tnt.season2627.FieldCoordinates;
+import com.hfrobots.tnt.season2627.driveteam.BiobuzzDriveTeamSignal;
 import com.hfrobots.tnt.season2627.driveteam.BiobuzzDriverControls;
 
 import com.hfrobots.tnt.season2627.mechanisms.WheeledLauncher;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.Path;
@@ -52,6 +53,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+
+import java.util.List;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -101,6 +104,8 @@ public class BiobuzzAuto extends OpMode {
 
     private BiobuzzDriverControls driverControls;
 
+    private BiobuzzDriveTeamSignal signal;
+
     @Override
     public void init() {
         Shared.withBetterErrorHandling(() -> {
@@ -115,6 +120,8 @@ public class BiobuzzAuto extends OpMode {
             stateMachine = new StateMachine(telemetry);
 
             wheeledLauncher = new WheeledLauncher(hardwareMap, telemetry, ticker);
+
+            signal = new BiobuzzDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
         });
     }
 
@@ -144,7 +151,6 @@ public class BiobuzzAuto extends OpMode {
     public void init_loop() {
         doAutoConfig();
         operatorControls.periodicTask();
-
         updateTelemetry(telemetry);
     }
 
@@ -174,8 +180,8 @@ public class BiobuzzAuto extends OpMode {
             telemetry.addData("01", "Alliance: %s", currentAlliance);
             telemetry.addData("02", "Task: %s", possibleTaskChoices[selectedTaskIndex].getDescription());
             telemetry.addData("03", "Delay %d sec", initialDelaySeconds);
-            //driveTeamSignal.setAlliance(currentAlliance);
-            //driveTeamSignal.periodicTask();
+            signal.setAlliance(currentAlliance);
+            signal.periodicTask();
         });
     }
 
@@ -238,6 +244,10 @@ public class BiobuzzAuto extends OpMode {
         @Override
         public State doStuffAndGetNextState() {
             if (!issuedStop) {
+                if (wheeledLauncher != null) {
+                    wheeledLauncher.stopLauncher();
+                }
+
                 issuedStop = true;
             }
 
@@ -358,9 +368,9 @@ public class BiobuzzAuto extends OpMode {
 
             startHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
 
-            endPoseX = FieldCoordinates.LOADING_ZONE_RED.x + 10;
+            endPoseX = FieldCoordinates.LOADING_ZONE_RED_YCENTER_AGAINST_THE_WALL.x + 10;
 
-            endPoseY = FieldCoordinates.LOADING_ZONE_RED.y;
+            endPoseY = FieldCoordinates.LOADING_ZONE_RED_YCENTER_AGAINST_THE_WALL.y + 13;
 
             endHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
         } else {
@@ -372,9 +382,9 @@ public class BiobuzzAuto extends OpMode {
 
             startHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
 
-            endPoseX = FieldCoordinates.LOADING_ZONE_BLUE.x - 10;
+            endPoseX = FieldCoordinates.LOADING_ZONE_BLUE_YCENTER_AGAINST_THE_WALL.x - 10;
 
-            endPoseY = FieldCoordinates.LOADING_ZONE_BLUE.y;
+            endPoseY = FieldCoordinates.LOADING_ZONE_BLUE_YCENTER_AGAINST_THE_WALL.y -13;
 
             endHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
         }
@@ -424,6 +434,12 @@ public class BiobuzzAuto extends OpMode {
 
         final double endHeadingDegrees;
 
+        final double launchPoseY;
+
+        final double midpointCurveX;
+
+        final double midpointCurveY;
+
         if (currentAlliance == RED) {
             startPoseX = FieldCoordinates.RED_HIVE_CENTER_LINE.x; // align center of bot with hive
 
@@ -431,9 +447,15 @@ public class BiobuzzAuto extends OpMode {
 
             startHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
 
-            endPoseX = FieldCoordinates.LOADING_ZONE_RED.x - 10;
+            launchPoseY = startPoseY + 12;
 
-            endPoseY = FieldCoordinates.LOADING_ZONE_RED.y;
+            midpointCurveY = 52;
+
+            midpointCurveX = 24;
+
+            endPoseX = FieldCoordinates.LOADING_ZONE_RED_YCENTER_AGAINST_THE_WALL.x - 10;
+
+            endPoseY = FieldCoordinates.LOADING_ZONE_RED_YCENTER_AGAINST_THE_WALL.y - 13;
 
             endHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
         } else {
@@ -443,21 +465,36 @@ public class BiobuzzAuto extends OpMode {
 
             startHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
 
-            endPoseX = FieldCoordinates.LOADING_ZONE_BLUE.x + 10;
+            launchPoseY = startPoseY - 12;
 
-            endPoseY = FieldCoordinates.LOADING_ZONE_BLUE.y;
+            midpointCurveY = 144-52;
+
+            midpointCurveX = 144-24;
+
+            endPoseX = FieldCoordinates.LOADING_ZONE_BLUE_YCENTER_AGAINST_THE_WALL.x + 10;
+
+            endPoseY = FieldCoordinates.LOADING_ZONE_BLUE_YCENTER_AGAINST_THE_WALL.y + 13;
 
             endHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
         }
 
-        //addLaunchSteps(sequenceOfStates);
-
         final Pose startPose = poseOfDegrees(startPoseX, startPoseY, startHeadingDegrees); // Start Pose of our robot.
+
+        final Pose launchPose = poseOfDegrees(startPoseX, launchPoseY, startHeadingDegrees);
 
         final Pose endPose = poseOfDegrees(endPoseX, endPoseY, endHeadingDegrees);
 
-        final Path parkPath = line(startPose, endPose);
+        final Path toLaunchPath = line(startPose, launchPose);
+        linear(toLaunchPath, startPose, launchPose);
+        PedroFollowerState toLaunchPathState =
+                new PedroFollowerState("to and launch", telemetry, pedroFollower, toLaunchPath);
+        sequenceOfStates.addSequential(toLaunchPathState);
 
+        addLaunchSteps(sequenceOfStates);
+
+        final Pose midpointPose = poseOfDegrees(midpointCurveX,midpointCurveY,startHeadingDegrees);
+
+        final Path parkPath = curve(List.of(launchPose, midpointPose, endPose));
         linear(parkPath, startPose, endPose);
 
         pedroFollower.setPose(startPose);
@@ -474,6 +511,10 @@ public class BiobuzzAuto extends OpMode {
     @androidx.annotation.NonNull
     private static Path line(Pose startPose, Pose endPose) {
         return new Path(new BezierLine(startPose, endPose));
+    }
+
+    private static Path curve(List<Pose> poses) {
+        return new Path(new BezierCurve(poses));
     }
 
     private void addLaunchSteps(final SequenceOfStates sequenceOfStates) {

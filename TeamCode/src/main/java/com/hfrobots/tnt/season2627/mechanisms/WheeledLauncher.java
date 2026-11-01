@@ -63,7 +63,7 @@ public class WheeledLauncher implements PeriodicTask {
                            final Telemetry telemetry,
                            final Ticker ticker) {
         launcherMotor = hardwareMap.get(DcMotorEx.class, "launcherMotor");
-        launcherMotor.setVelocityPIDFCoefficients(135,3, 0, 14);
+        //launcherMotor.setVelocityPIDFCoefficients(135,3, 0, 14);
         launcherMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         gateServo = hardwareMap.get (Servo.class,"gateServo");
@@ -99,6 +99,7 @@ public class WheeledLauncher implements PeriodicTask {
 
 
     public void stopLauncher() {
+        closeGate();
         maybeSetLaunchVelocity(0);
     }
 

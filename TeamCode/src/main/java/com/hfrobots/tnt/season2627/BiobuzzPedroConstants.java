@@ -31,6 +31,8 @@ public class BiobuzzPedroConstants {
             .forwardZeroPowerAcceleration(-25.518)
             .lateralZeroPowerAcceleration(-94.1348);
 
+    // ticksToInches gut check - GoBilda Specs are 32mm dia, 2000 ticks/rev
+    // 3.96 inches in circumference, divide by 2000 = .00198
     public static ThreeWheelConstants localizerConstants = new ThreeWheelConstants()
             .leftPodY(5.5)
             .rightPodY(-5.5)
