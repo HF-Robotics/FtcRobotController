@@ -449,11 +449,11 @@ public class BiobuzzAuto extends OpMode {
 
             launchPoseY = startPoseY + 12;
 
-            midpointCurveY = 52;
+            midpointCurveY = 34;
 
             midpointCurveX = 24;
 
-            endPoseX = FieldCoordinates.LOADING_ZONE_RED_YCENTER_AGAINST_THE_WALL.x - 10;
+            endPoseX = FieldCoordinates.LOADING_ZONE_RED_YCENTER_AGAINST_THE_WALL.x + 10;
 
             endPoseY = FieldCoordinates.LOADING_ZONE_RED_YCENTER_AGAINST_THE_WALL.y - 13;
 
@@ -467,11 +467,11 @@ public class BiobuzzAuto extends OpMode {
 
             launchPoseY = startPoseY - 12;
 
-            midpointCurveY = 144-52;
+            midpointCurveY = 144-34;
 
             midpointCurveX = 144-24;
 
-            endPoseX = FieldCoordinates.LOADING_ZONE_BLUE_YCENTER_AGAINST_THE_WALL.x + 10;
+            endPoseX = FieldCoordinates.LOADING_ZONE_BLUE_YCENTER_AGAINST_THE_WALL.x - 10;
 
             endPoseY = FieldCoordinates.LOADING_ZONE_BLUE_YCENTER_AGAINST_THE_WALL.y + 13;
 

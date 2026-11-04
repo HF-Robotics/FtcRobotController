@@ -26,6 +26,7 @@ import com.ftc9929.corelib.control.RangeInput;
 import com.ftc9929.corelib.state.RunnableState;
 import com.ftc9929.corelib.state.SequenceOfStates;
 import com.ftc9929.corelib.state.State;
+import com.ftc9929.corelib.state.StopwatchTimeoutSafetyState;
 import com.google.common.base.Ticker;
 import com.hfrobots.tnt.corelib.state.DelayState;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
@@ -41,7 +42,9 @@ import java.util.concurrent.TimeUnit;
 
 public class WheeledLauncher implements PeriodicTask {
 
-    private static final double LAUNCH_VELOCITY = 1900 ;
+    private static final double LAUNCH_VELOCITY = 4000 ;
+
+    private static final double ACCEPTABLE_VELOCITY = 1900;
 
     private static double GATE_OPEN_POS = 0.2;
     private static double GATE_CLOSE_POS = 0;
@@ -109,7 +112,7 @@ public class WheeledLauncher implements PeriodicTask {
     public boolean isAtTargetVelocity() {
         double currentVelocity = launcherMotor.getVelocity();
 
-        return Math.abs(requestedVelocity - currentVelocity) < 100;
+        return Math.abs(ACCEPTABLE_VELOCITY/*requestedVelocity*/ - currentVelocity) < 100;
     }
 
 
@@ -129,14 +132,20 @@ public class WheeledLauncher implements PeriodicTask {
 
     }
 
-    class LauncherToSpeedState extends State {
+    class LauncherToSpeedState extends StopwatchTimeoutSafetyState {
         LauncherToSpeedState(final Telemetry telemetry) {
-            super("Launcher to speed", telemetry);
+            super("Launcher to speed", telemetry, Ticker.systemTicker(), 4000);
         }
 
         @Override
         public State doStuffAndGetNextState() {
+            if (isTimedOut()){
+                return nextState;
+            }
+
             if (isAtTargetVelocity()) {
+                openGate();
+
                 return nextState;
             }
 
@@ -155,16 +164,17 @@ public class WheeledLauncher implements PeriodicTask {
 
         final LauncherToSpeedState toSpeedState = new LauncherToSpeedState(telemetry);
 
-        final State dropPollenState = new RunnableState("Drop Pollen", telemetry,
-                () -> openGate());
+
+        final State stopFeedingState = new RunnableState("Stop feeding", telemetry,
+                () -> closeGate());
 
         final DelayState waitForLaunchState = new DelayState("waiting for launch", telemetry,
-                5, TimeUnit.SECONDS);
+                10, TimeUnit.SECONDS);
 
         sequenceOfStates.addSequential(startLauncher);
         sequenceOfStates.addSequential(toSpeedState);
-        sequenceOfStates.addSequential(dropPollenState);
         sequenceOfStates.addSequential(waitForLaunchState);
+        sequenceOfStates.addSequential(stopFeedingState);
     }
 
 }
