@@ -36,6 +36,10 @@ public class RollerIntake {
         intakeMotor.setPower(1);
     }
 
+    public void intakeAuto() {
+        intakeMotor.setPower(0.5);
+    }
+
     public void outtake() {
         intakeMotor.setPower(-1);
     }

@@ -44,6 +44,8 @@ public class WheeledLauncher implements PeriodicTask {
 
     private static final double LAUNCH_VELOCITY = 4000 ;
 
+    private static final double LAUNCH_VELOCITY_AUTO = 2100 ;
+
     private static final double ACCEPTABLE_VELOCITY = 1900;
 
     private static double GATE_OPEN_POS = 0.2;
@@ -98,7 +100,9 @@ public class WheeledLauncher implements PeriodicTask {
         maybeSetLaunchVelocity(LAUNCH_VELOCITY);
     }
 
-
+    public void launchVelocityAuto() {
+        maybeSetLaunchVelocity(LAUNCH_VELOCITY_AUTO);
+    }
 
     public void stopLauncher() {
         closeGate();
@@ -112,7 +116,7 @@ public class WheeledLauncher implements PeriodicTask {
     public boolean isAtTargetVelocity() {
         double currentVelocity = launcherMotor.getVelocity();
 
-        return Math.abs(ACCEPTABLE_VELOCITY/*requestedVelocity*/ - currentVelocity) < 100;
+        return Math.abs(requestedVelocity - currentVelocity) < 100;
     }
 
 
@@ -160,7 +164,7 @@ public class WheeledLauncher implements PeriodicTask {
 
     public void addLaunchStates(final SequenceOfStates sequenceOfStates) {
         final State startLauncher = new RunnableState("StartLauncher", telemetry,
-                () -> launchVelocity());
+                () -> launchVelocityAuto());
 
         final LauncherToSpeedState toSpeedState = new LauncherToSpeedState(telemetry);
 

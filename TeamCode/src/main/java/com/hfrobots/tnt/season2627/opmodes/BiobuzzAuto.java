@@ -29,6 +29,7 @@ import static com.hfrobots.tnt.corelib.Constants.Alliance.RED;
 import android.util.Log;
 
 import com.ftc9929.corelib.control.NinjaGamePad;
+import com.ftc9929.corelib.state.RunnableState;
 import com.ftc9929.corelib.state.SequenceOfStates;
 import com.ftc9929.corelib.state.State;
 import com.ftc9929.corelib.state.StateMachine;
@@ -43,6 +44,7 @@ import com.hfrobots.tnt.season2627.FieldCoordinates;
 import com.hfrobots.tnt.season2627.driveteam.BiobuzzDriveTeamSignal;
 import com.hfrobots.tnt.season2627.driveteam.BiobuzzDriverControls;
 
+import com.hfrobots.tnt.season2627.mechanisms.RollerIntake;
 import com.hfrobots.tnt.season2627.mechanisms.WheeledLauncher;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
@@ -73,6 +75,8 @@ public class BiobuzzAuto extends OpMode {
     private StateMachine stateMachine;
 
     private WheeledLauncher wheeledLauncher;
+
+    private RollerIntake intake;
 
     // FIXME: The tasks our robot knows how to do - rename these to
     //  something meaningful for the season!
@@ -120,6 +124,7 @@ public class BiobuzzAuto extends OpMode {
             stateMachine = new StateMachine(telemetry);
 
             wheeledLauncher = new WheeledLauncher(hardwareMap, telemetry, ticker);
+            intake = new RollerIntake(hardwareMap);
 
             signal = new BiobuzzDriveTeamSignal(hardwareMap, ticker, gamepad1, gamepad2);
         });
@@ -342,6 +347,8 @@ public class BiobuzzAuto extends OpMode {
                 }).build();
     }
 
+    final static double PARK_DISTANCE_OFF_WALL = 14;
+
     private void setupLeavePark() {
         final SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
 
@@ -364,13 +371,13 @@ public class BiobuzzAuto extends OpMode {
 
             startPoseY = FieldCoordinates.FLOWER_TOP_OF_FIELD.y - (ROBOT_LENGTH_INCHES / 2);
 
-            frontOfFlowerY = startPoseY - 7;
+            frontOfFlowerY = startPoseY - 10; // would need to be 12, and should be a constant for launching
 
             startHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
 
-            endPoseX = FieldCoordinates.LOADING_ZONE_RED_YCENTER_AGAINST_THE_WALL.x + 10;
+            endPoseX = FieldCoordinates.LOADING_ZONE_RED_YCENTER_AGAINST_THE_WALL.x + PARK_DISTANCE_OFF_WALL;
 
-            endPoseY = FieldCoordinates.LOADING_ZONE_RED_YCENTER_AGAINST_THE_WALL.y + 13;
+            endPoseY = FieldCoordinates.LOADING_ZONE_RED_YCENTER_AGAINST_THE_WALL.y + 13 + 9;
 
             endHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
         } else {
@@ -378,13 +385,13 @@ public class BiobuzzAuto extends OpMode {
 
             startPoseY = FieldCoordinates.FLOWER_BOTTOM_OF_FIELD.y + (ROBOT_LENGTH_INCHES / 2);
 
-            frontOfFlowerY = startPoseY + 7;
+            frontOfFlowerY = startPoseY + 10; // would need to be 12, and should be a constant for launching
 
             startHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
 
-            endPoseX = FieldCoordinates.LOADING_ZONE_BLUE_YCENTER_AGAINST_THE_WALL.x - 10;
+            endPoseX = FieldCoordinates.LOADING_ZONE_BLUE_YCENTER_AGAINST_THE_WALL.x - PARK_DISTANCE_OFF_WALL;
 
-            endPoseY = FieldCoordinates.LOADING_ZONE_BLUE_YCENTER_AGAINST_THE_WALL.y -13;
+            endPoseY = FieldCoordinates.LOADING_ZONE_BLUE_YCENTER_AGAINST_THE_WALL.y -13 - 9;
 
             endHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
         }
@@ -453,7 +460,7 @@ public class BiobuzzAuto extends OpMode {
 
             midpointCurveX = 24;
 
-            endPoseX = FieldCoordinates.LOADING_ZONE_RED_YCENTER_AGAINST_THE_WALL.x + 10;
+            endPoseX = FieldCoordinates.LOADING_ZONE_RED_YCENTER_AGAINST_THE_WALL.x + PARK_DISTANCE_OFF_WALL;
 
             endPoseY = FieldCoordinates.LOADING_ZONE_RED_YCENTER_AGAINST_THE_WALL.y - 13;
 
@@ -471,7 +478,7 @@ public class BiobuzzAuto extends OpMode {
 
             midpointCurveX = 144-24;
 
-            endPoseX = FieldCoordinates.LOADING_ZONE_BLUE_YCENTER_AGAINST_THE_WALL.x - 10;
+            endPoseX = FieldCoordinates.LOADING_ZONE_BLUE_YCENTER_AGAINST_THE_WALL.x - PARK_DISTANCE_OFF_WALL;
 
             endPoseY = FieldCoordinates.LOADING_ZONE_BLUE_YCENTER_AGAINST_THE_WALL.y + 13;
 
@@ -485,6 +492,10 @@ public class BiobuzzAuto extends OpMode {
         final Pose endPose = poseOfDegrees(endPoseX, endPoseY, endHeadingDegrees);
 
         final Path toLaunchPath = line(startPose, launchPose);
+        final State preWarmLauncher = new RunnableState("prewarm launcher", telemetry,
+                () -> wheeledLauncher.launchVelocityAuto());
+        sequenceOfStates.addSequential(preWarmLauncher);
+
         linear(toLaunchPath, startPose, launchPose);
         PedroFollowerState toLaunchPathState =
                 new PedroFollowerState("to and launch", telemetry, pedroFollower, toLaunchPath);
@@ -518,7 +529,16 @@ public class BiobuzzAuto extends OpMode {
     }
 
     private void addLaunchSteps(final SequenceOfStates sequenceOfStates) {
+        final State startIntake = new RunnableState("startIntake", telemetry,
+                () -> intake.intakeAuto());
+
+        sequenceOfStates.addSequential(startIntake);
         wheeledLauncher.addLaunchStates(sequenceOfStates);
+
+        final State stopIntake = new RunnableState("stopIntake", telemetry,
+                () -> intake.stop());
+
+        sequenceOfStates.addSequential(stopIntake);
     }
 
     private Pose poseOfDegrees(final double x, final double y, final double headingDegrees) {
