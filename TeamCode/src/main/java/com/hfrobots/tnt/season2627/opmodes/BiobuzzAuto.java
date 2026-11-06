@@ -57,6 +57,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -83,7 +84,9 @@ public class BiobuzzAuto extends OpMode {
     @Getter
     private enum Task {
         LEAVE("Leave and Park"),
-        LAUNCH_AND_LEAVE("Launch and park");
+        LAUNCH_AND_LEAVE("Launch and park"),
+
+        FLOWER_LAUNCH("Flower side launch");
 
         final String description;
 
@@ -227,6 +230,9 @@ public class BiobuzzAuto extends OpMode {
                 break;
             case LAUNCH_AND_LEAVE:
                 setupLaunchLeavePark();
+                break;
+            case FLOWER_LAUNCH:
+                setupFlowerSideLaunch();
                 break;
             default:
                 stateMachine.addSequential(new DoneState("Default done", telemetry));
@@ -422,6 +428,84 @@ public class BiobuzzAuto extends OpMode {
         stateMachine.addSequence(sequenceOfStates);
     }
 
+    private void setupFlowerSideLaunch() {
+        final SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
+
+        final double startPoseX;
+
+        final double startPoseY;
+
+        final double frontOfFlowerY;
+
+        final double startHeadingDegrees;
+
+        final double endPoseX;
+
+        final double endPoseY;
+
+        final double endHeadingDegrees;
+
+        if (currentAlliance == RED) {
+            startPoseX = FieldCoordinates.RED_HIVE_CENTER_LINE.x; // align center of bot with hive
+
+            startPoseY = FieldCoordinates.FLOWER_TOP_OF_FIELD.y - (ROBOT_LENGTH_INCHES / 2);
+
+            frontOfFlowerY = startPoseY - 12; // would need to be 12, and should be a constant for launching
+
+            startHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
+
+            endPoseX = FieldCoordinates.LOADING_ZONE_RED_YCENTER_AGAINST_THE_WALL.x + PARK_DISTANCE_OFF_WALL;
+
+            endPoseY = FieldCoordinates.LOADING_ZONE_RED_YCENTER_AGAINST_THE_WALL.y + 13 + 6;
+
+            endHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
+        } else {
+            startPoseX = FieldCoordinates.BLUE_HIVE_CENTER_LINE.x;
+
+            startPoseY = FieldCoordinates.FLOWER_BOTTOM_OF_FIELD.y + (ROBOT_LENGTH_INCHES / 2);
+
+            frontOfFlowerY = startPoseY + 12; // would need to be 12, and should be a constant for launching
+
+            startHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
+
+            endPoseX = FieldCoordinates.LOADING_ZONE_BLUE_YCENTER_AGAINST_THE_WALL.x - PARK_DISTANCE_OFF_WALL;
+
+            endPoseY = FieldCoordinates.LOADING_ZONE_BLUE_YCENTER_AGAINST_THE_WALL.y -13 - 6;
+
+            endHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
+        }
+
+
+        final Pose startPose = new Pose(startPoseX, startPoseY,  Math.toRadians(startHeadingDegrees)); // Start Pose of our robot.
+
+        final Pose clearOfFlower = poseOfDegrees(startPoseX, frontOfFlowerY, startHeadingDegrees);
+        final Pose endPose = new Pose(endPoseX, endPoseY, Math.toRadians(endHeadingDegrees));
+
+        final Path clearOfFlowerPath  = line(startPose, clearOfFlower);
+        linear(clearOfFlowerPath, startPose, clearOfFlower);
+
+        final Path parkPath = line(clearOfFlower, endPose);
+        linear(parkPath, clearOfFlower, endPose);
+
+        // Always delay (until we can detect hive tips)
+        sequenceOfStates.addWaitStep("waitForPartner", 15, TimeUnit.SECONDS);
+        preWarmLauncer(sequenceOfStates);
+        pedroFollower.setPose(startPose);
+
+        PedroFollowerState clearOfFlowerState = new PedroFollowerState("Getting clear of flower", telemetry, pedroFollower, clearOfFlowerPath);
+        sequenceOfStates.addSequential(clearOfFlowerState);
+
+        addLaunchSteps(sequenceOfStates);
+
+        PedroFollowerState parkPathState = new PedroFollowerState("leave and park", telemetry, pedroFollower, parkPath);
+
+        sequenceOfStates.addSequential(parkPathState);
+
+        commonCompletionStates(sequenceOfStates);
+
+        stateMachine.addSequence(sequenceOfStates);
+    }
+
     private void linear(final Path path, final Pose startPose, final Pose endPose) {
         path.setLinearHeadingInterpolation(startPose.getHeading(), endPose.getHeading());
     }
@@ -492,9 +576,7 @@ public class BiobuzzAuto extends OpMode {
         final Pose endPose = poseOfDegrees(endPoseX, endPoseY, endHeadingDegrees);
 
         final Path toLaunchPath = line(startPose, launchPose);
-        final State preWarmLauncher = new RunnableState("prewarm launcher", telemetry,
-                () -> wheeledLauncher.launchVelocityAuto());
-        sequenceOfStates.addSequential(preWarmLauncher);
+        preWarmLauncer(sequenceOfStates);
 
         linear(toLaunchPath, startPose, launchPose);
         PedroFollowerState toLaunchPathState =
@@ -517,6 +599,12 @@ public class BiobuzzAuto extends OpMode {
         commonCompletionStates(sequenceOfStates);
 
         stateMachine.addSequence(sequenceOfStates);
+    }
+
+    private void preWarmLauncer(SequenceOfStates sequenceOfStates) {
+        final State preWarmLauncher = new RunnableState("prewarm launcher", telemetry,
+                () -> wheeledLauncher.launchVelocityAuto());
+        sequenceOfStates.addSequential(preWarmLauncher);
     }
 
     @androidx.annotation.NonNull
