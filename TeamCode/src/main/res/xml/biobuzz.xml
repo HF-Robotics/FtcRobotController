@@ -42,12 +42,14 @@ SOFTWARE.
             <Motor name="rightRearDriveMotor"  port="3" /> <!-- Green  -->
 
             <Servo name="ledIndicatorBack"      port="5" /> <!-- Purple -->
+            <Servo name="rightFlowerServo"      port="1"  /> <!-- Orange -->
         </LynxModule>
         <LynxModule name="Expansion Hub 5" port="5">
             <Motor name="intakeMotor"          port="0" /> <!-- Red -->
             <Motor name="launcherMotor"        port="1" /> <!-- Orange -->
 
-            <ContinuousRotationServo name="gateServo"             port="0" /> <!-- Red -->
+            <ContinuousRotationServo name="gateServo" port="0" />  <!-- Red -->
+            <Servo name="leftFlowerServo"             port="1"  /> <!-- Orange -->
         </LynxModule>
     </LynxUsbDevice>
 </Robot>

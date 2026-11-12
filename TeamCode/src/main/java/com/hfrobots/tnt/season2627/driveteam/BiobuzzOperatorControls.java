@@ -87,6 +87,10 @@ public class BiobuzzOperatorControls implements PeriodicTask {
 
     private OnOffButton gateOpen;
 
+    private DebouncedButton flowerPollenCollectorDeploy;
+
+    private DebouncedButton flowerPollenCollectorStow;
+
     // FIXME: Add all of the mechanisms controlled by the operator here, and add them to
     // the constructor, and set them there from the constructor arguments
 
@@ -193,6 +197,8 @@ public class BiobuzzOperatorControls implements PeriodicTask {
 
         gateOpen = rightBumper;
 
+        flowerPollenCollectorDeploy = yYellowButton.debounced();
+        flowerPollenCollectorStow = aGreenButton.debounced();
 
     }
 
@@ -211,6 +217,14 @@ public class BiobuzzOperatorControls implements PeriodicTask {
                 intake.outtake();
             } else {
                 intake.stop();
+            }
+
+            if (flowerPollenCollectorDeploy.getRise()) {
+                intake.deployFlowerPollenCollector();
+            }
+
+            if (flowerPollenCollectorStow.getRise()) {
+                intake.stowFlowerPollenCollector();
             }
         }
 

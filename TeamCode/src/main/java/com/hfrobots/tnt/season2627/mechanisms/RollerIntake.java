@@ -24,12 +24,28 @@ package com.hfrobots.tnt.season2627.mechanisms;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 public class RollerIntake {
+    private static final double LEFT_FLOWER_SERVO_DEPLOYED = 0;
+
+    private static final double LEFT_FLOWER_SERVO_STOWED = 0;
+
+    private static final double RIGHT_FLOWER_SERVO_DEPLOYED = 0;
+
+    private static final double RIGHT_FLOWER_SERVO_STOWED = 0;
+
     private final DcMotorEx intakeMotor;
+
+    private final Servo leftFlowerServo;
+
+    private final Servo rightFlowerServo;
 
     public RollerIntake(final HardwareMap hardwareMap) {
         intakeMotor = hardwareMap.get(DcMotorEx.class, "intakeMotor");
+        leftFlowerServo = hardwareMap.get(Servo.class, "leftFlowerServo");
+        rightFlowerServo = hardwareMap.get(Servo.class, "rightFlowerServo");
+
     }
 
     public void intake() {
@@ -50,5 +66,15 @@ public class RollerIntake {
 
     public boolean isMoving() {
         return intakeMotor.getPower() != 0;
+    }
+
+    public void deployFlowerPollenCollector() {
+        leftFlowerServo.setPosition(LEFT_FLOWER_SERVO_DEPLOYED);
+        rightFlowerServo.setPosition(RIGHT_FLOWER_SERVO_DEPLOYED);
+    }
+
+    public void stowFlowerPollenCollector() {
+        leftFlowerServo.setPosition(LEFT_FLOWER_SERVO_STOWED);
+        rightFlowerServo.setPosition(RIGHT_FLOWER_SERVO_STOWED);
     }
 }
