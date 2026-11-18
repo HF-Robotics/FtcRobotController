@@ -27,11 +27,6 @@ import com.ftc9929.corelib.control.OnOffButton;
 import com.ftc9929.corelib.control.RangeInput;
 import com.ftc9929.corelib.control.RangeInputButton;
 import com.hfrobots.tnt.corelib.task.PeriodicTask;
-import com.hfrobots.tnt.season2324.CenterstageDriveTeamSignal;
-import com.hfrobots.tnt.season2324.DroneLauncher;
-import com.hfrobots.tnt.season2324.Hanger;
-import com.hfrobots.tnt.season2324.Intake;
-import com.hfrobots.tnt.season2324.ScoringMechanism;
 
 import lombok.Builder;
 

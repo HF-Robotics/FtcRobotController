@@ -222,22 +222,27 @@ public class BiobuzzAuto extends OpMode {
     private void setupStateMachine() {
         Task selectedTask = possibleTaskChoices[selectedTaskIndex];
 
+        final SequenceOfStates steps;
+
         // FIXME: Change the methods in the switch() below to align with
         // the name of each task
         switch (selectedTask) {
             case LEAVE:
-                setupLeavePark();
+                steps = setupLeavePark();
                 break;
             case LAUNCH_AND_LEAVE:
-                setupLaunchLeavePark();
+                steps = setupLaunchLeavePark();
                 break;
             case FLOWER_LAUNCH:
-                setupFlowerSideLaunch();
+                steps = setupFlowerSideLaunch();
                 break;
             default:
-                stateMachine.addSequential(new DoneState("Default done", telemetry));
+                steps = new SequenceOfStates(ticker, telemetry);
+                steps.addSequential(new DoneState("Default done", telemetry));
                 break;
         }
+
+        stateMachine.addSequence(steps);
 
         if (initialDelaySeconds != 0) {
             stateMachine.addStartDelay(initialDelaySeconds, Ticker.systemTicker());
@@ -355,7 +360,7 @@ public class BiobuzzAuto extends OpMode {
 
     final static double PARK_DISTANCE_OFF_WALL = 14;
 
-    private void setupLeavePark() {
+    private SequenceOfStates setupLeavePark() {
         final SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
 
         final double startPoseX;
@@ -425,10 +430,10 @@ public class BiobuzzAuto extends OpMode {
 
         commonCompletionStates(sequenceOfStates);
 
-        stateMachine.addSequence(sequenceOfStates);
+        return sequenceOfStates;
     }
 
-    private void setupFlowerSideLaunch() {
+    private SequenceOfStates setupFlowerSideLaunch() {
         final SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
 
         final double startPoseX;
@@ -445,6 +450,10 @@ public class BiobuzzAuto extends OpMode {
 
         final double endHeadingDegrees;
 
+        final Pose startPose;
+        final Pose clearOfFlower;
+        final Pose endPose;
+
         if (currentAlliance == RED) {
             startPoseX = FieldCoordinates.RED_HIVE_CENTER_LINE.x; // align center of bot with hive
 
@@ -459,6 +468,10 @@ public class BiobuzzAuto extends OpMode {
             endPoseY = FieldCoordinates.LOADING_ZONE_RED_YCENTER_AGAINST_THE_WALL.y + 13 + 6;
 
             endHeadingDegrees = FieldCoordinates.AWAY_FROM_AUDIENCE;
+
+            startPose = new Pose(startPoseX, startPoseY,  Math.toRadians(startHeadingDegrees)); // Start Pose of our robot.
+            clearOfFlower = poseOfDegrees(startPoseX, frontOfFlowerY, startHeadingDegrees);
+            endPose = new Pose(endPoseX, endPoseY, Math.toRadians(endHeadingDegrees));
         } else {
             startPoseX = FieldCoordinates.BLUE_HIVE_CENTER_LINE.x;
 
@@ -473,13 +486,11 @@ public class BiobuzzAuto extends OpMode {
             endPoseY = FieldCoordinates.LOADING_ZONE_BLUE_YCENTER_AGAINST_THE_WALL.y -13 - 6;
 
             endHeadingDegrees = FieldCoordinates.TOWARDS_AUDIENCE;
+
+            startPose = new Pose(startPoseX, startPoseY,  Math.toRadians(startHeadingDegrees)); // Start Pose of our robot.
+            clearOfFlower = poseOfDegrees(startPoseX, frontOfFlowerY, startHeadingDegrees);
+            endPose = new Pose(endPoseX, endPoseY, Math.toRadians(endHeadingDegrees));
         }
-
-
-        final Pose startPose = new Pose(startPoseX, startPoseY,  Math.toRadians(startHeadingDegrees)); // Start Pose of our robot.
-
-        final Pose clearOfFlower = poseOfDegrees(startPoseX, frontOfFlowerY, startHeadingDegrees);
-        final Pose endPose = new Pose(endPoseX, endPoseY, Math.toRadians(endHeadingDegrees));
 
         final Path clearOfFlowerPath  = line(startPose, clearOfFlower);
         linear(clearOfFlowerPath, startPose, clearOfFlower);
@@ -503,14 +514,14 @@ public class BiobuzzAuto extends OpMode {
 
         commonCompletionStates(sequenceOfStates);
 
-        stateMachine.addSequence(sequenceOfStates);
+        return sequenceOfStates;
     }
 
     private void linear(final Path path, final Pose startPose, final Pose endPose) {
         path.setLinearHeadingInterpolation(startPose.getHeading(), endPose.getHeading());
     }
 
-    private void setupLaunchLeavePark() {
+    private SequenceOfStates setupLaunchLeavePark() {
         final SequenceOfStates sequenceOfStates = new SequenceOfStates(ticker, telemetry);
 
         final double startPoseX;
@@ -598,7 +609,7 @@ public class BiobuzzAuto extends OpMode {
 
         commonCompletionStates(sequenceOfStates);
 
-        stateMachine.addSequence(sequenceOfStates);
+        return sequenceOfStates;
     }
 
     private void preWarmLauncer(SequenceOfStates sequenceOfStates) {
