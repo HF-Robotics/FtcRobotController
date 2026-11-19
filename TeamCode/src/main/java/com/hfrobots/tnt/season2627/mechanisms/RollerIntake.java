@@ -27,9 +27,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 public class RollerIntake {
-    private static final double LEFT_FLOWER_SERVO_DEPLOYED = 0.51;
+    private static final double LEFT_FLOWER_SERVO_DEPLOYED = 0.03;
 
-    private static final double LEFT_FLOWER_SERVO_STOWED = .47;
+    private static final double LEFT_FLOWER_SERVO_STOWED = 0.36;
 
     private static final double RIGHT_FLOWER_SERVO_DEPLOYED = 0;
 
@@ -45,7 +45,6 @@ public class RollerIntake {
         intakeMotor = hardwareMap.get(DcMotorEx.class, "intakeMotor");
         leftFlowerServo = hardwareMap.get(Servo.class, "leftFlowerServo");
         rightFlowerServo = hardwareMap.get(Servo.class, "rightFlowerServo");
-        stowFlowerPollenCollector();
     }
 
     public void intake() {
@@ -76,5 +75,9 @@ public class RollerIntake {
     public void stowFlowerPollenCollector() {
         leftFlowerServo.setPosition(LEFT_FLOWER_SERVO_STOWED);
         rightFlowerServo.setPosition(RIGHT_FLOWER_SERVO_STOWED);
+    }
+
+    public boolean flowerPollenCollectorDeployed() {
+        return Math.abs(leftFlowerServo.getPosition() - LEFT_FLOWER_SERVO_DEPLOYED) < .01;
     }
 }

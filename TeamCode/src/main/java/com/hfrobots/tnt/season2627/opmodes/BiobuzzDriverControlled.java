@@ -42,6 +42,7 @@ import com.hfrobots.tnt.util.TimeTracker;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import java.util.List;
 
@@ -176,6 +177,10 @@ public class BiobuzzDriverControlled extends OpMode {
             if (driveTeamSignal != null) {
                 driveTeamSignal.startMatch();
             }
+
+            if (intake != null) {
+                intake.stowFlowerPollenCollector();
+            }
         });
     }
 
@@ -209,6 +214,7 @@ public class BiobuzzDriverControlled extends OpMode {
             });
         });
 
+        telemetry.addData("Pollen collector:", intake.flowerPollenCollectorDeployed() ? "dep" : "stowed");
         telemetry.update();
     }
 }
