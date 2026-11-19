@@ -51,6 +51,10 @@ public class ServoTester extends OpMode {
 
     private DebouncedButton dpadDown;
 
+    private DebouncedButton dpadLeft;
+
+    private DebouncedButton dpadRight;
+
     @Override
     public void init() {
         NamedDeviceMap namedDeviceMap = new NamedDeviceMap(hardwareMap);
@@ -65,12 +69,16 @@ public class ServoTester extends OpMode {
 
         NinjaGamePad ninjaGamePad = new NinjaGamePad(gamepad1);
         rightBumper = new DebouncedButton(ninjaGamePad.getRightBumper());
-        dpadUp = new DebouncedButton(ninjaGamePad.getDpadUp());
-        dpadDown = new DebouncedButton(ninjaGamePad.getDpadDown());
+        dpadUp = ninjaGamePad.getDpadUp().debounced();
+        dpadDown = ninjaGamePad.getDpadDown().debounced();
+        dpadLeft = ninjaGamePad.getDpadLeft().debounced();
+        dpadRight = ninjaGamePad.getDpadRight().debounced();
     }
 
     @Override
     public void loop() {
+        telemetry.addData("Adjust with gamepad 1: stick 1 y, dpad l/r/u/d", "");
+
         if (namedServos.isEmpty()) {
             telemetry.addData("No servos", "");
             updateTelemetry(telemetry);
@@ -96,9 +104,13 @@ public class ServoTester extends OpMode {
         double microAdjust;
 
         if (dpadUp.getRise()) {
-            microAdjust = 0.001;
+            microAdjust = 0.01;
         } else if (dpadDown.getRise()) {
-            microAdjust = -0.001;
+            microAdjust = -0.01;
+        } else if (dpadRight.getRise()) {
+            microAdjust = 0.1;
+        } else if (dpadLeft.getRise()) {
+            microAdjust = -.1;
         } else {
             microAdjust = 0;
         }
